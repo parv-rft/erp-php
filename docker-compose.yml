@@ -1,0 +1,33 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+    # Override database hostname in config file
+    # Note: This sed command modifies the file inside the container
+    command: |
+      bash -c "sed -i \"s/'hostname' => 'localhost'/'hostname' => 'db'/g\" /var/www/html/application/config/database.php && \
+               sed -i \"s/define('ENVIRONMENT', isset(\\\$_SERVER['CI_ENV']) ? \\\$_SERVER['CI_ENV'] : 'production');/define('ENVIRONMENT', 'development');/g\" /var/www/html/index.php && \
+               apache2-foreground"
+    environment:
+      # Ensure CodeIgniter uses the correct base URL inside the container
+      # Adjust if your actual domain differs when running locally
+      CODEIGNITER_BASE_URL: http://localhost:8080/
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: school
+      # Allow root login without password (matches default config)
+      # WARNING: Not secure for production!
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data: 
