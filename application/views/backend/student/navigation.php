@@ -105,12 +105,21 @@
          </ul>
     </li>
 
+            <li class="<?php if ($page_name == 'attendance_report') echo 'active'; ?> ">
+                <a href="<?php echo base_url(); ?>student/attendance_report">
+                    <i class="fa fa-calendar-check-o p-r-10"></i>
+                        <span class="hide-menu"><?php echo get_phrase('Attendance Report'); ?></span>
+                </a>
+            </li> 
+
+            <!-- Invoice Link Hidden 
             <li class="<?php if ($page_name == 'invoice') echo 'active'; ?> ">
                 <a href="<?php echo base_url(); ?>student/invoice">
                     <i class="fa fa-paypal p-r-10"></i>
                         <span class="hide-menu"><?php echo get_phrase('Invoice'); ?></span>
                 </a>
             </li> 
+            -->
 
         <li class="<?php if ($page_name == 'payment_history') echo 'active'; ?> ">
                 <a href="<?php echo base_url(); ?>student/payment_history">

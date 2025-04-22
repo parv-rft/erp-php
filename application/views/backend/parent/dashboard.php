@@ -1,6 +1,6 @@
  <!--row -->
  <div class="row">
-                    <div class="col-md-3 col-sm-6">
+                    <!-- <div class="col-md-3 col-sm-6">
                         <div class="white-box">
                             <div class="r-icon-stats">
                                 <i class="ti-user bg-megna"></i>
@@ -53,159 +53,167 @@
                         </div>
                     </div>
 
-               
+                -->
           
                 <!--/row -->
                 <!-- .row -->
-               
+                <?php if (isset($student_info) && $student_info): // Check if student info exists ?>
+
+                    <!-- Start Recent Attendance Panel -->
                     <div class="col-md-12 col-sm-12 col-xs-12">
                         <div class="white-box">
-                            <div class="stats-row">
-                                
-
-                        <style>
-                        #chartdiv {
-                        width: 100%;
-                        height: 500px;
-                        }
-
-                        .amcharts-chart-div a{
-                            display:none !important;
-                        }	
-
-                        </style>
-
-              
-
-                        <!-- Chart code -->
-                        <script>
-                        am4core.ready(function() {
-
-                        // Themes begin
-                        am4core.useTheme(am4themes_animated);
-                        // Themes end
-
-                        /**
-                        * Chart design taken from Samsung health app
-                        */
-
-                        var chart = am4core.create("chartdiv", am4charts.XYChart);
-                        chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
-
-                        chart.paddingBottom = 30;
-
-                        chart.data = [
-                
-                        <?php 
-                        $parent_student_logic = $this->db->get_where('student', array('parent_id'=> $this->session->userdata('parent_id')))->row()->student_id;
-                        $select_student = $this->db->get_where('invoice', array('year' => $running_year, 'student_id' => $parent_student_logic))->result_array(); //$this->crud_model->get_invoice_info();
-                            foreach ($select_student as $key => $student_selected):?>
-                            
-                            {
-                            "name": "<?php echo $this->crud_model->get_type_name_by_id('student', $student_selected['student_id']);?>",
-                            "steps": <?php echo $student_selected['amount_paid'];?>,
-                            "href": "<?php echo base_url();?>uploads/student_image/<?php echo $student_selected['student_id']. '.jpg';?>"
-                            }, 
-                        <?php endforeach;?>
-                        
-                        ];
-
-                        var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
-                        categoryAxis.dataFields.category = "name";
-                        categoryAxis.renderer.grid.template.strokeOpacity = 0;
-                        categoryAxis.renderer.minGridDistance = 10;
-                        categoryAxis.renderer.labels.template.dy = 35;
-                        categoryAxis.renderer.tooltip.dy = 35;
-
-                        var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-                        valueAxis.renderer.inside = true;
-                        valueAxis.renderer.labels.template.fillOpacity = 0.3;
-                        valueAxis.renderer.grid.template.strokeOpacity = 0;
-                        valueAxis.min = 0;
-                        valueAxis.cursorTooltipEnabled = false;
-                        valueAxis.renderer.baseGrid.strokeOpacity = 0;
-
-                        var series = chart.series.push(new am4charts.ColumnSeries);
-                        series.dataFields.valueY = "steps";
-                        series.dataFields.categoryX = "name";
-                        series.tooltipText = "{valueY.value}";
-                        series.tooltip.pointerOrientation = "vertical";
-                        series.tooltip.dy = - 6;
-                        series.columnsContainer.zIndex = 100;
-
-                        var columnTemplate = series.columns.template;
-                        columnTemplate.width = am4core.percent(50);
-                        columnTemplate.maxWidth = 66;
-                        columnTemplate.column.cornerRadius(60, 60, 10, 10);
-                        columnTemplate.strokeOpacity = 0;
-
-                        series.heatRules.push({ target: columnTemplate, property: "fill", dataField: "valueY", min: am4core.color("#e5dc36"), max: am4core.color("#5faa46") });
-                        series.mainContainer.mask = undefined;
-
-                        var cursor = new am4charts.XYCursor();
-                        chart.cursor = cursor;
-                        cursor.lineX.disabled = true;
-                        cursor.lineY.disabled = true;
-                        cursor.behavior = "none";
-
-                        var bullet = columnTemplate.createChild(am4charts.CircleBullet);
-                        bullet.circle.radius = 30;
-                        bullet.valign = "bottom";
-                        bullet.align = "center";
-                        bullet.isMeasured = true;
-                        bullet.mouseEnabled = false;
-                        bullet.verticalCenter = "bottom";
-                        bullet.interactionsEnabled = false;
-
-                        var hoverState = bullet.states.create("hover");
-                        var outlineCircle = bullet.createChild(am4core.Circle);
-                        outlineCircle.adapter.add("radius", function (radius, target) {
-                            var circleBullet = target.parent;
-                            return circleBullet.circle.pixelRadius + 10;
-                        })
-
-                        var image = bullet.createChild(am4core.Image);
-                        image.width = 60;
-                        image.height = 60;
-                        image.horizontalCenter = "middle";
-                        image.verticalCenter = "middle";
-                        image.propertyFields.href = "href";
-
-                        image.adapter.add("mask", function (mask, target) {
-                            var circleBullet = target.parent;
-                            return circleBullet.circle;
-                        })
-
-                        var previousBullet;
-                        chart.cursor.events.on("cursorpositionchanged", function (event) {
-                            var dataItem = series.tooltipDataItem;
-
-                            if (dataItem.column) {
-                                var bullet = dataItem.column.children.getIndex(1);
-
-                                if (previousBullet && previousBullet != bullet) {
-                                    previousBullet.isHover = false;
-                                }
-
-                                if (previousBullet != bullet) {
-
-                                    var hs = bullet.states.getKey("hover");
-                                    hs.properties.dy = -bullet.parent.pixelHeight + 30;
-                                    bullet.isHover = true;
-
-                                    previousBullet = bullet;
-                                }
-                            }
-                        })
-
-                        }); // end am4core.ready()
-                        </script>
-
-                        <!-- HTML -->
-                        <div id="chartdiv"></div>
-
-
+                            <h3 class="box-title" style="font-size: 1.5em; color: #7F7F7F;"><?php echo get_phrase('Recent_Attendance');?> (<?php echo $student_info->name; ?>)</h3>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th><?php echo get_phrase('Date');?></th>
+                                            <th><?php echo get_phrase('Day');?></th>
+                                            <th><?php echo get_phrase('Status');?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php 
+                                        if ($start_date && $today_date):
+                                            $current_dt = new DateTime($start_date);
+                                            $end_dt = new DateTime($today_date);
+                                            
+                                            while ($current_dt <= $end_dt):
+                                                $full_date = $current_dt->format('Y-m-d');
+                                                $timestamp = $current_dt->getTimestamp();
+                                                $day_name = date('l', $timestamp);
+                                                $status = isset($attendance_data[$full_date]) ? $attendance_data[$full_date] : null; 
+                                        ?>
+                                        <tr>
+                                            <td><?php echo date('d M Y', $timestamp); ?></td>
+                                            <td><?php echo get_phrase(strtolower($day_name)); ?></td>
+                                            <td>
+                                                <?php if ($status == '1'): ?>
+                                                    <span class="label label-success"><?php echo get_phrase('present');?></span>
+                                                <?php elseif ($status == '2'): ?>
+                                                    <span class="label label-danger"><?php echo get_phrase('absent');?></span>
+                                                <?php elseif ($status == '3'): ?>
+                                                    <span class="label label-warning"><?php echo get_phrase('holiday');?></span>
+                                                <?php else: // No record found or other status ?>
+                                                    <span class="label label-default"><?php echo get_phrase('undefined');?></span>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                        <?php 
+                                            $current_dt->modify('+1 day');
+                                            endwhile;
+                                        else: 
+                                        ?>
+                                         <tr>
+                                            <td colspan="3" style="text-align: center;"><?php echo get_phrase('attendance_data_not_available');?></td>
+                                        </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
+                    <!-- End Recent Attendance Panel -->
+
+                    <!-- Start Teacher List Panel -->
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div class="white-box">
+                            <h3 class="box-title" style="font-size: 1.5em; color: #7F7F7F;"><?php echo get_phrase('School_Teachers');?></h3>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th width="80"><div><?php echo get_phrase('photo');?></div></th>
+                                            <th><div><?php echo get_phrase('name');?></div></th>
+                                            <th><div><?php echo get_phrase('role');?></div></th>
+                                            <th><div><?php echo get_phrase('email');?></div></th>
+                                            <th><div><?php echo get_phrase('phone');?></div></th>
+                                            <th><div><?php echo get_phrase('gender');?></div></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach($all_teachers as $row): ?>
+                                        <tr>
+                                            <td><img src="<?php echo $this->crud_model->get_image_url('teacher', $row['teacher_id']);?>" class="img-circle" width="30"></td>
+                                            <td><?php echo $row['name'];?></td>
+                                            <td>
+                                                <?php 
+                                                if($row['role'] == 1) echo get_phrase('class_teacher');
+                                                elseif($row['role'] == 2) echo get_phrase('subject_teacher');
+                                                else echo get_phrase('teacher'); 
+                                                ?>
+                                            </td>
+                                            <td><?php echo $row['email'] ? $row['email'] : '-';?></td>
+                                            <td><?php echo $row['phone'] ? $row['phone'] : '-';?></td>
+                                            <td><?php echo $row['sex'] ? $row['sex'] : '-'; ?></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                        <?php if (empty($all_teachers)): ?>
+                                            <tr>
+                                                <td colspan="6" style="text-align: center;"><?php echo get_phrase('no_teachers_found');?></td>
+                                            </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End Teacher List Panel Col -->
+
+                    <!-- Start Recent Payment History Panel -->
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <div class="white-box">
+                            <h3 class="box-title" style="font-size: 1.5em; color: #7F7F7F;"><?php echo get_phrase('Recent_Payment_History');?> (<?php echo $student_info->name; ?>)</h3>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th><div>#</div></th>
+                                            <th><div><?php echo get_phrase('title');?></div></th>
+                                            <th><div><?php echo get_phrase('method');?></div></th>
+                                            <th><div><?php echo get_phrase('amount');?></div></th>
+                                            <th><div><?php echo get_phrase('date');?></div></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php 
+                                        $count = 1;
+                                        $currency_symbol = $this->db->get_where('settings', array('type' => 'currency'))->row()->description; 
+                                        foreach($recent_payments as $row): 
+                                    ?>
+                                        <tr>
+                                            <td><?php echo $count++;?></td>
+                                            <td><?php echo $row['title'];?></td>
+                                            <td>
+                                                <?php 
+                                                    if($row['method'] == 1) echo get_phrase('card');
+                                                    if($row['method'] == 2) echo get_phrase('cash');
+                                                    if($row['method'] == 3) echo get_phrase('cheque');
+                                                    if($row['method'] == 'paypal') echo get_phrase('paypal');
+                                                ?>
+                                            </td>
+                                            <td><?php echo $currency_symbol; ?><?php echo $row['amount'];?></td>
+                                            <td><?php echo date('d M, Y', $row['timestamp']);?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    <?php if (empty($recent_payments)): ?>
+                                        <tr>
+                                            <td colspan="5" style="text-align: center;"><?php echo get_phrase('no_recent_payments_found');?></td>
+                                        </tr>
+                                    <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End Recent Payment History Panel -->
+
+                <?php else: ?>
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                         <div class="alert alert-warning">
+                            <?php echo get_phrase('no_student_linked_to_this_parent_account'); ?>
+                         </div>
+                    </div>
+                <?php endif; // End check for student info ?>
+
 </div>

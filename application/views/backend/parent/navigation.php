@@ -105,12 +105,14 @@
          </ul>
     </li>
 
-            <li class="<?php if ($page_name == 'invoice') echo 'active'; ?> ">
-                <a href="<?php echo base_url(); ?>parents/invoice">
-                    <i class="fa fa-paypal p-r-10"></i>
-                        <span class="hide-menu"><?php echo get_phrase('Invoice'); ?></span>
-                </a>
-            </li> 
+    <!-- 
+             <li class="<?php if ($page_name == 'invoice') echo 'active'; ?> ">
+                 <a href="<?php echo base_url(); ?>parents/invoice">
+                     <i class="fa fa-paypal p-r-10"></i>
+                         <span class="hide-menu"><?php echo get_phrase('Invoice'); ?></span>
+                 </a>
+             </li> 
+     -->
 
         <li class="<?php if ($page_name == 'payment_history') echo 'active'; ?> ">
                 <a href="<?php echo base_url(); ?>parents/payment_history">

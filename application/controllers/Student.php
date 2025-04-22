@@ -13,8 +13,64 @@ class Student extends CI_Controller {
      /*student dashboard code to redirect to student page if successfull login** */
      function dashboard() {
         if ($this->session->userdata('student_login') != 1) redirect(base_url(), 'refresh');
+
+        $student_id = $this->session->userdata('student_id');
+        
+        // Get today and the date 2 days prior
+        $today_dt = new DateTime();
+        $start_dt = new DateTime();
+        $start_dt->modify('-2 days');
+
+        $today_date = $today_dt->format('Y-m-d');
+        $start_date = $start_dt->format('Y-m-d');
+
+        // Fetch attendance for the last 3 days (inclusive)
+        $this->db->select('date, status'); // Ensure we select status
+        $this->db->where('student_id', $student_id);
+        $this->db->where('date >=', $start_date);
+        $this->db->where('date <=', $today_date);
+        $this->db->order_by('date', 'DESC'); // Order descending to easily get last 3
+        $attendance_query = $this->db->get('attendance');
+        
+        // Process attendance data into a more usable format (date => status)
+        $attendance_data = array();
+        if ($attendance_query !== false && $attendance_query->num_rows() > 0) {
+            foreach ($attendance_query->result() as $row) {
+                // Ensure date and status properties exist before accessing
+                if (isset($row->date) && isset($row->status)) {
+                    // Use Y-m-d format as key
+                    $attendance_data[date('Y-m-d', strtotime($row->date))] = $row->status; 
+                } else {
+                    log_message('error', 'Attendance record missing date or status property for student_id: ' . $student_id);
+                }
+            }
+        } elseif ($attendance_query === false) {
+            log_message('error', 'Database error fetching attendance: ' . $this->db->error()['message']);
+        }
+
+        // Fetch all teachers for the dashboard view
+        $this->db->select('teacher_id, name, role, email, phone, sex');
+        $all_teachers = $this->db->get('teacher')->result_array();
+
+        // Fetch last 4 payment records for the student
+        $this->db->select('title, description, method, amount, timestamp');
+        $this->db->where('student_id', $student_id);
+        $this->db->order_by('timestamp', 'DESC');
+        $this->db->limit(4);
+        $recent_payments = $this->db->get('payment')->result_array();
+
        	$page_data['page_name'] = 'dashboard';
         $page_data['page_title'] = get_phrase('student Dashboard');
+        $page_data['attendance_data'] = $attendance_data; // Pass attendance data to view
+        $page_data['start_date'] = $start_date;
+        $page_data['today_date'] = $today_date;
+        $page_data['all_teachers'] = $all_teachers; // Pass all teachers data to view
+        $page_data['recent_payments'] = $recent_payments; // Pass recent payments
+        // These month/year vars are no longer needed for this display
+        // $page_data['current_month'] = $current_month;
+        // $page_data['current_year'] = $current_year;
+        // $page_data['days_in_month'] = $days_in_month;
+
         $this->load->view('backend/index', $page_data);
     }
 	/******************* / student dashboard code to redirect to student page if successfull login** */
@@ -72,23 +128,56 @@ class Student extends CI_Controller {
 
         function teacher (){
 
-
             $student_profile = $this->db->get_where('student', array('student_id' => $this->session->userdata('student_id')))->row();
-            $select_student_class_id = $student_profile->class_id;
+            $class_id = $student_profile->class_id;
 
-            $return_teacher_id = $this->db->get_where('subject', array('class_id' => $select_student_class_id))->row()->teacher_id;
-
+            // Find all unique teacher IDs associated with subjects for this class
+            $this->db->select('teacher_id');
+            $this->db->distinct();
+            $this->db->where('class_id', $class_id);
+            $subject_query = $this->db->get('subject');
+            $teacher_ids = array();
+            if ($subject_query->num_rows() > 0) {
+                foreach ($subject_query->result() as $row) {
+                    if (!empty($row->teacher_id)) { // Ensure teacher_id is not empty
+                        $teacher_ids[] = $row->teacher_id;
+                    }
+                }
+            }
+            
+            $class_teachers = array();
+            if (!empty($teacher_ids)) {
+                 // Fetch details for these teachers
+                $this->db->select('teacher_id, name, role, email, phone, sex');
+                $this->db->where_in('teacher_id', $teacher_ids);
+                $class_teachers = $this->db->get('teacher')->result_array();
+            }
 
             $page_data['page_name']     = 'teacher';
             $page_data['page_title']    = get_phrase('Class Teachers');
-            $page_data['select_teacher']  = $this->db->get_where('teacher', array('teacher_id' => $return_teacher_id))->result_array();
+            $page_data['teachers']  = $class_teachers; // Pass the array of teachers
             $this->load->view('backend/index', $page_data);
         }
 
         function class_mate (){
 
-            $student_profile = $this->db->get_where('student', array('student_id' => $this->session->userdata('student_id')))->row();
-            $page_data['select_student_class_id']  = $student_profile->class_id;
+            $current_student_id = $this->session->userdata('student_id');
+            $student_profile = $this->db->get_where('student', array('student_id' => $current_student_id))->row();
+            
+            if ($student_profile) {
+                $class_id = $student_profile->class_id;
+
+                // Fetch classmates (students in the same class, excluding the current student)
+                $this->db->select('name, phone, email, sex'); // Select required columns
+                $this->db->where('class_id', $class_id);
+                $this->db->where('student_id !=', $current_student_id); // Exclude self
+                $page_data['classmates'] = $this->db->get('student')->result_array();
+            } else {
+                // Handle case where student profile might not be found (optional, but good practice)
+                $page_data['classmates'] = array(); 
+            }
+
+            // $page_data['select_student_class_id']  = $student_profile->class_id; // No longer needed in view
             $page_data['page_name']     = 'class_mate';
             $page_data['page_title']    = get_phrase('Class Mate');
             $this->load->view('backend/index', $page_data);
@@ -108,6 +197,10 @@ class Student extends CI_Controller {
 
         function invoice($param1 = null, $param2 = null, $param3 = null){
 
+            // --- TEMPORARY DEBUGGING --- 
+            // Commenting out problematic sections to isolate the endless loading issue
+            // Keep PayPal processing commented out for now
+            /* 
             if($param1 == 'make_payment'){
 
                 $invoice_id = $this->input->post('invoice_id');
@@ -168,12 +261,18 @@ class Student extends CI_Controller {
                 $this->session->set_flashdata('flash_message', get_phrase('Payment Successful'));
                 redirect(base_url() . 'student/invoice', 'refresh');
             }
+            */
+            // --- END TEMPORARY DEBUGGING ---
            
+            // Fetch student details once
+            $student_info = $this->db->get_where('student', array('student_id' => $this->session->userdata('student_id')))->row();
+            $student_id = $student_info->student_id; // Keep the ID
+            $student_name = $student_info->name; // Get the name
 
-            $student_profile = $this->db->get_where('student', array('student_id' => $this->session->userdata('student_id')))->row();
-            $student_profile = $student_profile->student_id;
+            // Fetch the invoices for the student
+            $page_data['invoices']     = $this->db->get_where('invoice', array('student_id' => $student_id))->result_array();
+            $page_data['student_name'] = $student_name; // Pass student name to the view
 
-            $page_data['invoices']     = $this->db->get_where('invoice', array('student_id' => $student_profile))->result_array();
             $page_data['page_name']     = 'invoice';
             $page_data['page_title']    = get_phrase('All Invoices');
             $this->load->view('backend/index', $page_data);
@@ -181,17 +280,79 @@ class Student extends CI_Controller {
 
         function payment_history(){
 
-            $student_profile = $this->db->get_where('student', array('student_id' => $this->session->userdata('student_id')))->row();
-            $student_profile = $student_profile->student_id;
+            $student_id = $this->session->userdata('student_id'); // Get student ID directly
 
-            $page_data['invoices']     = $this->db->get_where('invoice', array('student_id' => $student_profile))->result_array();
+            // Fetch payment records for the student
+            $page_data['payments']     = $this->db->get_where('payment', array('student_id' => $student_id))->result_array(); 
             $page_data['page_name']     = 'payment_history';
-            $page_data['page_title']    = get_phrase('Student History');
+            $page_data['page_title']    = get_phrase('Payment History'); // Corrected title
             $this->load->view('backend/index', $page_data);
 
 
         }
 
+        function attendance_report($month = '', $year = '')
+        {
+            if ($this->session->userdata('student_login') != 1) {
+                redirect(base_url(), 'refresh');
+            }
 
+            $student_id = $this->session->userdata('student_id');
+            $active_sms_service = $this->db->get_where('settings' , array('type' => 'active_sms_service'))->row()->description;
+
+            // If month or year is not provided, use the current month and year
+            if ($month == '') {
+                $month = date('m');
+            }
+            if ($year == '') {
+                $year = date('Y');
+            }
+            
+            // Recalculate days in month based on selected/current month and year
+            $days_in_month = function_exists('cal_days_in_month') ? cal_days_in_month(CAL_GREGORIAN, $month, $year) : 31; 
+
+            // Fetch attendance for the selected month and year
+            $this->db->select('date, status');
+            $this->db->where('student_id', $student_id);
+            $this->db->where('MONTH(date)', $month);
+            $this->db->where('YEAR(date)', $year);
+            $this->db->order_by('date', 'ASC');
+            $attendance_query = $this->db->get('attendance');
+
+            // Process attendance data and calculate totals
+            $attendance_data = array();
+            $total_present = 0;
+            $total_absent = 0;
+
+            if ($attendance_query !== false && $attendance_query->num_rows() > 0) {
+                foreach ($attendance_query->result() as $row) {
+                    if (isset($row->date) && isset($row->status)) {
+                        $date_key = date('Y-m-d', strtotime($row->date));
+                        $attendance_data[$date_key] = $row->status;
+                        if ($row->status == '1') { // Assuming 1 = Present
+                            $total_present++;
+                        } elseif ($row->status == '2') { // Assuming 2 = Absent
+                            $total_absent++;
+                        }
+                        // Ignore status 3 (Holiday) and others for counts
+                    } else {
+                        log_message('error', 'Attendance record missing date or status property for student_id: ' . $student_id . ' on date ' . (isset($row->date) ? $row->date : 'unknown'));
+                    }
+                }
+            } elseif ($attendance_query === false) {
+                 log_message('error', 'Database error fetching attendance report: ' . print_r($this->db->error(), true));
+            }
+
+            $page_data['page_name']        = 'attendance_report';
+            $page_data['page_title']       = get_phrase('Attendance Report');
+            $page_data['attendance_data']  = $attendance_data;
+            $page_data['month']            = $month;
+            $page_data['year']             = $year;
+            $page_data['days_in_month']    = $days_in_month;
+            $page_data['total_present']    = $total_present;
+            $page_data['total_absent']     = $total_absent;
+
+            $this->load->view('backend/index', $page_data);
+        }
 
 }

@@ -3,7 +3,7 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="white-box">
                             <div class="r-icon-stats">
-                                <i class="ti-user bg-megna"></i>
+                                <i class="ti-user bg-inverse"></i>
                                 <div class="bodystate">
                                     <h4><?php echo $this->db->count_all_results('student');?></h4>
                                     <span class="text-muted"><?php echo get_phrase('Students');?></span>
@@ -14,7 +14,7 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="white-box">
                             <div class="r-icon-stats">
-                                <i class="ti-user bg-info"></i>
+                                <i class="ti-blackboard bg-inverse"></i>
                                 <div class="bodystate">
                                     <h4><?php echo $this->db->count_all_results('teacher');?></h4>
                                     <span class="text-muted"><?php echo get_phrase('Teachers');?></span>
@@ -25,7 +25,7 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="white-box">
                             <div class="r-icon-stats">
-                                <i class="ti-user bg-success"></i>
+                                <i class="ti-home bg-inverse"></i>
                                 <div class="bodystate">
                                     <h4><?php echo $this->db->count_all_results('parent');?></h4>
                                     <span class="text-muted"><?php echo get_phrase('parents');?></span>
@@ -36,7 +36,7 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="white-box">
                             <div class="r-icon-stats">
-                                <i class="ti-user bg-inverse"></i>
+                                <i class="ti-wallet bg-inverse"></i>
                                 <div class="bodystate">
                                     <h4><?php echo $this->db->count_all_results('accountant');?></h4>
                                     <span class="text-muted"><?php echo get_phrase('Accontants');?></span>
@@ -48,7 +48,7 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="white-box">
                             <div class="r-icon-stats">
-                                <i class="ti-money bg-megna"></i>
+                                <i class="bg-inverse">₹</i>
                                 <div class="bodystate">
                                 <?php 
                                 $this->db->select_sum('amount');
@@ -66,7 +66,7 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="white-box">
                             <div class="r-icon-stats">
-                                <i class="ti-money bg-info"></i>
+                                <i class=" bg-inverse"> ₹</i>
                                 <div class="bodystate">
 
                                 <?php 
@@ -86,7 +86,7 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="white-box">
                             <div class="r-icon-stats">
-                                <i class="ti-wallet bg-success"></i>
+                                <i class="ti-id-badge bg-inverse"></i>
                                 <div class="bodystate">
                                     <h4><?php echo $this->db->count_all_results('admin');?></h4>
                                     <span class="text-muted"><?php echo get_phrase('Admin');?></span>
@@ -97,7 +97,7 @@
                     <div class="col-md-3 col-sm-6">
                         <div class="white-box">
                             <div class="r-icon-stats">
-                                <i class="ti-wallet bg-inverse"></i>
+                                <i class="ti-bar-chart bg-inverse"></i>
                                 <div class="bodystate">
                                     <h4>
                                     <?php 
@@ -117,287 +117,198 @@
 
             </div>
                 <!--/row -->
+
+                <!-- ADD NEW FEES TABLE ROW START -->
+                 <div class="row">
+                    <div class="col-sm-12">
+                        <div class="white-box">
+                            <h3 class="box-title m-b-0" style="font-size: 2em; color: #7F7F7F;"><?php echo get_phrase('Recent Fee Payments');?></h3><br><br>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th><?php echo get_phrase('Student Name');?></th>
+                                            <th><?php echo get_phrase('Class');?></th>
+                                            <th><?php echo get_phrase('Title');?></th>
+                                            <th><?php echo get_phrase('Total Amount');?></th>
+                                            <th><?php echo get_phrase('Paid Amount');?></th>
+                                            <th><?php echo get_phrase('Description');?></th>
+                                            <th><?php echo get_phrase('Phone No');?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php 
+                                        $currency_symbol = $this->db->get_where('settings', array('type' => 'currency'))->row()->description;
+                                        
+                                        // --- Modified Query with Joins (including invoice) ---
+                                        $this->db->select('payment.*, student.name as student_name, student.phone, class.name as class_name, invoice.amount as total_invoice_amount');
+                                        $this->db->from('payment');
+                                        $this->db->join('student', 'student.student_id = payment.student_id', 'left');
+                                        $this->db->join('class', 'class.class_id = student.class_id', 'left');
+                                        $this->db->join('invoice', 'invoice.invoice_id = payment.invoice_id', 'left'); // Added join to invoice
+                                        $this->db->where('payment.payment_type', 'income');
+                                        $this->db->order_by('payment.timestamp', 'desc'); 
+                                        $this->db->limit(5); 
+                                        $recent_payments = $this->db->get()->result_array();
+                                        // --- End Modified Query ---
+
+                                        foreach ($recent_payments as $payment):
+                                        ?>
+                                        <tr>
+                                            <td><?php echo isset($payment['student_name']) ? $payment['student_name'] : 'N/A';?></td>
+                                            <td><?php echo isset($payment['class_name']) ? $payment['class_name'] : 'N/A';?></td>
+                                            <td><?php echo $payment['title'];?></td>
+                                            <td><?php echo $currency_symbol . (isset($payment['total_invoice_amount']) ? $payment['total_invoice_amount'] : 'N/A');?></td>
+                                            <td><?php echo $currency_symbol . $payment['amount'];?></td>
+                                            <td><?php echo $payment['description'];?></td>
+                                            <td><?php echo isset($payment['phone']) ? $payment['phone'] : 'N/A';?></td>
+                                        </tr>
+                                        <?php endforeach;?>
+                                        <?php if (count($recent_payments) == 0): ?>
+                                            <tr>
+                                                <td colspan="7" style="text-align: center;"><?php echo get_phrase('No recent payments found');?></td>
+                                            </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- ADD NEW FEES TABLE ROW END -->
+
+                <!-- ADD BUS & ATTENDANCE INFO ROW START -->
+                <div class="row">
+                    <!-- Bus Information Table -->
+                    <div class="col-sm-12">
+                        <div class="white-box">
+                            <h3 class="box-title m-b-0" style="font-size: 2em; color: #7F7F7F;"><?php echo get_phrase('Bus Information');?></h3><br><br>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th><?php echo get_phrase('Bus Name');?></th>
+                                            <th><?php echo get_phrase('Route');?></th>
+                                            <th><?php echo get_phrase('Vehicle');?></th>
+                                            <th><?php echo get_phrase('Route Fee');?></th>
+                                            <th><?php echo get_phrase('Description');?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php 
+                                        $currency_symbol = $this->db->get_where('settings', array('type' => 'currency'))->row()->description;
+                                        
+                                        // --- Modified Query with Joins ---
+                                        $this->db->select('transport.*, transport_route.name as route_actual_name, vehicle.name as vehicle_actual_name, vehicle.vehicle_number');
+                                        $this->db->from('transport');
+                                        $this->db->join('transport_route', 'transport_route.transport_route_id = transport.transport_route_id', 'left');
+                                        $this->db->join('vehicle', 'vehicle.vehicle_id = transport.vehicle_id', 'left');
+                                        $transports = $this->db->get()->result_array();
+                                        // --- End Modified Query ---
+
+                                        foreach ($transports as $transport):
+                                            $vehicle_display = isset($transport['vehicle_actual_name']) ? $transport['vehicle_actual_name'] . ' (' . $transport['vehicle_number'] . ')' : 'N/A';
+                                            $route_display = isset($transport['route_actual_name']) ? $transport['route_actual_name'] : 'N/A';
+                                        ?>
+                                        <tr>
+                                            <td><?php echo $transport['name'];?></td>
+                                            <td><?php echo $route_display; ?></td>
+                                            <td><?php echo $vehicle_display; ?></td>
+                                            <td><?php echo $currency_symbol . $transport['route_fare'];?></td>
+                                            <td><?php echo $transport['description'];?></td>
+                                        </tr>
+                                        <?php endforeach;?>
+                                        <?php if (count($transports) == 0): ?>
+                                            <tr>
+                                                <td colspan="5" style="text-align: center;"><?php echo get_phrase('No transport information found');?></td>
+                                            </tr>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- ADD BUS & ATTENDANCE INFO ROW END -->
+
                 <!-- .row -->
                 <div class="row">
-                    <div class="col-md-5 col-sm-12 col-xs-12">
+                    <div class="col-sm-12">
                         <div class="white-box">
-                            <div class="stats-row">
-
-
-                                <!-- Styles -->
-                                <style>
-                                #chartdiv1 {
-                                width: 100%;
-                                height: 500px;
-                                }
-
-                                .amcharts-chart-div a{
-                                    display:none !important;
-                                }	
-
-                                </style>
-
-                                <!-- Chart code -->
-                                <script>
-                                am4core.ready(function() {
-
-                                // Themes begin
-                                am4core.useTheme(am4themes_animated);
-                                // Themes end
-
-                                // Create chart instance
-                                var chart = am4core.create("chartdiv1", am4charts.PieChart);
-
-                                // Add data
-                                chart.data = [
-                    
-                    <?php $select_expense = $this->db->get_where('payment', array('payment_type' => 'expense', 'year' => $running_year))->result_array(); //$this->crud_model->get_invoice_info();
-                            foreach ($select_expense as $key => $expense_selected):?>
-
-                                {
-                                "country": "<?php echo $expense_selected['title'];?>",
-                                "litres": <?php echo $expense_selected['amount'];?>
-                                }, 
-                    <?php endforeach;?>
-                                
-                                ];
-
-                                // Add and configure Series
-                                var pieSeries = chart.series.push(new am4charts.PieSeries());
-                                pieSeries.dataFields.value = "litres";
-                                pieSeries.dataFields.category = "country";
-                                pieSeries.innerRadius = am4core.percent(50);
-                                pieSeries.ticks.template.disabled = true;
-                                pieSeries.labels.template.disabled = true;
-
-                                var rgm = new am4core.RadialGradientModifier();
-                                rgm.brightnesses.push(-0.8, -0.8, -0.5, 0, - 0.5);
-                                pieSeries.slices.template.fillModifier = rgm;
-                                pieSeries.slices.template.strokeModifier = rgm;
-                                pieSeries.slices.template.strokeOpacity = 0.4;
-                                pieSeries.slices.template.strokeWidth = 0;
-
-                                chart.legend = new am4charts.Legend();
-                                chart.legend.position = "right";
-
-                                }); // end am4core.ready()
-                                </script>
-
-                                <!-- HTML -->
-                                <div id="chartdiv1"></div>
-
-                               
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-7 col-sm-12 col-xs-12">
-                        <div class="white-box">
-                            <div class="stats-row">
-                                
-
-                        <style>
-                        #chartdiv {
-                        width: 100%;
-                        height: 500px;
-                        }
-
-                        .amcharts-chart-div a{
-                            display:none !important;
-                        }	
-
-                        </style>
-
-              
-
-                        <!-- Chart code -->
-                        <script>
-                        am4core.ready(function() {
-
-                        // Themes begin
-                        am4core.useTheme(am4themes_animated);
-                        // Themes end
-
-                        /**
-                        * Chart design taken from Samsung health app
-                        */
-
-                        var chart = am4core.create("chartdiv", am4charts.XYChart);
-                        chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
-
-                        chart.paddingBottom = 30;
-
-                        chart.data = [
-                
-                        <?php $select_student = $this->db->get_where('invoice', array('year' => $running_year))->result_array(); //$this->crud_model->get_invoice_info();
-                            foreach ($select_student as $key => $student_selected):?>
-                            
-                            {
-                            "name": "<?php echo $this->crud_model->get_type_name_by_id('student', $student_selected['student_id']);?>",
-                            "steps": <?php echo $student_selected['amount_paid'];?>,
-                            "href": "<?php echo base_url();?>uploads/student_image/<?php echo $student_selected['student_id']. '.jpg';?>"
-                            }, 
-                        <?php endforeach;?>
-                        
-                        ];
-
-                        var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
-                        categoryAxis.dataFields.category = "name";
-                        categoryAxis.renderer.grid.template.strokeOpacity = 0;
-                        categoryAxis.renderer.minGridDistance = 10;
-                        categoryAxis.renderer.labels.template.dy = 35;
-                        categoryAxis.renderer.tooltip.dy = 35;
-
-                        var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-                        valueAxis.renderer.inside = true;
-                        valueAxis.renderer.labels.template.fillOpacity = 0.3;
-                        valueAxis.renderer.grid.template.strokeOpacity = 0;
-                        valueAxis.min = 0;
-                        valueAxis.cursorTooltipEnabled = false;
-                        valueAxis.renderer.baseGrid.strokeOpacity = 0;
-
-                        var series = chart.series.push(new am4charts.ColumnSeries);
-                        series.dataFields.valueY = "steps";
-                        series.dataFields.categoryX = "name";
-                        series.tooltipText = "{valueY.value}";
-                        series.tooltip.pointerOrientation = "vertical";
-                        series.tooltip.dy = - 6;
-                        series.columnsContainer.zIndex = 100;
-
-                        var columnTemplate = series.columns.template;
-                        columnTemplate.width = am4core.percent(50);
-                        columnTemplate.maxWidth = 66;
-                        columnTemplate.column.cornerRadius(60, 60, 10, 10);
-                        columnTemplate.strokeOpacity = 0;
-
-                        series.heatRules.push({ target: columnTemplate, property: "fill", dataField: "valueY", min: am4core.color("#e5dc36"), max: am4core.color("#5faa46") });
-                        series.mainContainer.mask = undefined;
-
-                        var cursor = new am4charts.XYCursor();
-                        chart.cursor = cursor;
-                        cursor.lineX.disabled = true;
-                        cursor.lineY.disabled = true;
-                        cursor.behavior = "none";
-
-                        var bullet = columnTemplate.createChild(am4charts.CircleBullet);
-                        bullet.circle.radius = 30;
-                        bullet.valign = "bottom";
-                        bullet.align = "center";
-                        bullet.isMeasured = true;
-                        bullet.mouseEnabled = false;
-                        bullet.verticalCenter = "bottom";
-                        bullet.interactionsEnabled = false;
-
-                        var hoverState = bullet.states.create("hover");
-                        var outlineCircle = bullet.createChild(am4core.Circle);
-                        outlineCircle.adapter.add("radius", function (radius, target) {
-                            var circleBullet = target.parent;
-                            return circleBullet.circle.pixelRadius + 10;
-                        })
-
-                        var image = bullet.createChild(am4core.Image);
-                        image.width = 60;
-                        image.height = 60;
-                        image.horizontalCenter = "middle";
-                        image.verticalCenter = "middle";
-                        image.propertyFields.href = "href";
-
-                        image.adapter.add("mask", function (mask, target) {
-                            var circleBullet = target.parent;
-                            return circleBullet.circle;
-                        })
-
-                        var previousBullet;
-                        chart.cursor.events.on("cursorpositionchanged", function (event) {
-                            var dataItem = series.tooltipDataItem;
-
-                            if (dataItem.column) {
-                                var bullet = dataItem.column.children.getIndex(1);
-
-                                if (previousBullet && previousBullet != bullet) {
-                                    previousBullet.isHover = false;
-                                }
-
-                                if (previousBullet != bullet) {
-
-                                    var hs = bullet.states.getKey("hover");
-                                    hs.properties.dy = -bullet.parent.pixelHeight + 30;
-                                    bullet.isHover = true;
-
-                                    previousBullet = bullet;
-                                }
-                            }
-                        })
-
-                        }); // end am4core.ready()
-                        </script>
-
-                        <!-- HTML -->
-                        <div id="chartdiv"></div>
-
-
-                            </div>
-                        </div>
-                    </div>
-                    
-                </div>
-                <!-- /.row -->
-               
-                <div class="row">
-                    <div class="col-sm-6">
-                        <div class="white-box">
-                            <h3 class="box-title m-b-0"><?php echo get_phrase('Recently Added Teachers');?></h3>
+                            <h3 class="box-title m-b-0" style="font-size: 2em; color: #7F7F7F;"><?php echo get_phrase('Recently Added Teachers');?></h3><br><br>
                             <div class="table-responsive">
                                 <table class="table">
                                     <thead>
                                         <tr>
-
-                                            <th>Image</th>
-                                            <th>Name</th>
-                                            <th>Email</th>
-                                            <th>Phone</th>
+                                            <th><?php echo get_phrase('Image');?></th>
+                                            <th><?php echo get_phrase('Name');?></th>
+                                            <th><?php echo get_phrase('Email');?></th>
+                                            <th><?php echo get_phrase('Phone');?></th>
+                                            <th><?php echo get_phrase('Role');?></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         
                                     <tr>
                             <?php $get_teacher_from_model = $this->crud_model->list_all_teacher_and_order_with_teacher_id();
-                                    foreach ($get_teacher_from_model as $key => $teacher):?>
+                                    foreach ($get_teacher_from_model as $key => $teacher):
+                                            // Basic role mapping (adjust if needed)
+                                            $role_display = ($teacher['role'] == '1') ? get_phrase('Admin') : (($teacher['role'] == '2') ? get_phrase('Teacher') : get_phrase('Staff')); 
+                                    ?>
                                             <td><img src="<?php echo $teacher['face_file'];?>" class="img-circle" width="40px"></td>
                                             <td><?php echo $teacher['name'];?></td>
                                             <td><?php echo $teacher['email'];?></td>
                                             <td><?php echo $teacher['phone'];?></td>
+                                            <td><?php echo $role_display;?></td>
                                         </tr>
                                     <?php endforeach;?>
-                               
+                                    <?php if (count($get_teacher_from_model) == 0): ?>
+                                            <tr>
+                                                <td colspan="5" style="text-align: center;"><?php echo get_phrase('No teachers found');?></td>
+                                            </tr>
+                                    <?php endif; ?> 
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
-                    <div class="col-sm-6">
+                    <div class="col-sm-12">
                         <div class="white-box">
-                            <h3 class="box-title m-b-0"><?php echo get_phrase('Recently Added Students');?></h3>
+                            <h3 class="box-title m-b-0" style="font-size: 2em; color: #7F7F7F;"><?php echo get_phrase('Recently Added Students');?></h3><br><br>
                             <div class="table-responsive">
                             <table class="table">
                                     <thead>
                                         <tr>
-                                            <th>Image</th>
-                                            <th>Name</th>
-                                            <th>Email</th>
-                                            <th>Phone</th>
+                                            <th><?php echo get_phrase('Image');?></th>
+                                            <th><?php echo get_phrase('Roll No');?></th>
+                                            <th><?php echo get_phrase('Name');?></th>
+                                            <th><?php echo get_phrase('Class');?></th>
+                                            <th><?php echo get_phrase('Phone');?></th>
+                                            <th><?php echo get_phrase('Email');?></th>
+                                            <th><?php echo get_phrase('Parent');?></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
                             <?php $get_student_from_model = $this->crud_model->list_all_student_and_order_with_student_id();
-                                    foreach ($get_student_from_model as $key => $student):?>
+                                    foreach ($get_student_from_model as $key => $student):
+                                            $parent_name = $this->crud_model->get_type_name_by_id('parent', $student['parent_id']);
+                                    ?>
                                             <td><img src="<?php echo $student['face_file'];?>" class="img-circle" width="40px"></td>
+                                            <td><?php echo $student['roll'];?></td>
                                             <td><?php echo $student['name'];?></td>
-                                            <td><?php echo $student['email'];?></td>
+                                            <td><?php echo $this->crud_model->get_type_name_by_id('class', $student['class_id']);?></td>
                                             <td><?php echo $student['phone'];?></td>
+                                            <td><?php echo $student['email'];?></td>
+                                            <td><?php echo $parent_name ? $parent_name : get_phrase('N/A');?></td>
                                         </tr>
                                     <?php endforeach;?>
-                                       
+                                       <?php if (count($get_student_from_model) == 0): ?>
+                                            <tr>
+                                                <td colspan="7" style="text-align: center;"><?php echo get_phrase('No students found');?></td>
+                                            </tr>
+                                        <?php endif; ?> 
                                     </tbody>
                                 </table>
                             </div>

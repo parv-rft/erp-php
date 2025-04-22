@@ -56,7 +56,7 @@
                 <td><?php echo $this->db->get_where('teacher', array('teacher_id' => $assignment['teacher_id']))->row()->name;?></td>
                 <td><?php echo $assignment['description'];?></td>
                 <td>
-                <a href="<?php echo base_url().'uploads/assignment/'. $assignment['file_name'];?>"><button type="button" class="btn btn-info btn-circle btn-xs" ><i class="fa fa-download"></i></button></a>
+                <a href="<?php echo base_url();?>assignment/download/<?php echo $assignment['assignment_id'];?>"><button type="button" class="btn btn-info btn-circle btn-xs" ><i class="fa fa-download"></i></button></a>
 					
                    
                 </td>
