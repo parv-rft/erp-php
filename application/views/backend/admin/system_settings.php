@@ -123,7 +123,7 @@
 				<div class="form-group">
 					<label class="col-md-12" for="example-text"><?php echo get_phrase('System Footer');?></label>
 					<div class="col-sm-12">
-						<input type="text" class="form-control" name="footer" value="<?php echo $this->db->get_where('settings', array('type' => 'footer'))->row()->description;?>">
+						<input type="text" class="form-control" name="footer" value="Developed By Ruhil Future Technology ( 2025 )">
 					</div>
 				</div>
 

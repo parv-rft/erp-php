@@ -152,12 +152,34 @@ class Parents extends CI_Controller {
             $this->load->view('backend/index', $page_data);
         }
 
-        function class_mate (){
+        function class_mate() {
+            if ($this->session->userdata('parent_login') != 1) redirect(base_url(), 'refresh');
 
-            $parent_student_profile = $this->db->get_where('student', array('parent_id' => $this->session->userdata('parent_id')))->row();
-            $page_data['select_student_parent_class_mate']  = $parent_student_profile->class_id;
+            // Get the student associated with the logged-in parent
+            $parent_id = $this->session->userdata('parent_id');
+            $student = $this->db->get_where('student', array('parent_id' => $parent_id))->row();
+
+            if (!$student) {
+                 // Handle case where parent has no associated student
+                 $this->session->set_flashdata('error_message', get_phrase('No student associated with this parent account.'));
+                 redirect(base_url() . 'parents/dashboard', 'refresh');
+                 return; // Stop execution
+            }
+
+            $student_id = $student->student_id;
+            $class_id = $student->class_id;
+
+            // Fetch classmates (all students in the same class, excluding the current student)
+            $this->db->select('student_id, name, phone, email, sex'); // Select required fields
+            $this->db->where('class_id', $class_id);
+            $this->db->where('student_id !=', $student_id); // Exclude the parent's own child
+            $this->db->order_by('name', 'asc'); // Order by name
+            $classmates = $this->db->get('student')->result_array();
+
+            // Prepare data for the view
+            $page_data['classmates']    = $classmates; // Pass classmate data
             $page_data['page_name']     = 'class_mate';
-            $page_data['page_title']    = get_phrase('Class Mate');
+            $page_data['page_title']    = get_phrase('Classmates'); // Changed title slightly
             $this->load->view('backend/index', $page_data);
         }
 
@@ -246,19 +268,36 @@ class Parents extends CI_Controller {
             $this->load->view('backend/index', $page_data);
         }
 
-        function payment_history(){
+        function payment_history() {
+            if ($this->session->userdata('parent_login') != 1) redirect(base_url(), 'refresh');
 
+            // Get the student_id associated with the logged-in parent
             $parent_profile = $this->db->get_where('student', array('parent_id' => $this->session->userdata('parent_id')))->row();
-            $parent_student_profile = $parent_profile->student_id;
+            
+            if (!$parent_profile) {
+                // Handle case where parent has no associated student
+                $this->session->set_flashdata('error_message', get_phrase('No student associated with this parent account.'));
+                redirect(base_url() . 'parents/dashboard', 'refresh');
+                return; // Stop execution
+            }
+            
+            $student_id = $parent_profile->student_id;
 
-            $page_data['invoices']     = $this->db->get_where('invoice', array('student_id' => $parent_student_profile))->result_array();
-            $page_data['page_name']     = 'payment_history';
-            $page_data['page_title']    = get_phrase('parent History');
+            // Fetch payment history for the student
+            $this->db->select('payment_id, title, description, method, amount, timestamp'); // Select required fields
+            $this->db->where('student_id', $student_id);
+            $this->db->order_by('timestamp', 'desc'); // Show most recent first
+            $payments = $this->db->get('payment')->result_array();
+
+            // Prepare data for the view
+            $page_data['payments']     = $payments; // Use 'payments' key for clarity
+            $page_data['page_name']     = 'payment_history'; // Load the correct view file
+            $page_data['page_title']    = get_phrase('Payment History');
             $this->load->view('backend/index', $page_data);
-
-
         }
 
-
+        function assignment() {
+            // ... existing code ...
+        }
 
 }

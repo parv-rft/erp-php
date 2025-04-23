@@ -31,6 +31,29 @@
 	//-- Blog Page
 */
 
+html {
+  font-size: 100%; /* Reset base font size */
+}
+
+body {
+  font-size: 30px !important; /* Set default non-heading size, overriding others */
+}
+
+/* Standard heading sizes relative to root (html) */
+h1 { font-size: 2rem; }    /* ~32px */
+h2 { font-size: 1.5rem; }  /* ~24px */
+h3 { font-size: 1.17rem; } /* ~18.7px */
+h4 { font-size: 1rem; }    /* ~16px */
+h5 { font-size: 0.83rem; } /* ~13.3px */
+h6 { font-size: 0.67rem; } /* ~10.7px */
+
+/* Force table text to inherit font size */
+/* Removing this rule as it didn't work 
+table, th, td {
+  font-size: inherit;
+}
+*/
+
 .ct_wrapper,
 header,
 .ct_content_wrap,
