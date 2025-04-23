@@ -152,7 +152,9 @@
                                         $recent_payments = $this->db->get()->result_array();
                                         // --- End Modified Query ---
 
+                                        $payment_count = 0; // Counter for loop limit
                                         foreach ($recent_payments as $payment):
+                                            if ($payment_count >= 3) break; // Limit to 3 entries
                                         ?>
                                         <tr>
                                             <td><?php echo isset($payment['student_name']) ? $payment['student_name'] : 'N/A';?></td>
@@ -163,12 +165,21 @@
                                             <td><?php echo $payment['description'];?></td>
                                             <td><?php echo isset($payment['phone']) ? $payment['phone'] : 'N/A';?></td>
                                         </tr>
-                                        <?php endforeach;?>
+                                        <?php 
+                                            $payment_count++; // Increment counter
+                                            endforeach;
+                                        ?>
                                         <?php if (count($recent_payments) == 0): ?>
                                             <tr>
                                                 <td colspan="7" style="text-align: center;"><?php echo get_phrase('No recent payments found');?></td>
                                             </tr>
                                         <?php endif; ?>
+                                        <!-- View All Button Row -->
+                                        <tr>
+                                            <td colspan="7" style="text-align: right;">
+                                                <a href="<?php echo base_url('admin/student_invoice');?>" class="btn btn-info"><?php echo get_phrase('View All Payments');?></a>
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -206,7 +217,9 @@
                                         $transports = $this->db->get()->result_array();
                                         // --- End Modified Query ---
 
+                                        $transport_count = 0; // Counter for loop limit
                                         foreach ($transports as $transport):
+                                            if ($transport_count >= 3) break; // Limit to 3 entries
                                             $vehicle_display = isset($transport['vehicle_actual_name']) ? $transport['vehicle_actual_name'] . ' (' . $transport['vehicle_number'] . ')' : 'N/A';
                                             $route_display = isset($transport['route_actual_name']) ? $transport['route_actual_name'] : 'N/A';
                                         ?>
@@ -217,12 +230,21 @@
                                             <td><?php echo $currency_symbol . $transport['route_fare'];?></td>
                                             <td><?php echo $transport['description'];?></td>
                                         </tr>
-                                        <?php endforeach;?>
+                                        <?php 
+                                            $transport_count++; // Increment counter
+                                            endforeach;
+                                        ?>
                                         <?php if (count($transports) == 0): ?>
                                             <tr>
                                                 <td colspan="5" style="text-align: center;"><?php echo get_phrase('No transport information found');?></td>
                                             </tr>
                                         <?php endif; ?>
+                                        <!-- View All Button Row -->
+                                        <tr>
+                                            <td colspan="5" style="text-align: right;">
+                                                <a href="<?php echo base_url('transportation/transport');?>" class="btn btn-info"><?php echo get_phrase('View All Transport');?></a>
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -251,8 +273,11 @@
                                     <tbody>
                                         
                                     <tr>
-                            <?php $get_teacher_from_model = $this->crud_model->list_all_teacher_and_order_with_teacher_id();
+                            <?php 
+                            $teacher_count = 0; // Counter for loop limit
+                            $get_teacher_from_model = $this->crud_model->list_all_teacher_and_order_with_teacher_id();
                                     foreach ($get_teacher_from_model as $key => $teacher):
+                                            if ($teacher_count >= 3) break; // Limit to 3 entries
                                             // Basic role mapping (adjust if needed)
                                             $role_display = ($teacher['role'] == '1') ? get_phrase('Admin') : (($teacher['role'] == '2') ? get_phrase('Teacher') : get_phrase('Staff')); 
                                     ?>
@@ -262,12 +287,21 @@
                                             <td><?php echo $teacher['phone'];?></td>
                                             <td><?php echo $role_display;?></td>
                                         </tr>
-                                    <?php endforeach;?>
+                                    <?php 
+                                        $teacher_count++; // Increment counter
+                                        endforeach;
+                                    ?>
                                     <?php if (count($get_teacher_from_model) == 0): ?>
                                             <tr>
                                                 <td colspan="5" style="text-align: center;"><?php echo get_phrase('No teachers found');?></td>
                                             </tr>
                                     <?php endif; ?> 
+                                    <!-- View All Button Row -->
+                                    <tr>
+                                        <td colspan="5" style="text-align: right;">
+                                            <a href="<?php echo base_url();?>admin/teacher" class="btn btn-info"><?php echo get_phrase('View All Teachers');?></a>
+                                        </td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -291,8 +325,11 @@
                                     </thead>
                                     <tbody>
                                         <tr>
-                            <?php $get_student_from_model = $this->crud_model->list_all_student_and_order_with_student_id();
+                            <?php 
+                            $student_count = 0; // Counter for loop limit
+                            $get_student_from_model = $this->crud_model->list_all_student_and_order_with_student_id();
                                     foreach ($get_student_from_model as $key => $student):
+                                            if ($student_count >= 3) break; // Limit to 3 entries
                                             $parent_name = $this->crud_model->get_type_name_by_id('parent', $student['parent_id']);
                                     ?>
                                             <td><img src="<?php echo $student['face_file'];?>" class="img-circle" width="40px"></td>
@@ -303,12 +340,21 @@
                                             <td><?php echo $student['email'];?></td>
                                             <td><?php echo $parent_name ? $parent_name : get_phrase('N/A');?></td>
                                         </tr>
-                                    <?php endforeach;?>
+                                    <?php 
+                                        $student_count++; // Increment counter
+                                        endforeach;
+                                    ?>
                                        <?php if (count($get_student_from_model) == 0): ?>
                                             <tr>
                                                 <td colspan="7" style="text-align: center;"><?php echo get_phrase('No students found');?></td>
                                             </tr>
                                         <?php endif; ?> 
+                                    <!-- View All Button Row -->
+                                    <tr>
+                                        <td colspan="7" style="text-align: right;">
+                                            <a href="<?php echo base_url();?>admin/student_information" class="btn btn-info"><?php echo get_phrase('View All Students');?></a>
+                                        </td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>
