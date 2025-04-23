@@ -13,8 +13,76 @@ class Parents extends CI_Controller {
      /*parent dashboard code to redirect to parent page if successfull login** */
      function dashboard() {
         if ($this->session->userdata('parent_login') != 1) redirect(base_url(), 'refresh');
+
+        // Get the student associated with the logged-in parent
+        $parent_id = $this->session->userdata('parent_id');
+        $student = $this->db->get_where('student', array('parent_id' => $parent_id))->row();
+        $student_id = null;
+        $class_id = null;
+
+        if ($student) {
+            $student_id = $student->student_id;
+            $class_id = $student->class_id;
+        }
+
+        // Initialize arrays for data
+        $attendance_data = array();
+        $all_teachers = array();
+        $recent_payments = array();
+        $start_date = null;
+        $today_date = null;
+
+        if ($student_id) {
+            // Get today and the date 2 days prior
+            $today_dt = new DateTime();
+            $start_dt = new DateTime();
+            $start_dt->modify('-2 days');
+
+            $today_date = $today_dt->format('Y-m-d');
+            $start_date = $start_dt->format('Y-m-d');
+
+            // Fetch student's attendance for the last 3 days (inclusive)
+            $this->db->select('date, status'); 
+            $this->db->where('student_id', $student_id);
+            $this->db->where('date >=', $start_date);
+            $this->db->where('date <=', $today_date);
+            $this->db->order_by('date', 'DESC');
+            $attendance_query = $this->db->get('attendance');
+            
+            if ($attendance_query !== false && $attendance_query->num_rows() > 0) {
+                foreach ($attendance_query->result() as $row) {
+                    if (isset($row->date) && isset($row->status)) {
+                        $attendance_data[date('Y-m-d', strtotime($row->date))] = $row->status; 
+                    } else {
+                        log_message('error', 'Attendance record missing date or status property for student_id: ' . $student_id);
+                    }
+                }
+            } elseif ($attendance_query === false) {
+                log_message('error', 'Database error fetching attendance for parent dashboard: ' . $this->db->error()['message']);
+            }
+
+            // Fetch all teachers (or just class teachers if needed)
+            // Using the same logic as student dashboard for simplicity, fetches all teachers
+            $this->db->select('teacher_id, name, role, email, phone, sex');
+            $all_teachers = $this->db->get('teacher')->result_array();
+
+            // Fetch last 4 payment records for the student
+            $this->db->select('title, description, method, amount, timestamp');
+            $this->db->where('student_id', $student_id);
+            $this->db->order_by('timestamp', 'DESC');
+            $this->db->limit(4);
+            $recent_payments = $this->db->get('payment')->result_array();
+        }
+
        	$page_data['page_name'] = 'dashboard';
         $page_data['page_title'] = get_phrase('parent Dashboard');
+        $page_data['student_info'] = $student; // Pass student info
+        $page_data['attendance_data'] = $attendance_data; // Pass attendance data
+        $page_data['start_date'] = $start_date; // Pass start date for attendance loop
+        $page_data['today_date'] = $today_date; // Pass end date for attendance loop
+        $page_data['all_teachers'] = $all_teachers; // Pass teachers data
+        $page_data['recent_payments'] = $recent_payments; // Pass recent payments
+
         $this->load->view('backend/index', $page_data);
     }
 	/******************* / parent dashboard code to redirect to parent page if successfull login** */

@@ -186,7 +186,7 @@
                 <td><?php echo $this->db->get_where('teacher', array('teacher_id' => $material['teacher_id']))->row()->name;?></td>
                 <td><?php echo $material['description'];?></td>
                 <td>
-                <a href="<?php echo base_url().'uploads/study_material/'. $material['file_name'];?>"><button type="button" class="btn btn-info btn-circle btn-xs" ><i class="fa fa-download"></i></button></a>
+                <a href="<?php echo base_url();?>studymaterial/download/<?php echo $material['material_id'];?>"><button type="button" class="btn btn-info btn-circle btn-xs" ><i class="fa fa-download"></i></button></a>
                     <a  onclick="showAjaxModal('<?php echo base_url();?>modal/popup/edit_study_material/<?php echo $material['material_id'];?>');" ><button type="button" class="btn btn-success btn-circle btn-xs"><i class="fa fa-pencil"></i></button></a>
 					 <a href="<?php echo base_url();?>studymaterial/study_material/delete/<?php echo $material['material_id'];?>" ><button type="button" class="btn btn-danger btn-circle btn-xs" onclick="return confirm('Are you sure to delete?');"><i class="fa fa-times"></i></button></a>
 					

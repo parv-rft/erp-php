@@ -3,7 +3,15 @@
 		<div class="panel panel-info">
 			<div class="panel-heading"> <i class="fa fa-list"></i>&nbsp;&nbsp;<?php echo get_phrase('invoices');?></div>
 				<div class="panel-body table-responsive">
- 					<table id="example23" class="display nowrap" cellspacing="0" width="100%">
+
+                <?php 
+                    // Fetch currency symbol once before the loop
+                    $currency_symbol = $this->db->get_where('settings', array('type' => 'currency'))->row()->description;
+                ?>
+
+                <!-- 
+                    Original table code commented out as requested
+                <table id="example23" class="display nowrap" cellspacing="0" width="100%">
 						<thead>
 							<tr>
 								<th><div><?php echo get_phrase('student');?></div></th>
@@ -18,18 +26,18 @@
 							</tr>
 						</thead>
                     <tbody>
-                    	<?php foreach($invoices as $key => $row):?>
+                    	<?php foreach($invoices as $key => $row): ?>
                         <tr>
-							<td><?php echo $this->crud_model->get_type_name_by_id('student',$row['student_id']);?></td>
+							<td><?php echo $student_name; // Use the pre-fetched student name ?></td>
 							<td><?php echo $row['title'];?></td>
 							<td><?php echo $row['description'];?></td>
 							<td>
-							<?php echo $this->db->get_where('settings', array('type' => 'currency'))->row()->description;?><?php echo number_format($row['amount'],2,".",",");?>
+							<?php echo $currency_symbol;?><?php echo number_format($row['amount'],2,".",",");?>
 							</td>
 							<td>
-							 <?php echo $this->db->get_where('settings', array('type' => 'currency'))->row()->description;?><?php echo number_format($row['amount_paid'],2,".",",");?>							</td> 
+							 <?php echo $currency_symbol;?><?php echo number_format($row['amount_paid'],2,".",",");?>							</td> 
 							<td>
-							 <?php echo $this->db->get_where('settings', array('type' => 'currency'))->row()->description; ?><?php echo number_format($row['due'],2,".",",");?>
+							 <?php echo $currency_symbol; ?><?php echo number_format($row['due'],2,".",",");?>
 							</td>
 							  <?php if($row['due'] == 0):?>
                             <td>
@@ -55,7 +63,41 @@
                         <?php endforeach;?>
                     </tbody>
                 </table>
-			</div>
+                -->
+
+                <!-- New Simplified Table -->
+                <table id="example23" class="display nowrap" cellspacing="0" width="100%">
+                    <thead>
+                        <tr>
+                            <th><div><?php echo get_phrase('invoice_number');?></div></th>
+                            <th><div><?php echo get_phrase('title');?></div></th>
+                            <th><div><?php echo get_phrase('description');?></div></th>
+                            <th><div><?php echo get_phrase('amount');?></div></th>
+                            <th><div><?php echo get_phrase('date');?></div></th>
+                            <th><div><?php echo get_phrase('status');?></div></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach($invoices as $key => $row): ?>
+                        <tr>
+                            <td><?php echo $row['invoice_id'];?></td>
+                            <td><?php echo $row['title'];?></td>
+                            <td><?php echo $row['description'];?></td>
+                            <td><?php echo '₹'; // Temporarily hardcoded ?><?php echo number_format($row['amount'], 2, ".", ",");?></td>
+                            <td><?php echo date('d M, Y', $row['creation_timestamp']);?></td>
+                            <td>
+                                <?php if($row['due'] == 0):?>
+                                    <span class="label label-success"><?php echo get_phrase('paid');?></span>
+                                <?php else: ?>
+                                    <span class="label label-danger"><?php echo get_phrase('unpaid');?></span>
+                                <?php endif;?>
+                            </td>
+                        </tr>
+                        <?php endforeach;?>
+                    </tbody>
+                </table>
+
+				</div>
 		</div>
 	</div>
 </div>

@@ -13,7 +13,7 @@
 				<div class="form-group">
 					<label class="col-md-12" for="example-text"><?php echo get_phrase('System Name');?></label>
 					<div class="col-sm-12">
-						<input type="text" class="form-control" name="system_name" value="<?php echo $this->db->get_where('settings', array('type' => 'system_name'))->row()->description;?>">
+						<input type="text" class="form-control" name="system_name" value="Gyansetu School ERP System">
 					</div>
 				</div>
 
@@ -21,7 +21,7 @@
 				<div class="form-group">
 					<label class="col-md-12" for="example-text"><?php echo get_phrase('System Title');?></label>
 					<div class="col-sm-12">
-						<input type="text" class="form-control" name="system_title" value="<?php echo $this->db->get_where('settings', array('type' => 'system_title'))->row()->description;?>">
+						<input type="text" class="form-control" name="system_title" value="Gyansetu School ERP System">
 					</div>
 				</div>
 
@@ -51,7 +51,7 @@
 				<div class="form-group">
 					<label class="col-md-12" for="example-text"><?php echo get_phrase('Currency');?></label>
 					<div class="col-sm-12">
-						<input type="text" class="form-control" name="currency" value="<?php echo $this->db->get_where('settings', array('type' => 'currency'))->row()->description;?>">
+						<input type="text" class="form-control" name="currency" value="₹">
 					</div>
 				</div>
 
@@ -106,9 +106,9 @@
 					<select name="running_session" class="form-control select2" >
                           <?php $running_session = $this->db->get_where('settings', array('type' => 'session'))->row()->description; ?>
                           <option value=""><?php echo get_phrase('select_running_session');?></option>
-                          <?php for($i = 0; $i < 10; $i++):?>
+                          <?php for($i = 5; $i < 21; $i++): // Start loop from i=5 (2019+5 = 2024) to remove entries before 2024 ?>
                               <option value="<?php echo (2019+$i);?>-<?php echo (2019+$i+1);?>"
-                                <?php if($running_session == (2019+$i).'-'.(2019+$i+1)) echo 'selected';?>>
+                                <?php if('2025-2026' == (2019+$i).'-'.(2019+$i+1)) echo 'selected'; else if ($running_session == (2019+$i).'-'.(2019+$i+1) && '2025-2026' != (2019+$i).'-'.(2019+$i+1) ) echo 'selected'; ?>>
                                   <?php echo (2019+$i);?>-<?php echo (2019+$i+1);?>
                               </option>
                           <?php endfor;?>
