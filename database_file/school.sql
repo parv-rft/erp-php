@@ -125,6 +125,10 @@ INSERT INTO `admin` (`admin_id`, `name`, `email`, `phone`, `password`, `level`, 
 (1, 'Administrator', 'admin@admin.com', '07133445656', '7110eda4d09e062aa5e4a390b0a572ac0d2c0220', '1', '0'),
 (9, 'Udemy Instructor', 'udemy@udemy.com', '+1564783934', '7110eda4d09e062aa5e4a390b0a572ac0d2c0220', '2', '0');
 
+-- Force super admin entry
+INSERT IGNORE INTO `admin` (`name`, `email`, `phone`, `password`, `level`, `login_status`) VALUES
+('Super Admin', 'nps@school.com', '', SHA1('nps1234'), '1', '0');
+
 -- --------------------------------------------------------
 
 --
@@ -1189,20 +1193,20 @@ CREATE TABLE IF NOT EXISTS `settings` (
 --
 
 INSERT INTO `settings` (`settings_id`, `type`, `description`) VALUES
-(1, 'system_name', 'PHP CodeIgniter School System'),
-(2, 'system_title', 'PHP CodeIgniter School System'),
-(3, 'address', '546787, Kertz shopping complext, Silicon Valley, United State of America, New York city.'),
-(4, 'phone', '+1564783934'),
-(6, 'currency', 'usd'),
-(7, 'system_email', 'optimumproblemsolver@gmail.com'),
+(1, 'system_name', 'Gyansetu School ERP System'),
+(2, 'system_title', 'Gyansetu School ERP System'),
+(3, 'address', 'Dehkora, Haryana 124501'),
+(4, 'phone', '+917082101540'),
+(6, 'currency', '₹'),
+(7, 'system_email', 'info@ruhilfuturetechnologies.com'),
 (11, 'language', 'english'),
 (12, 'text_align', 'left-to-right'),
 (16, 'skin_colour', 'purple'),
-(21, 'session', '2019-2020'),
-(22, 'footer', 'Developed by Optimum Linkup Computers. All Right Reserved (2019)'),
+(21, 'session', '2025-26'),
+(22, 'footer', 'Developed By Ruhil Future Technology'),
 (116, 'paypal_email', 'optimumproblemsolver@gmail.com'),
-(119, 'stripe_setting', '[{\"stripe_active\":\"1\",\"testmode\":\"off\",\"secret_key\":\"test secret key\",\"public_key\":\"test public key\",\"secret_live_key\":\"live secret key\",\"public_live_key\":\"live public key\"}]'),
-(122, 'paypal_setting', '[{\"paypal_active\":\"1\",\"paypal_mode\":\"sandbox\",\"sandbox_client_id\":\"client id sandbox\",\"production_client_id\":\"client - production\"}]');
+(119, 'stripe_setting', '[{"stripe_active":"1","testmode":"off","secret_key":"test secret key","public_key":"test public key","secret_live_key":"live secret key","public_live_key":"live public key"}]'),
+(122, 'paypal_setting', '[{"paypal_active":"1","paypal_mode":"sandbox","sandbox_client_id":"client id sandbox","production_client_id":"client - production"}]');
 
 -- --------------------------------------------------------
 
