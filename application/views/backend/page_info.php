@@ -5,7 +5,7 @@
                     <div class="col-lg-3 col-md-4 col-sm-4 col-xs-12">
                         <h4 class="page-title"><?php echo $page_title;?></h4>
                     </div>
-                    <div class="col-lg-9 col-sm-8 col-md-8 col-xs-12"> <a href="https://schools.org.in/north-west-delhi/07010300103/national-public-school-safiabad-road-narela-delhi.html" target="_blank" class="btn btn-info btn-sm pull-right m-l-20 btn-rounded hidden-xs hidden-sm waves-effect waves-light">School website</a>
+                    <div class="col-lg-9 col-sm-8 col-md-8 col-xs-12"> 
                         <ol class="breadcrumb">
                             <li><a href=""><?php echo $system_name;?></a></li>
                             <li class="active"><?php echo date('d M,Y');?></li>
