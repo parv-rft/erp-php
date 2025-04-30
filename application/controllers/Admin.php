@@ -2113,4 +2113,130 @@ class Admin extends CI_Controller {
         echo json_encode(array('status' => 'success', 'message' => 'Timetable deleted successfully'));
     }
 
+    // Calendar Timetable View
+    public function calendar_timetable($param1 = '', $param2 = '', $param3 = '') {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        $page_data['page_name'] = 'calendar_timetable';
+        $page_data['page_title'] = get_phrase('calendar_timetable');
+        
+        // Get class and section if provided
+        $page_data['class_id'] = $param1 ? $param1 : '';
+        $page_data['section_id'] = $param2 ? $param2 : '';
+        
+        $this->load->view('backend/index', $page_data);
+    }
+    
+    // Get timetable data for calendar view
+    public function get_timetable_data_ajax() {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        $class_id = $this->input->post('class_id');
+        $section_id = $this->input->post('section_id');
+        $teacher_id = $this->input->post('teacher_id');
+        $subject_id = $this->input->post('subject_id');
+        $month = $this->input->post('month');
+        $year = $this->input->post('year');
+        
+        $start_date = date('Y-m-d', strtotime($year . '-' . $month . '-01'));
+        $end_date = date('Y-m-t', strtotime($start_date));
+        
+        $this->db->select('calendar_timetable.*, subject.name as subject_name, teacher.name as teacher_name');
+        $this->db->from('calendar_timetable');
+        $this->db->join('subject', 'subject.subject_id = calendar_timetable.subject_id');
+        $this->db->join('teacher', 'teacher.teacher_id = calendar_timetable.teacher_id');
+        $this->db->where('calendar_timetable.class_id', $class_id);
+        $this->db->where('calendar_timetable.section_id', $section_id);
+        $this->db->where('calendar_timetable.date >=', $start_date);
+        $this->db->where('calendar_timetable.date <=', $end_date);
+        
+        if ($teacher_id) {
+            $this->db->where('calendar_timetable.teacher_id', $teacher_id);
+        }
+        if ($subject_id) {
+            $this->db->where('calendar_timetable.subject_id', $subject_id);
+        }
+        
+        $query = $this->db->get();
+        $results = $query->result_array();
+        
+        // Format results as associative array with date as key
+        $formatted = array();
+        foreach ($results as $row) {
+            if (!isset($formatted[$row['date']])) {
+                $formatted[$row['date']] = array();
+            }
+            $formatted[$row['date']][] = array(
+                'time_slot' => $row['time_slot'],
+                'teacher_name' => $row['teacher_name'],
+                'subject_name' => $row['subject_name'],
+                'teacher_id' => $row['teacher_id'],
+                'subject_id' => $row['subject_id']
+            );
+        }
+        
+        echo json_encode($formatted);
+    }
+    
+    // Save timetable slot
+    public function save_timetable_slot_ajax() {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        $data = array(
+            'class_id' => $this->input->post('class_id'),
+            'section_id' => $this->input->post('section_id'),
+            'teacher_id' => $this->input->post('teacher_id'),
+            'subject_id' => $this->input->post('subject_id'),
+            'date' => $this->input->post('date'),
+            'time_slot' => $this->input->post('time_slot')
+        );
+        
+        // Check for existing entry
+        $this->db->where('class_id', $data['class_id']);
+        $this->db->where('section_id', $data['section_id']);
+        $this->db->where('date', $data['date']);
+        $this->db->where('time_slot', $data['time_slot']);
+        $existing = $this->db->get('calendar_timetable')->row();
+        
+        if ($existing) {
+            // Update existing entry
+            $this->db->where('id', $existing->id);
+            $this->db->update('calendar_timetable', array(
+                'teacher_id' => $data['teacher_id'],
+                'subject_id' => $data['subject_id']
+            ));
+        } else {
+            // Insert new entry
+            $this->db->insert('calendar_timetable', $data);
+        }
+        
+        echo json_encode(array('status' => 'success'));
+    }
+    
+    // Delete timetable slot
+    public function delete_timetable_slot_ajax() {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        $class_id = $this->input->post('class_id');
+        $section_id = $this->input->post('section_id');
+        $date = $this->input->post('date');
+        $time_slot = $this->input->post('time_slot');
+        
+        $this->db->where('class_id', $class_id);
+        $this->db->where('section_id', $section_id);
+        $this->db->where('date', $date);
+        $this->db->where('time_slot', $time_slot);
+        $this->db->delete('calendar_timetable');
+        
+        echo json_encode(array('status' => 'success'));
+    }
+
 }

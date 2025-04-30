@@ -99,24 +99,24 @@
                         
                         <div class="timetable-container">
                             <table id="timetable-grid" class="table table-bordered timetable-grid">
-                                <thead>
-                                    <tr>
+                            <thead>
+                                <tr>
                                         <th class="day-header"><?php echo get_phrase('day_period'); ?></th>
-                                        <?php
+                                    <?php
                                         // Get unique time slots from the database or use default ones
                                         $time_slots = getTimeSlots($class_id, $section_id);
                                         foreach ($time_slots as $slot) {
                                             echo '<th class="time-slot" data-start="' . $slot['start'] . '" data-end="' . $slot['end'] . '">';
                                             echo $slot['start'] . ' - ' . $slot['end'];
                                             echo '</th>';
-                                        }
-                                        ?>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    $days = array('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday');
-                                    foreach ($days as $day) {
+                                    }
+                                    ?>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $days = array('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday');
+                                foreach ($days as $day) {
                                         echo '<tr data-day="' . $day . '">';
                                         echo '<td class="day-name">' . ucfirst($day) . '</td>';
                                         
@@ -137,8 +137,8 @@
                                                     
                                                     // Get teacher name
                                                     $teacher = $this->db->get_where('teacher', array('teacher_id' => $entry['teacher_id']))->row();
-                                                    $teacher_name = $teacher ? $teacher->name : get_phrase('unknown_teacher');
-                                                    
+                                            $teacher_name = $teacher ? $teacher->name : get_phrase('unknown_teacher');
+                                            
                                                     $cell_content = '<div class="subject">' . $subject_name . '</div>';
                                                     $cell_content .= '<div class="teacher">' . $teacher_name . '</div>';
                                                     if (!empty($entry['room_number'])) {
@@ -163,8 +163,8 @@
                                         echo '</tr>';
                                     }
                                     ?>
-                                </tbody>
-                            </table>
+                            </tbody>
+                        </table>
                         </div>
                     </div>
                 </div>
@@ -677,7 +677,7 @@ function deleteTimeTableEntry(timetableId) {
     $.ajax({
         url: '<?php echo base_url(); ?>admin/delete_timetable_ajax/' + timetableId,
         type: 'GET',
-        success: function(response) {
+                success: function(response) {
             hideLoading();
             var result = JSON.parse(response);
             
@@ -706,8 +706,8 @@ function deleteTimeTableEntry(timetableId) {
                     hideAfter: 3500
                 });
             }
-        },
-        error: function(xhr, status, error) {
+                },
+                error: function(xhr, status, error) {
             hideLoading();
             
             // Error message

@@ -67,3 +67,8 @@ $route['admin/view_teacher_diary/(:num)'] = 'admin/view_teacher_diary/$1';
 $route['teacher/timetable'] = 'teacher/class_timetable';
 $route['teacher/timetable/view/(:num)'] = 'teacher/class_timetable/view/$1';
 $route['student/timetable'] = 'student/timetable';
+
+// Calendar Timetable Routes
+$route['admin/calendar_timetable'] = 'admin/calendar_timetable';
+$route['admin/calendar_timetable/(:num)'] = 'admin/calendar_timetable/$1';
+$route['admin/calendar_timetable/(:num)/(:num)'] = 'admin/calendar_timetable/$1/$2';

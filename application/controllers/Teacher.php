@@ -625,4 +625,41 @@ class Teacher extends CI_Controller {
         }
     }
 
+    // Calendar Timetable
+    public function calendar_timetable() {
+        if ($this->session->userdata('teacher_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        $page_data['page_name'] = 'calendar_timetable';
+        $page_data['page_title'] = get_phrase('calendar_timetable');
+        $this->load->view('backend/index', $page_data);
+    }
+    
+    // Get teacher's timetable data for calendar
+    public function get_teacher_timetable_data() {
+        if ($this->session->userdata('teacher_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        $teacher_id = $this->session->userdata('teacher_id');
+        $year = $this->input->post('year');
+        $month = $this->input->post('month');
+        
+        // Get the teacher's timetable from the calendar_timetable table
+        $this->db->select('calendar_timetable.*, class.name as class_name, section.name as section_name, subject.name as subject_name');
+        $this->db->from('calendar_timetable');
+        $this->db->join('class', 'class.class_id = calendar_timetable.class_id');
+        $this->db->join('section', 'section.section_id = calendar_timetable.section_id');
+        $this->db->join('subject', 'subject.subject_id = calendar_timetable.subject_id');
+        $this->db->where('calendar_timetable.teacher_id', $teacher_id);
+        $this->db->where('YEAR(calendar_timetable.date)', $year);
+        $this->db->where('MONTH(calendar_timetable.date)', $month);
+        
+        $query = $this->db->get();
+        $timetable_data = $query->result_array();
+        
+        echo json_encode($timetable_data);
+    }
+
 }
