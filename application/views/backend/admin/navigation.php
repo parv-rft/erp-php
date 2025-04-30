@@ -99,6 +99,20 @@
                      <span class="hide-menu"><?php echo get_phrase('syllabus'); ?></span>
                 </a>
         </li>
+
+        <li class="<?php if ($page_name == 'timetable' || $page_name == 'timetable_view') echo 'active'; ?>">
+                <a href="<?php echo base_url(); ?>admin/timetable">
+                <i class="fa fa-angle-double-right p-r-10"></i>
+                     <span class="hide-menu"><?php echo get_phrase('class_timetable'); ?></span>
+                </a>
+        </li>
+
+        <li class="<?php if ($page_name == 'teacher_diaries' || $page_name == 'view_teacher_diary') echo 'active'; ?>">
+                <a href="<?php echo base_url(); ?>admin/teacher_diaries">
+                <i class="fa fa-angle-double-right p-r-10"></i>
+                     <span class="hide-menu"><?php echo get_phrase('teacher_diaries'); ?></span>
+                </a>
+        </li>
                            
         </ul>
     </li>
@@ -171,8 +185,14 @@
                 </a>
             </li>
 
-     
-                 </ul>
+        <li class="<?php if ($page_name == 'teacher_attendance' || $page_name == 'teacher_attendance_view' || $page_name == 'teacher_attendance_report') echo 'active'; ?>">
+                <a href="<?php echo base_url(); ?>admin/teacher_attendance">
+                <i class="fa fa-angle-double-right p-r-10"></i>
+                     <span class="hide-menu"><?php echo get_phrase('teacher_attendance'); ?></span>
+                </a>
+        </li>
+        
+        </ul>
     </li>
      <!---  Permission for Admin Manage Employee ends here ------>
 

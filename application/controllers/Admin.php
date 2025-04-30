@@ -18,6 +18,11 @@ class Admin extends CI_Controller {
                 $this->load->model('event_model');                      // Load Apllication Model Here
                 $this->load->model('language_model');                      // Load Apllication Model Here
                 $this->load->model('admin_model');                      // Load Apllication Model Here
+                $this->load->model('timetable_model');                  // Load Timetable Model Here
+                $this->load->library('role_based_access');
+                
+                // Check if user is logged in and has admin role
+                $this->role_based_access->check_access('admin');
     }
 
     /**default functin, redirects to login page if no admin logged in yet***/
@@ -1578,6 +1583,534 @@ class Admin extends CI_Controller {
         $this->admin_model->updateAllDetailsForAdminRole($param2);
         $this->session->set_flashdata('flash_message', get_phrase('Data updated successfully'));
         redirect(base_url(). 'admin/newAdministrator', 'refresh');
+    }
+
+    /* Teacher Attendance functions */
+    function teacher_attendance($param1 = '', $param2 = '', $param3 = '') {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+
+        // Check if teacher_attendance table exists, if not create it
+        if (!$this->db->table_exists('teacher_attendance')) {
+            $query = "CREATE TABLE IF NOT EXISTS `teacher_attendance` (
+                `attendance_id` int(11) NOT NULL AUTO_INCREMENT,
+                `teacher_id` int(11) NOT NULL,
+                `status` int(11) NOT NULL DEFAULT '0' COMMENT '0=undefined, 1=present, 2=absent',
+                `date` date NOT NULL,
+                `year` varchar(10) NOT NULL,
+                `month` varchar(10) NOT NULL,
+                `day` varchar(10) NOT NULL,
+                PRIMARY KEY (`attendance_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+            $this->db->query($query);
+        }
+
+        if ($param1 == 'save') {
+            $this->load->model('teacher_attendance_model');
+            $this->teacher_attendance_model->saveTeacherAttendance();
+            $this->session->set_flashdata('flash_message', get_phrase('Teacher attendance saved successfully'));
+            redirect(base_url() . 'admin/teacher_attendance_view/' . $this->input->post('date'), 'refresh');
+        }
+
+        $page_data['page_name'] = 'teacher_attendance';
+        $page_data['page_title'] = get_phrase('Teacher Attendance');
+        $this->load->view('backend/index', $page_data);
+    }
+
+    function teacher_attendance_view($date = '') {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+
+        if ($date == '') {
+            $date = date('Y-m-d');
+        }
+
+        $this->load->model('teacher_attendance_model');
+        $page_data['attendance_data'] = $this->teacher_attendance_model->getTeacherAttendance($date);
+        $page_data['date'] = $date;
+        $page_data['page_name'] = 'teacher_attendance_view';
+        $page_data['page_title'] = get_phrase('Teacher Attendance');
+        $this->load->view('backend/index', $page_data);
+    }
+
+    function teacher_attendance_report($param1 = '', $param2 = '', $param3 = '') {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+
+        if ($param1 == 'view_report') {
+            $page_data['month'] = $this->input->post('month');
+            $page_data['year'] = $this->input->post('year');
+            redirect(base_url() . 'admin/teacher_attendance_report/' . $page_data['month'] . '/' . $page_data['year'], 'refresh');
+        }
+
+        $page_data['month'] = $param1 ? $param1 : date('m');
+        $page_data['year'] = $param2 ? $param2 : date('Y');
+
+        $this->load->model('teacher_attendance_model');
+        $page_data['attendance_report'] = $this->teacher_attendance_model->getTeacherAttendanceReport($page_data['month'], $page_data['year']);
+        
+        $page_data['page_name'] = 'teacher_attendance_report';
+        $page_data['page_title'] = get_phrase('Teacher Attendance Report');
+        $this->load->view('backend/index', $page_data);
+    }
+    /* End of Teacher Attendance functions */
+
+    /* Class Timetable Enhanced functions */
+    function timetable($param1 = '', $param2 = '', $param3 = '') {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        try {
+            // Check if timetable table exists and create if needed
+            if (!$this->db->table_exists('timetable')) {
+                $this->timetable_model->create_table_if_not_exists();
+                log_message('info', 'Created timetable table as it did not exist');
+            }
+            
+            if ($param1 == 'create') {
+                // Validate that required fields are present
+                if (empty($this->input->post('class_id')) || 
+                    empty($this->input->post('section_id')) || 
+                    empty($this->input->post('subject_id')) ||
+                    empty($this->input->post('teacher_id')) ||
+                    empty($this->input->post('day')) ||
+                    empty($this->input->post('starting_time')) ||
+                    empty($this->input->post('ending_time'))) {
+                    $this->session->set_flashdata('error_message', get_phrase('All fields are required'));
+                    redirect(base_url() . 'admin/timetable', 'refresh');
+                    return;
+                }
+                
+                $data = array(
+                    'class_id' => $this->input->post('class_id'),
+                    'section_id' => $this->input->post('section_id'),
+                    'subject_id' => $this->input->post('subject_id'),
+                    'teacher_id' => $this->input->post('teacher_id'),
+                    'day' => $this->input->post('day'),
+                    'starting_time' => $this->input->post('starting_time'),
+                    'ending_time' => $this->input->post('ending_time'),
+                    'room_number' => $this->input->post('room_number')
+                );
+                
+                // Check for related data existence
+                $class_exists = $this->db->get_where('class', array('class_id' => $data['class_id']))->num_rows() > 0;
+                $section_exists = $this->db->get_where('section', array('section_id' => $data['section_id']))->num_rows() > 0;
+                $subject_exists = $this->db->get_where('subject', array('subject_id' => $data['subject_id']))->num_rows() > 0;
+                $teacher_exists = $this->db->get_where('teacher', array('teacher_id' => $data['teacher_id']))->num_rows() > 0;
+                
+                if (!$class_exists || !$section_exists || !$subject_exists || !$teacher_exists) {
+                    $this->session->set_flashdata('error_message', get_phrase('Related records not found. Please check your data.'));
+                    redirect(base_url() . 'admin/timetable', 'refresh');
+                    return;
+                }
+                
+                // Now insert the data
+                $this->db->insert('timetable', $data);
+                log_message('debug', 'Timetable entry created: ' . json_encode($data));
+                $this->session->set_flashdata('flash_message', get_phrase('Timetable added successfully'));
+                redirect(base_url() . 'admin/timetable', 'refresh');
+            }
+            
+            if ($param1 == 'update') {
+                // Validate that required fields are present
+                if (empty($this->input->post('class_id')) || 
+                    empty($this->input->post('section_id')) || 
+                    empty($this->input->post('subject_id')) ||
+                    empty($this->input->post('teacher_id')) ||
+                    empty($this->input->post('day')) ||
+                    empty($this->input->post('starting_time')) ||
+                    empty($this->input->post('ending_time'))) {
+                    $this->session->set_flashdata('error_message', get_phrase('All fields are required'));
+                    redirect(base_url() . 'admin/timetable', 'refresh');
+                    return;
+                }
+                
+                // Validate that record exists
+                $record_exists = $this->db->get_where('timetable', array('timetable_id' => $param2))->num_rows() > 0;
+                if (!$record_exists) {
+                    $this->session->set_flashdata('error_message', get_phrase('Timetable entry not found'));
+                    redirect(base_url() . 'admin/timetable', 'refresh');
+                    return;
+                }
+                
+                $data = array(
+                    'class_id' => $this->input->post('class_id'),
+                    'section_id' => $this->input->post('section_id'),
+                    'subject_id' => $this->input->post('subject_id'),
+                    'teacher_id' => $this->input->post('teacher_id'),
+                    'day' => $this->input->post('day'),
+                    'starting_time' => $this->input->post('starting_time'),
+                    'ending_time' => $this->input->post('ending_time'),
+                    'room_number' => $this->input->post('room_number')
+                );
+                
+                // Check for related data existence
+                $class_exists = $this->db->get_where('class', array('class_id' => $data['class_id']))->num_rows() > 0;
+                $section_exists = $this->db->get_where('section', array('section_id' => $data['section_id']))->num_rows() > 0;
+                $subject_exists = $this->db->get_where('subject', array('subject_id' => $data['subject_id']))->num_rows() > 0;
+                $teacher_exists = $this->db->get_where('teacher', array('teacher_id' => $data['teacher_id']))->num_rows() > 0;
+                
+                if (!$class_exists || !$section_exists || !$subject_exists || !$teacher_exists) {
+                    $this->session->set_flashdata('error_message', get_phrase('Related records not found. Please check your data.'));
+                    redirect(base_url() . 'admin/timetable', 'refresh');
+                    return;
+                }
+                
+                $this->db->where('timetable_id', $param2);
+                $this->db->update('timetable', $data);
+                log_message('debug', 'Timetable entry updated: ' . json_encode($data) . ' for ID: ' . $param2);
+                $this->session->set_flashdata('flash_message', get_phrase('Timetable updated successfully'));
+                redirect(base_url() . 'admin/timetable', 'refresh');
+            }
+            
+            if ($param1 == 'delete') {
+                // Validate that record exists
+                $record_exists = $this->db->get_where('timetable', array('timetable_id' => $param2))->num_rows() > 0;
+                if (!$record_exists) {
+                    $this->session->set_flashdata('error_message', get_phrase('Timetable entry not found'));
+                    redirect(base_url() . 'admin/timetable', 'refresh');
+                    return;
+                }
+                
+                $this->db->where('timetable_id', $param2);
+                $this->db->delete('timetable');
+                log_message('debug', 'Timetable entry deleted for ID: ' . $param2);
+                $this->session->set_flashdata('flash_message', get_phrase('Timetable deleted successfully'));
+                redirect(base_url() . 'admin/timetable', 'refresh');
+            }
+            
+            $page_data['page_name'] = 'timetable';
+            $page_data['page_title'] = get_phrase('Class Timetable');
+            $this->load->view('backend/index', $page_data);
+            
+        } catch (Exception $e) {
+            log_message('error', 'Error in timetable function: ' . $e->getMessage());
+            $this->session->set_flashdata('error_message', get_phrase('An error occurred. Please try again.'));
+            redirect(base_url() . 'admin/dashboard', 'refresh');
+        }
+    }
+
+    function timetable_view($class_id = '', $section_id = '') {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        try {
+            // Validate parameters
+            if (empty($class_id) || !is_numeric($class_id) || empty($section_id) || !is_numeric($section_id)) {
+                $this->session->set_flashdata('error_message', get_phrase('Invalid class or section'));
+                redirect(base_url() . 'admin/timetable', 'refresh');
+                return;
+            }
+            
+            // Check if class and section exist
+            $class_exists = $this->db->get_where('class', array('class_id' => $class_id))->num_rows() > 0;
+            $section_exists = $this->db->get_where('section', array('section_id' => $section_id))->num_rows() > 0;
+            
+            if (!$class_exists || !$section_exists) {
+                $this->session->set_flashdata('error_message', get_phrase('Class or section not found'));
+                redirect(base_url() . 'admin/timetable', 'refresh');
+                return;
+            }
+            
+            // Check if timetable entries exist for this class and section
+            $entries_exist = $this->db->get_where('timetable', array(
+                'class_id' => $class_id,
+                'section_id' => $section_id
+            ))->num_rows() > 0;
+            
+            $page_data['class_id'] = $class_id;
+            $page_data['section_id'] = $section_id;
+            $page_data['page_name'] = 'timetable_view';
+            $page_data['page_title'] = get_phrase('Class Timetable View');
+            $page_data['has_entries'] = $entries_exist;
+            
+            log_message('debug', 'Loading timetable view for class_id: ' . $class_id . ', section_id: ' . $section_id);
+            $this->load->view('backend/index', $page_data);
+        } catch (Exception $e) {
+            log_message('error', 'Error in timetable_view: ' . $e->getMessage());
+            $this->session->set_flashdata('error_message', get_phrase('An error occurred while loading the timetable'));
+            redirect(base_url() . 'admin/timetable', 'refresh');
+        }
+    }
+
+    function timetable_print_view($class_id = '', $section_id = '') {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        try {
+            // Validate parameters
+            if (empty($class_id) || !is_numeric($class_id) || empty($section_id) || !is_numeric($section_id)) {
+                $this->session->set_flashdata('error_message', get_phrase('Invalid class or section'));
+                redirect(base_url() . 'admin/timetable', 'refresh');
+                return;
+            }
+            
+            // Check if class and section exist
+            $class_exists = $this->db->get_where('class', array('class_id' => $class_id))->num_rows() > 0;
+            $section_exists = $this->db->get_where('section', array('section_id' => $section_id))->num_rows() > 0;
+            
+            if (!$class_exists || !$section_exists) {
+                $this->session->set_flashdata('error_message', get_phrase('Class or section not found'));
+                redirect(base_url() . 'admin/timetable', 'refresh');
+                return;
+            }
+            
+            // Check if timetable entries exist for this class and section
+            $entries_exist = $this->db->get_where('timetable', array(
+                'class_id' => $class_id,
+                'section_id' => $section_id
+            ))->num_rows() > 0;
+            
+            if (!$entries_exist) {
+                $this->session->set_flashdata('error_message', get_phrase('No timetable entries found for this class and section'));
+                redirect(base_url() . 'admin/timetable_view/' . $class_id . '/' . $section_id, 'refresh');
+                return;
+            }
+            
+            $page_data['class_id'] = $class_id;
+            $page_data['section_id'] = $section_id;
+            $page_data['page_title'] = get_phrase('Print Timetable');
+            log_message('debug', 'Loading timetable print view for class_id: ' . $class_id . ', section_id: ' . $section_id);
+            $this->load->view('backend/admin/timetable_print_view', $page_data);
+        } catch (Exception $e) {
+            log_message('error', 'Error in timetable_print_view: ' . $e->getMessage());
+            $this->session->set_flashdata('error_message', get_phrase('An error occurred while preparing the print view'));
+            redirect(base_url() . 'admin/timetable_view/' . $class_id . '/' . $section_id, 'refresh');
+        }
+    }
+    /* End of Class Timetable Enhanced functions */
+
+    /* New method to load teacher attendance report via AJAX */
+    function load_teacher_attendance_report($month = '', $year = '') {
+        if ($this->session->userdata('admin_login') != 1) {
+            echo json_encode(['error' => 'Access denied']);
+            return;
+        }
+
+        try {
+            // Set default values if params are empty
+            $page_data['month'] = $month ? intval($month) : intval(date('m'));
+            $page_data['year'] = $year ? intval($year) : intval(date('Y'));
+
+            // Validate inputs
+            if (!is_numeric($page_data['month']) || $page_data['month'] < 1 || $page_data['month'] > 12) {
+                echo '<div class="alert alert-danger">Invalid month parameter: ' . htmlspecialchars($month) . '</div>';
+                return;
+            }
+
+            if (!is_numeric($page_data['year']) || $page_data['year'] < 2000 || $page_data['year'] > 2100) {
+                echo '<div class="alert alert-danger">Invalid year parameter: ' . htmlspecialchars($year) . '</div>';
+                return;
+            }
+
+            // Make sure the teacher_attendance table exists
+            if (!$this->db->table_exists('teacher_attendance')) {
+                log_message('debug', 'Creating teacher_attendance table as it does not exist');
+                $query = "CREATE TABLE IF NOT EXISTS `teacher_attendance` (
+                    `attendance_id` int(11) NOT NULL AUTO_INCREMENT,
+                    `teacher_id` int(11) NOT NULL,
+                    `status` int(11) NOT NULL DEFAULT '0' COMMENT '0=undefined, 1=present, 2=absent',
+                    `date` date NOT NULL,
+                    `year` varchar(10) NOT NULL,
+                    `month` varchar(10) NOT NULL,
+                    `day` varchar(10) NOT NULL,
+                    PRIMARY KEY (`attendance_id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+                $this->db->query($query);
+            }
+            
+            // Load model if not already loaded
+            if (!isset($this->teacher_attendance_model)) {
+                $this->load->model('teacher_attendance_model');
+            }
+            
+            // Log request info
+            log_message('debug', 'Loading attendance report for month ' . $page_data['month'] . ' year ' . $page_data['year']);
+            
+            // Get the attendance report from the model with error handling
+            $page_data['attendance_report'] = $this->teacher_attendance_model->getTeacherAttendanceReport($page_data['month'], $page_data['year']);
+            
+            if (empty($page_data['attendance_report'])) {
+                log_message('debug', 'No attendance report data found for month ' . $page_data['month'] . ' year ' . $page_data['year']);
+                echo '<div class="alert alert-info">No attendance data found for ' . date('F Y', mktime(0, 0, 0, $page_data['month'], 1, $page_data['year'])) . '</div>';
+                return;
+            }
+            
+            // Load the view
+            $this->load->view('backend/admin/teacher_attendance_report_ajax', $page_data);
+            
+        } catch (Exception $e) {
+            log_message('error', 'Error in load_teacher_attendance_report: ' . $e->getMessage());
+            echo '<div class="alert alert-danger">
+                <h4><i class="fa fa-exclamation-triangle"></i> Error</h4>
+                <p>Error: ' . $e->getMessage() . '</p>
+                <p>Please try again later or contact support.</p>
+            </div>';
+        }
+    }
+    
+    /* Add this method to handle teacher attendance report printing */
+    function teacher_attendance_report_print_view($month = '', $year = '') {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        $page_data['month'] = $month ? $month : date('m');
+        $page_data['year'] = $year ? $year : date('Y');
+        
+        $this->load->model('teacher_attendance_model');
+        $page_data['attendance_report'] = $this->teacher_attendance_model->getTeacherAttendanceReport($page_data['month'], $page_data['year']);
+        
+        $page_data['page_title'] = get_phrase('Teacher Attendance Report');
+        $this->load->view('backend/admin/teacher_attendance_report_print_view', $page_data);
+    }
+
+    /* Teacher Diary functionality for Admin */
+    function teacher_diaries() {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        // Load the teacher diary model
+        $this->load->model('teacher_diary_model');
+        
+        try {
+            // Create the table if it doesn't exist
+            $this->teacher_diary_model->create_table_if_not_exists();
+            
+            $page_data['diaries'] = $this->teacher_diary_model->get_all_diaries();
+            $page_data['page_name'] = 'teacher_diaries';
+            $page_data['page_title'] = get_phrase('Teacher Diaries');
+            $this->load->view('backend/index', $page_data);
+        } catch (Exception $e) {
+            $this->session->set_flashdata('error_message', get_phrase('Error loading diaries: ') . $e->getMessage());
+            redirect(base_url() . 'admin/dashboard', 'refresh');
+        }
+    }
+    
+    function view_teacher_diary($diary_id) {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        try {
+            $this->load->model('teacher_diary_model');
+            
+            $page_data['diary'] = $this->teacher_diary_model->get_diary($diary_id);
+            
+            if (empty($page_data['diary'])) {
+                $this->session->set_flashdata('error_message', get_phrase('Diary not found'));
+                redirect(base_url() . 'admin/teacher_diaries', 'refresh');
+            }
+            
+            // Get teacher name
+            $this->db->where('teacher_id', $page_data['diary']['teacher_id']);
+            $teacher = $this->db->get('teacher')->row_array();
+            
+            if (empty($teacher)) {
+                $page_data['teacher_name'] = get_phrase('Unknown Teacher');
+            } else {
+                $page_data['teacher_name'] = $teacher['name'];
+            }
+            
+            $page_data['page_name'] = 'view_teacher_diary';
+            $page_data['page_title'] = get_phrase('View Teacher Diary');
+            $this->load->view('backend/index', $page_data);
+        } catch (Exception $e) {
+            $this->session->set_flashdata('error_message', get_phrase('Error viewing diary: ') . $e->getMessage());
+            redirect(base_url() . 'admin/teacher_diaries', 'refresh');
+        }
+    }
+
+    /* Update timetable entry via AJAX */
+    function update_timetable_ajax() {
+        if ($this->session->userdata('admin_login') != 1) {
+            echo json_encode(array('status' => 'error', 'message' => 'Access denied'));
+            return;
+        }
+        
+        // Get POST data
+        $timetable_id = $this->input->post('timetable_id');
+        $day = $this->input->post('day');
+        $starting_time = $this->input->post('starting_time');
+        $ending_time = $this->input->post('ending_time');
+        
+        // Validate inputs
+        if (empty($timetable_id) || empty($day) || empty($starting_time) || empty($ending_time)) {
+            echo json_encode(array('status' => 'error', 'message' => 'Missing required parameters'));
+            return;
+        }
+        
+        // Load timetable model if needed
+        if (!isset($this->timetable_model)) {
+            $this->load->model('timetable_model');
+        }
+        
+        // Get current timetable entry to keep other data unchanged
+        $current_entry = $this->db->get_where('timetable', array('timetable_id' => $timetable_id))->row_array();
+        if (empty($current_entry)) {
+            echo json_encode(array('status' => 'error', 'message' => 'Timetable entry not found'));
+            return;
+        }
+        
+        // Update data
+        $data = array(
+            'day' => $day,
+            'starting_time' => $starting_time,
+            'ending_time' => $ending_time
+        );
+        
+        // Check for conflicts
+        $conflict = $this->timetable_model->check_timetable_conflict(
+            array_merge($current_entry, $data),
+            $timetable_id
+        );
+        
+        if ($conflict) {
+            echo json_encode(array('status' => 'error', 'message' => 'Time conflict with another class or teacher'));
+            return;
+        }
+        
+        // Update entry
+        $this->db->where('timetable_id', $timetable_id);
+        $this->db->update('timetable', $data);
+        
+        // Return success
+        echo json_encode(array('status' => 'success', 'message' => 'Timetable updated successfully'));
+    }
+    
+    /* Delete timetable entry via AJAX */
+    function delete_timetable_ajax($timetable_id = '') {
+        if ($this->session->userdata('admin_login') != 1) {
+            echo json_encode(array('status' => 'error', 'message' => 'Access denied'));
+            return;
+        }
+        
+        // Validate input
+        if (empty($timetable_id)) {
+            echo json_encode(array('status' => 'error', 'message' => 'Missing timetable ID'));
+            return;
+        }
+        
+        // Check if entry exists
+        $entry = $this->db->get_where('timetable', array('timetable_id' => $timetable_id))->row_array();
+        if (empty($entry)) {
+            echo json_encode(array('status' => 'error', 'message' => 'Timetable entry not found'));
+            return;
+        }
+        
+        // Delete entry
+        $this->db->where('timetable_id', $timetable_id);
+        $this->db->delete('timetable');
+        
+        // Return success
+        echo json_encode(array('status' => 'success', 'message' => 'Timetable deleted successfully'));
     }
 
 }

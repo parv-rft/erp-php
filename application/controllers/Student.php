@@ -7,7 +7,11 @@ class Student extends CI_Controller {
         parent::__construct();
         		$this->load->database();                                //Load Databse Class
                 $this->load->library('session');					    //Load library for session
+                $this->load->library('role_based_access');
+                $this->load->model('timetable_model');                  //Load timetable model
   
+        // Check if user is logged in and has student role
+        $this->role_based_access->check_access('student');
     }
 
      /*student dashboard code to redirect to student page if successfull login** */
@@ -352,6 +356,43 @@ class Student extends CI_Controller {
             $page_data['total_present']    = $total_present;
             $page_data['total_absent']     = $total_absent;
 
+            $this->load->view('backend/index', $page_data);
+        }
+
+        function class_timetable() {
+            if ($this->session->userdata('student_login') != 1) {
+                redirect(base_url(), 'refresh');
+            }
+            
+            $student_id = $this->session->userdata('student_id');
+            $class_id = $this->db->get_where('student', array('student_id' => $student_id))->row()->class_id;
+            $section_id = $this->db->get_where('student', array('student_id' => $student_id))->row()->section_id;
+            
+            $page_data['class_id'] = $class_id;
+            $page_data['section_id'] = $section_id;
+            $page_data['page_name'] = 'class_timetable';
+            $page_data['page_title'] = get_phrase('Class Timetable');
+            $this->load->view('backend/index', $page_data);
+        }
+
+        function timetable() {
+            if ($this->session->userdata('student_login') != 1) {
+                redirect(base_url(), 'refresh');
+            }
+            
+            $student_id = $this->session->userdata('student_id');
+            $student = $this->db->get_where('student', array('student_id' => $student_id))->row();
+            
+            if (!$student) {
+                $this->session->set_flashdata('error_message', get_phrase('student_not_found'));
+                redirect(base_url() . 'student/dashboard', 'refresh');
+            }
+            
+            $page_data['student_id'] = $student_id;
+            $page_data['class_id'] = $student->class_id;
+            $page_data['section_id'] = $student->section_id;
+            $page_data['page_name'] = 'timetable';
+            $page_data['page_title'] = get_phrase('Class Timetable');
             $this->load->view('backend/index', $page_data);
         }
 

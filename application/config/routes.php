@@ -50,5 +50,20 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |		my-controller/my-method	-> my_controller/my_method
 */
 $route['default_controller'] = 'login';
-$route['404_override'] = '';
+$route['404_override'] = 'errors/error_404';
 $route['translate_uri_dashes'] = FALSE;
+
+$route['teacher/my_diaries'] = 'teacher/my_diaries';
+$route['teacher/my_diaries/create'] = 'teacher/my_diaries/create';
+$route['teacher/my_diaries/update/(:num)'] = 'teacher/my_diaries/update/$1';
+$route['teacher/my_diaries/delete/(:num)'] = 'teacher/my_diaries/delete/$1';
+$route['teacher/view_diary/(:num)'] = 'teacher/view_diary/$1';
+$route['teacher/edit_diary/(:num)'] = 'teacher/edit_diary/$1';
+$route['teacher/download_diary_attachment/(:num)'] = 'teacher/download_diary_attachment/$1';
+$route['admin/teacher_diaries'] = 'admin/teacher_diaries';
+$route['admin/view_teacher_diary/(:num)'] = 'admin/view_teacher_diary/$1';
+
+// Timetable routes
+$route['teacher/timetable'] = 'teacher/class_timetable';
+$route['teacher/timetable/view/(:num)'] = 'teacher/class_timetable/view/$1';
+$route['student/timetable'] = 'student/timetable';

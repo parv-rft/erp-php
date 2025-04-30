@@ -565,20 +565,92 @@
   <script src="<?php echo base_url(); ?>js/chat.js"></script>
   
   <script type="text/javascript">
+// Fix audio loading issues - Check if file exists before creating Audio objects
+function checkAudioFileExists(url, successCallback, errorCallback) {
+  $.ajax({
+    url: url,
+    type: 'HEAD',
+    error: function() {
+      if (typeof errorCallback === 'function') {
+        errorCallback();
+      }
+    },
+    success: function() {
+      if (typeof successCallback === 'function') {
+        successCallback();
+      }
+    }
+  });
+}
+
 var audioUrl = '<?php echo base_url(); ?>uploads/chat.mp3';
-// SIMPLE EXEMPLE
-var audio = new Audio(audioUrl); // define your audio
-$('.btn').click( () => audio.play() ); // that will do the trick !!
+var fallbackAudioUrl = '<?php echo base_url(); ?>assets/notification.mp3'; // Fallback audio path
 
-// ADVANCED EXEMPLE
+// Check if primary audio file exists
+checkAudioFileExists(audioUrl, 
+  function() {
+    // Audio file exists - proceed normally
+    console.log('Audio file found at: ' + audioUrl);
+  }, 
+  function() {
+    // Audio file doesn't exist - use fallback or disable
+    console.log('Audio file not found at: ' + audioUrl + ', using fallback or disabling');
+    audioUrl = fallbackAudioUrl;
+    
+    // Check if fallback exists
+    checkAudioFileExists(fallbackAudioUrl, 
+      function() {
+        console.log('Fallback audio found');
+      }, 
+      function() {
+        console.log('No audio files available - disabling audio features');
+        // Define empty audio play function to prevent errors
+        Audio.prototype.play = function() { return Promise.resolve(); };
+      }
+    );
+  }
+);
 
-// array with souds to cycle trough
-// the more in the array, the faster you can retrigger the click 
-var audio2 = [new Audio(audioUrl), new Audio(audioUrl), new Audio(audioUrl), new Audio(audioUrl), new Audio(audioUrl)]; // put it has much has you want
-var soundNb = 0; // counter
+// Define audio with error handling
+try {
+  var audio = new Audio(audioUrl);
+  
+  // Safer click handler
+  $('.btn').on('click', function() {
+    try {
+      audio.play().catch(function(e) {
+        console.log('Audio play failed:', e.message);
+      });
+    } catch(e) {
+      console.log('Error playing audio:', e.message);
+    }
+  });
 
-$('.btn2').click( () => audio2[ soundNb++ % audio2.length ].play());
+  // ADVANCED EXAMPLE - safer implementation
+  var audio2 = [];
+  for (var i = 0; i < 5; i++) {
+    try {
+      audio2.push(new Audio(audioUrl));
+    } catch(e) {
+      console.log('Error creating audio object:', e.message);
+    }
+  }
+  var soundNb = 0;
 
+  $('.btn2').on('click', function() {
+    try {
+      if (audio2.length > 0) {
+        audio2[soundNb++ % audio2.length].play().catch(function(e) {
+          console.log('Audio2 play failed:', e.message);
+        });
+      }
+    } catch(e) {
+      console.log('Error playing audio2:', e.message);
+    }
+  });
+} catch(e) {
+  console.log('Error initializing audio:', e.message);
+}
 </script>
 
 <script type="text/javascript">

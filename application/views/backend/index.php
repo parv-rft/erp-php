@@ -5,6 +5,21 @@ $footer         = $this->db->get_where('settings', array('type' => 'footer'))->r
 $text_align     = $this->db->get_where('settings', array('type' => 'text_align'))->row()->description;
 $loginType      = $this->session->userdata('login_type');
 $running_year   = $this->db->get_where('settings', array('type' => 'session'))->row()->description;
+
+// Check for default.jpg and create it if it doesn't exist
+$default_img_path = 'uploads/default.jpg';
+if (!file_exists($default_img_path)) {
+    // Create an empty default profile image to prevent 404 errors
+    copy('assets/img/default-avatar.png', $default_img_path);
+    // If the above fails, create a blank image
+    if (!file_exists($default_img_path)) {
+        $img = imagecreatetruecolor(100, 100);
+        $bg = imagecolorallocate($img, 200, 200, 200);
+        imagefill($img, 0, 0, $bg);
+        imagejpeg($img, $default_img_path, 90);
+        imagedestroy($img);
+    }
+}
 ?>
 <?php include 'css.php'; ?>
 

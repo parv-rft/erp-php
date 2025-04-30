@@ -18,9 +18,11 @@
                             if (!file_exists($face_file)) {
                                 $face_file = 'uploads/default.jpg';                                 
                             }
+                            // Create a URL friendly path
+                            $face_file_url = base_url() . str_replace('\\', '/', $face_file);
                             ?>
 
-                    <a href="#" class="waves-effect"><img src="<?php echo base_url() . $face_file;?>" alt="user-img" class="img-circle"> <span class="hide-menu">
+                    <a href="#" class="waves-effect"><img src="<?php echo $face_file_url;?>" alt="user-img" class="img-circle"> <span class="hide-menu">
 
                        <?php 
                                 $account_type   =   $this->session->userdata('login_type');
@@ -83,7 +85,7 @@
                     
 
                 <li class="<?php if ($page_name == 'manage_attendance') echo 'active'; ?> ">
-                    <a href="<?php echo base_url(); ?>teacher/manage_attendance/<?php echo date("d/m/Y"); ?>">
+                    <a href="<?php echo base_url(); ?>teacher/manage_attendance">
                     <i class="fa fa-angle-double-right p-r-10"></i>
                         <span class="hide-menu"><?php echo get_phrase('mark_attendance'); ?></span>
                     </a>
@@ -138,6 +140,20 @@
                 <a href="<?php echo base_url(); ?>teacher/manage_profile">
                     <i class="fa fa-gears p-r-10"></i>
                         <span class="hide-menu"><?php echo get_phrase('manage_profile'); ?></span>
+                </a>
+            </li>
+
+            <li class="<?php if ($page_name == 'class_timetable') echo 'active'; ?>">
+                <a href="<?php echo base_url(); ?>teacher/timetable">
+                    <i class="fa fa-calendar"></i>
+                    <span><?php echo get_phrase('class_timetable'); ?></span>
+                </a>
+            </li>
+
+            <li class="<?php if($page_name == 'my_diaries' || $page_name == 'view_diary' || $page_name == 'edit_diary') echo 'active'; ?>">
+                <a href="<?php echo base_url(); ?>teacher/my_diaries">
+                    <i class="fa fa-book"></i>
+                    <span><?php echo get_phrase('my_diaries'); ?></span>
                 </a>
             </li>
 

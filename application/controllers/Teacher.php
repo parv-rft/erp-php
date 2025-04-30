@@ -7,8 +7,11 @@ class Teacher extends CI_Controller {
         parent::__construct();
         		$this->load->database();                                //Load Databse Class
                 $this->load->library('session');					    //Load library for session
+                $this->load->library('role_based_access');
                // $this->load->model('vacancy_model');
 
+        // Check if user is logged in and has teacher role
+        $this->role_based_access->check_access('teacher');
     }
 
      /*teacher dashboard code to redirect to teacher page if successfull login** */
@@ -61,66 +64,85 @@ class Teacher extends CI_Controller {
 
 
 
-        function manage_attendance($date = null, $month= null, $year = null, $class_id = null, $section_id = null ){
-            $active_sms_gateway = $this->db->get_where('sms_settings', array('type' => 'active_sms_gateway'))->row()->info;
+        function manage_attendance($date = '') {
+            if ($this->session->userdata('teacher_login') != 1)
+                redirect(base_url(), 'refresh');
             
-            if ($_POST) {
-        
-                // Loop all the students of $class_id
-                $students = $this->db->get_where('student', array('class_id' => $class_id))->result_array();
-                foreach ($students as $key => $student) {
-                $attendance_status = $this->input->post('status_' . $student['student_id']);
-                $full_date = $year . "-" . $month . "-" . $date;
-                $this->db->where('student_id', $student['student_id']);
-                $this->db->where('date', $full_date);
-        
-                $this->db->update('attendance', array('status' => $attendance_status));
-        
-                       if ($attendance_status == 2) 
-                {
-                         if ($active_sms_gateway != '' || $active_sms_gateway != 'disabled') {
-                            $student_name   = $this->db->get_where('student' , array('student_id' => $student['student_id']))->row()->name;
-                            $parent_id      = $this->db->get_where('student' , array('student_id' => $student['student_id']))->row()->parent_id;
-                            $message        = 'Your child' . ' ' . $student_name . 'is absent today.';
-                            if($parent_id != null && $parent_id != 0){
-                                $recieverPhoneNumber = $this->db->get_where('parent' , array('parent_id' => $parent_id))->row()->phone;
-                                if($recieverPhoneNumber != '' || $recieverPhoneNumber != null){
-                                    $this->sms_model->send_sms($message, $recieverPhoneNumber);
-                                }
-                                else{
-                                    $this->session->set_flashdata('error_message' , get_phrase('Parent Phone Not Found'));
-                                }
-                            }
-                            else{
-                                $this->session->set_flashdata('error_message' , get_phrase('SMS Gateway Not Found'));
-                            }
-                        }
-               }
-            }
-        
-                $this->session->set_flashdata('flash_message', get_phrase('Updated Successfully'));
-                redirect(base_url() . 'teacher/manage_attendance/' . $date . '/' . $month . '/' . $year . '/' . $class_id . '/' . $section_id, 'refresh');
-            }
-    
-            $page_data['date'] = $date;
-            $page_data['month'] = $month;
-            $page_data['year'] = $year;
-            $page_data['class_id'] = $class_id;
-            $page_data['section_id'] = $section_id;
+            $page_data['date'] = $date ? $date : date('d/m/Y');
             $page_data['page_name'] = 'manage_attendance';
-            $page_data['page_title'] = get_phrase('Manage Attendance');
+            $page_data['page_title'] = get_phrase('manage_attendance');
             $this->load->view('backend/index', $page_data);
-    
         }
-    
-        function attendance_selector(){
-            $date = $this->input->post('timestamp');
-            $date = date_create($date);
-            $date = date_format($date, "d/m/Y");
-            redirect(base_url(). 'teacher/manage_attendance/' .$date. '/' . $this->input->post('class_id'). '/' . $this->input->post('section_id'), 'refresh');
+
+        function attendance_selector() {
+            if ($this->session->userdata('teacher_login') != 1)
+                redirect(base_url(), 'refresh');
+            
+            $data['class_id'] = $this->input->post('class_id');
+            $data['section_id'] = $this->input->post('section_id');
+            $data['timestamp'] = strtotime($this->input->post('timestamp'));
+            
+            $query = $this->db->get_where('attendance', array(
+                'class_id' => $data['class_id'],
+                'section_id' => $data['section_id'],
+                'timestamp' => $data['timestamp']
+            ));
+            
+            if ($query->num_rows() < 1) {
+                $students = $this->db->get_where('enroll', array(
+                    'class_id' => $data['class_id'],
+                    'section_id' => $data['section_id'],
+                    'year' => $this->db->get_where('settings', array('type' => 'running_year'))->row()->description
+                ))->result_array();
+                
+                foreach ($students as $row) {
+                    $attn_data['class_id'] = $data['class_id'];
+                    $attn_data['section_id'] = $data['section_id'];
+                    $attn_data['student_id'] = $row['student_id'];
+                    $attn_data['timestamp'] = $data['timestamp'];
+                    $attn_data['status'] = 1;
+                    
+                    $this->db->insert('attendance', $attn_data);
+                }
+            }
+            
+            redirect(base_url() . 'teacher/manage_attendance/' . $data['timestamp'], 'refresh');
         }
-    
-    
+
+        function attendance_update($class_id = '', $section_id = '', $timestamp = '') {
+            if ($this->session->userdata('teacher_login') != 1)
+                redirect(base_url(), 'refresh');
+            
+            $running_year = $this->db->get_where('settings', array('type' => 'running_year'))->row()->description;
+            $active_sms_service = $this->db->get_where('settings', array('type' => 'active_sms_service'))->row()->description;
+            
+            $students = $this->db->get_where('enroll', array(
+                'class_id' => $class_id,
+                'section_id' => $section_id,
+                'year' => $running_year
+            ))->result_array();
+            
+            foreach ($students as $row) {
+                $attendance_status = $this->input->post('status_' . $row['student_id']);
+                $this->db->where('student_id', $row['student_id']);
+                $this->db->where('timestamp', $timestamp);
+                $this->db->update('attendance', array('status' => $attendance_status));
+                
+                if ($attendance_status == 2) {
+                    if ($active_sms_service != '' || $active_sms_service != 'disabled') {
+                        $student_name = $this->db->get_where('student', array('student_id' => $row['student_id']))->row()->name;
+                        $parent_id = $this->db->get_where('student', array('student_id' => $row['student_id']))->row()->parent_id;
+                        $message = 'Your child ' . $student_name . ' is absent today.';
+                        $receiver_phone = $this->db->get_where('parent', array('parent_id' => $parent_id))->row()->phone;
+                        $this->sms_model->send_sms($message, $receiver_phone);
+                    }
+                }
+            }
+            
+            $this->session->set_flashdata('flash_message', get_phrase('attendance_updated'));
+            redirect(base_url() . 'teacher/manage_attendance/' . date('d/m/Y', $timestamp), 'refresh');
+        }
+
         function attendance_report($class_id = NULL, $section_id = NULL, $month = NULL, $year = NULL) {
             
             $active_sms_gateway = $this->db->get_where('sms_settings', array('type' => 'active_sms_gateway'))->row()->info;
@@ -276,8 +298,331 @@ class Teacher extends CI_Controller {
     }
     /***********  The function that manages school marks ends here ***********************/    
 
+    /* Teacher Diary functionality */
+    function my_diaries($param1 = '', $param2 = '') {
+        if ($this->session->userdata('teacher_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        try {
+            $this->load->model('teacher_diary_model');
+            
+            // Create the table if it doesn't exist
+            $this->teacher_diary_model->create_table_if_not_exists();
+            
+            // Create diary entry
+            if ($param1 == 'create') {
+                try {
+                    // First make sure the table structure is updated
+                    $this->teacher_diary_model->create_table_if_not_exists();
+                    
+                    $data = array(
+                        'teacher_id' => $this->session->userdata('teacher_id'),
+                        'title' => $this->input->post('title'),
+                        'description' => $this->input->post('description'),
+                        'date' => $this->input->post('date'),
+                        'time' => $this->input->post('time')
+                    );
+                    
+                    // Only add class_id if it's not empty
+                    if ($this->input->post('class_id') && $this->input->post('class_id') != '') {
+                        $data['class_id'] = $this->input->post('class_id');
+                    }
+                    
+                    // Only add section_id if it's not empty
+                    if ($this->input->post('section_id') && $this->input->post('section_id') != '') {
+                        $data['section_id'] = $this->input->post('section_id');
+                    }
+                    
+                    // Handle attachment upload if exists
+                    if ($_FILES['attachment']['name'] != '') {
+                        $upload_path = FCPATH . 'uploads/teacher_diary/';
+                        
+                        // Create directory if it doesn't exist - with full path
+                        if (!is_dir($upload_path)) {
+                            // Try to create directory recursively
+                            if (!mkdir($upload_path, 0777, true)) {
+                                throw new Exception('Failed to create upload directory: ' . $upload_path);
+                            }
+                            // Set proper permissions
+                            chmod($upload_path, 0777);
+                        }
+                        
+                        // Double check that directory is writable
+                        if (!is_writable($upload_path)) {
+                            chmod($upload_path, 0777);
+                            if (!is_writable($upload_path)) {
+                                throw new Exception('Upload directory is not writable: ' . $upload_path);
+                            }
+                        }
+                        
+                        $config['upload_path'] = $upload_path;
+                        $config['allowed_types'] = 'gif|jpg|jpeg|png|pdf|doc|docx|xls|xlsx|txt';
+                        $config['max_size'] = '2048'; // 2MB max
+                        $config['encrypt_name'] = TRUE;
+                        
+                        $this->load->library('upload', $config);
+                        
+                        if (!$this->upload->do_upload('attachment')) {
+                            $upload_error = $this->upload->display_errors('', '');
+                            throw new Exception('Upload failed: ' . $upload_error);
+                        } else {
+                            $upload_data = $this->upload->data();
+                            $data['attachment'] = $upload_data['file_name'];
+                        }
+                    }
+                    
+                    $diary_id = $this->teacher_diary_model->create_diary($data);
+                    
+                    if (!$diary_id) {
+                        throw new Exception('Failed to create diary entry in database.');
+                    }
+                    
+                    $this->session->set_flashdata('flash_message', get_phrase('Diary entry added successfully'));
+                    redirect(base_url() . 'teacher/my_diaries', 'refresh');
+                } catch (Exception $e) {
+                    $this->session->set_flashdata('error_message', get_phrase('Error creating diary: ') . $e->getMessage());
+                    redirect(base_url() . 'teacher/my_diaries', 'refresh');
+                }
+            }
+            
+            // Update diary entry
+            if ($param1 == 'update') {
+                // Check if the diary belongs to this teacher
+                if (!$this->teacher_diary_model->is_diary_owner($param2, $this->session->userdata('teacher_id'))) {
+                    $this->session->set_flashdata('error_message', get_phrase('You do not have permission to edit this diary'));
+                    redirect(base_url() . 'teacher/my_diaries', 'refresh');
+                }
+                
+                $data = array(
+                    'title' => $this->input->post('title'),
+                    'description' => $this->input->post('description'),
+                    'date' => $this->input->post('date'),
+                    'time' => $this->input->post('time'),
+                    'class_id' => $this->input->post('class_id'),
+                    'section_id' => $this->input->post('section_id')
+                );
+                
+                // Handle attachment upload if exists
+                if ($_FILES['attachment']['name'] != '') {
+                    $config['upload_path'] = './uploads/teacher_diary/';
+                    $config['allowed_types'] = 'gif|jpg|png|pdf|doc|docx|xls|xlsx|txt';
+                    $config['max_size'] = '2048'; // 2MB max
+                    $config['encrypt_name'] = TRUE;
+                    
+                    $this->load->library('upload', $config);
+                    
+                    if ($this->upload->do_upload('attachment')) {
+                        // Delete old file if exists
+                        $old_diary = $this->teacher_diary_model->get_diary($param2);
+                        if ($old_diary['attachment'] && file_exists('./uploads/teacher_diary/' . $old_diary['attachment'])) {
+                            unlink('./uploads/teacher_diary/' . $old_diary['attachment']);
+                        }
+                        
+                        $upload_data = $this->upload->data();
+                        $data['attachment'] = $upload_data['file_name'];
+                    } else {
+                        $this->session->set_flashdata('error_message', $this->upload->display_errors());
+                        redirect(base_url() . 'teacher/my_diaries', 'refresh');
+                    }
+                }
+                
+                $this->teacher_diary_model->update_diary($param2, $data);
+                $this->session->set_flashdata('flash_message', get_phrase('Diary entry updated successfully'));
+                redirect(base_url() . 'teacher/my_diaries', 'refresh');
+            }
+            
+            // Delete diary entry
+            if ($param1 == 'delete') {
+                // Check if the diary belongs to this teacher
+                if (!$this->teacher_diary_model->is_diary_owner($param2, $this->session->userdata('teacher_id'))) {
+                    $this->session->set_flashdata('error_message', get_phrase('You do not have permission to delete this diary'));
+                    redirect(base_url() . 'teacher/my_diaries', 'refresh');
+                }
+                
+                // Delete attachment if exists
+                $diary = $this->teacher_diary_model->get_diary($param2);
+                if ($diary['attachment'] && file_exists('./uploads/teacher_diary/' . $diary['attachment'])) {
+                    unlink('./uploads/teacher_diary/' . $diary['attachment']);
+                }
+                
+                $this->teacher_diary_model->delete_diary($param2);
+                $this->session->set_flashdata('flash_message', get_phrase('Diary entry deleted successfully'));
+                redirect(base_url() . 'teacher/my_diaries', 'refresh');
+            }
+            
+            // Get all classes for dropdown
+            $page_data['classes'] = $this->teacher_diary_model->get_all_classes();
+            $page_data['diaries'] = $this->teacher_diary_model->get_diaries_by_teacher($this->session->userdata('teacher_id'));
+            $page_data['page_name'] = 'my_diaries';
+            $page_data['page_title'] = get_phrase('My Diaries');
+            $this->load->view('backend/index', $page_data);
+        } catch (Exception $e) {
+            $this->session->set_flashdata('error_message', get_phrase('Error: ') . $e->getMessage());
+            redirect(base_url() . 'teacher/dashboard', 'refresh');
+        }
+    }
+    
+    // AJAX function to get sections based on class_id
+    function get_sections_by_class() {
+        $class_id = $this->input->post('class_id');
+        $this->load->model('teacher_diary_model');
+        $sections = $this->teacher_diary_model->get_sections_by_class($class_id);
+        
+        echo '<option value="">' . get_phrase('select_section') . '</option>';
+        foreach ($sections as $section) {
+            echo '<option value="' . $section['section_id'] . '">' . $section['name'] . '</option>';
+        }
+    }
+    
+    function view_diary($diary_id) {
+        if ($this->session->userdata('teacher_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        try {
+            $this->load->model('teacher_diary_model');
+            
+            // Check if diary exists
+            $diary = $this->teacher_diary_model->get_diary($diary_id);
+            if (empty($diary)) {
+                $this->session->set_flashdata('error_message', get_phrase('Diary entry not found'));
+                redirect(base_url() . 'teacher/my_diaries', 'refresh');
+            }
+            
+            // Check if the diary belongs to this teacher
+            if (!$this->teacher_diary_model->is_diary_owner($diary_id, $this->session->userdata('teacher_id'))) {
+                $this->session->set_flashdata('error_message', get_phrase('You do not have permission to view this diary'));
+                redirect(base_url() . 'teacher/my_diaries', 'refresh');
+            }
+            
+            $page_data['diary'] = $diary;
+            $page_data['page_name'] = 'view_diary';
+            $page_data['page_title'] = get_phrase('View Diary');
+            $this->load->view('backend/index', $page_data);
+        } catch (Exception $e) {
+            $this->session->set_flashdata('error_message', get_phrase('Error: ') . $e->getMessage());
+            redirect(base_url() . 'teacher/my_diaries', 'refresh');
+        }
+    }
+    
+    function edit_diary($diary_id) {
+        if ($this->session->userdata('teacher_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        try {
+            $this->load->model('teacher_diary_model');
+            
+            // Check if diary exists
+            $diary = $this->teacher_diary_model->get_diary($diary_id);
+            if (empty($diary)) {
+                $this->session->set_flashdata('error_message', get_phrase('Diary entry not found'));
+                redirect(base_url() . 'teacher/my_diaries', 'refresh');
+            }
+            
+            // Check if the diary belongs to this teacher
+            if (!$this->teacher_diary_model->is_diary_owner($diary_id, $this->session->userdata('teacher_id'))) {
+                $this->session->set_flashdata('error_message', get_phrase('You do not have permission to edit this diary'));
+                redirect(base_url() . 'teacher/my_diaries', 'refresh');
+            }
+            
+            $page_data['diary'] = $diary;
+            $page_data['page_name'] = 'edit_diary';
+            $page_data['page_title'] = get_phrase('Edit Diary');
+            $this->load->view('backend/index', $page_data);
+        } catch (Exception $e) {
+            $this->session->set_flashdata('error_message', get_phrase('Error: ') . $e->getMessage());
+            redirect(base_url() . 'teacher/my_diaries', 'refresh');
+        }
+    }
+    
+    function download_diary_attachment($diary_id) {
+        if ($this->session->userdata('teacher_login') != 1 && $this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        try {
+            $this->load->model('teacher_diary_model');
+            
+            // Check if diary exists
+            $diary = $this->teacher_diary_model->get_diary($diary_id);
+            if (empty($diary)) {
+                $this->session->set_flashdata('error_message', get_phrase('Diary entry not found'));
+                redirect($this->session->userdata('teacher_login') == 1 ? base_url() . 'teacher/my_diaries' : base_url() . 'admin/teacher_diaries', 'refresh');
+            }
+            
+            // Check if teacher is the owner or admin is viewing
+            if ($this->session->userdata('teacher_login') == 1 && 
+                !$this->teacher_diary_model->is_diary_owner($diary_id, $this->session->userdata('teacher_id'))) {
+                $this->session->set_flashdata('error_message', get_phrase('You do not have permission to download this attachment'));
+                redirect(base_url() . 'teacher/my_diaries', 'refresh');
+            }
+            
+            if (!empty($diary) && !empty($diary['attachment'])) {
+                $this->load->helper('download');
+                $file_path = './uploads/teacher_diary/' . $diary['attachment'];
+                
+                if (file_exists($file_path)) {
+                    force_download($file_path, NULL);
+                } else {
+                    $this->session->set_flashdata('error_message', get_phrase('File not found'));
+                    redirect($this->session->userdata('teacher_login') == 1 ? base_url() . 'teacher/my_diaries' : base_url() . 'admin/teacher_diaries', 'refresh');
+                }
+            } else {
+                $this->session->set_flashdata('error_message', get_phrase('No attachment found'));
+                redirect($this->session->userdata('teacher_login') == 1 ? base_url() . 'teacher/my_diaries' : base_url() . 'admin/teacher_diaries', 'refresh');
+            }
+        } catch (Exception $e) {
+            $this->session->set_flashdata('error_message', get_phrase('Error: ') . $e->getMessage());
+            redirect($this->session->userdata('teacher_login') == 1 ? base_url() . 'teacher/my_diaries' : base_url() . 'admin/teacher_diaries', 'refresh');
+        }
+    }
 
+    // Class Timetable function
+    function timetable() {
+        if ($this->session->userdata('teacher_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        $page_data['page_name'] = 'timetable';
+        $page_data['page_title'] = get_phrase('teacher_timetable');
+        $this->load->view('backend/index', $page_data);
+    }
 
-
+    // Class Timetable function
+    function class_timetable($param1 = '', $param2 = '') {
+        if ($this->session->userdata('teacher_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        // Get teacher's assigned classes and subjects
+        $teacher_id = $this->session->userdata('teacher_id');
+        
+        if ($param1 == 'view') {
+            $class_id = $param2;
+            
+            // Verify if the teacher is assigned to this class
+            $this->db->where('teacher_id', $teacher_id);
+            $this->db->where('class_id', $class_id);
+            $is_assigned = $this->db->get('timetable')->num_rows() > 0;
+            
+            if (!$is_assigned) {
+                $this->session->set_flashdata('error_message', get_phrase('not_authorized_to_view_this_class_timetable'));
+                redirect(base_url() . 'teacher/timetable', 'refresh');
+            }
+            
+            $page_data['class_id'] = $class_id;
+            $page_data['teacher_id'] = $teacher_id;
+            $page_data['page_name'] = 'timetable_view';
+            $page_data['page_title'] = get_phrase('class_timetable');
+            $this->load->view('backend/index', $page_data);
+        } else {
+            $page_data['teacher_id'] = $teacher_id;
+            $page_data['page_name'] = 'class_timetable';
+            $page_data['page_title'] = get_phrase('class_timetable');
+            $this->load->view('backend/index', $page_data);
+        }
+    }
 
 }

@@ -115,4 +115,62 @@ Before you begin, ensure you have the following installed on your system:
 *   `uploads/`: Directory for file uploads.
 *   `assets/`, `js/`, `dist/`: Frontend assets (CSS, JavaScript, images, etc.).
 *   `Dockerfile`: Defines the PHP/Apache application container image.
-*   `docker-compose.yml`: Defines and configures the application and database services for Docker. 
+*   `docker-compose.yml`: Defines and configures the application and database services for Docker.
+
+# PHP ERP Timetable Component Fixes
+
+This README documents the fixes and improvements made to the timetable functionality in the PHP ERP system.
+
+## Issues Fixed
+
+1. **500 Internal Server Error**: The timetable was showing an infinite loader and not displaying properly, with a 500 Internal Server Error appearing in the console.
+
+## Changes Made
+
+### Backend (Controller) Improvements
+
+1. **Admin Controller** (`application/controllers/Admin.php`):
+   - Added comprehensive error handling with try-catch blocks
+   - Improved validation of all inputs
+   - Added automatic table creation if not exists
+   - Added robust data validation before database operations
+   - Implemented proper logging of actions and errors
+   - Fixed resource loading and dependencies
+
+2. **Timetable Model** (`application/models/Timetable_model.php`):
+   - Created/updated model with essential functions
+   - Implemented conflict checking for timetable entries
+   - Added helper functions for retrieving timetable data
+   - Fixed SQL query structure for better performance and security
+
+### Frontend Improvements
+
+The following files were updated with client-side improvements:
+- `application/views/backend/admin/timetable.php`
+- `application/views/backend/admin/timetable_view.php`
+- `application/views/backend/student/timetable.php`
+- `application/views/backend/teacher/timetable.php`
+- `application/views/backend/teacher/timetable_view.php`
+
+These changes included:
+- JavaScript to force-hide loading indicators
+- Implementation of error handling and console logging
+- Improved DataTable initialization
+- Better error handling for AJAX calls
+- Fixed modal handling with error feedback
+- Added CSS to ensure loaders stay hidden
+- Used !important flags to ensure styles are applied
+
+## How to Test
+
+1. Login as an admin
+2. Navigate to the Timetable section
+3. Try viewing, creating, updating and deleting timetable entries
+4. Verify that the loaders are hidden and content loads properly
+
+## Future Improvements
+
+1. Add client-side validation for timetable forms
+2. Implement a timetable conflict checker in the UI
+3. Create a more user-friendly timetable interface
+4. Add drag and drop functionality for timetable management 
