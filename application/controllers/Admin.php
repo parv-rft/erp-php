@@ -1,28 +1,42 @@
-<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
+<?php defined('BASEPATH') OR exit('No direct script access allowed');
 
+class Admin extends CI_Controller {
 
-class Admin extends CI_Controller { 
-
-    function __construct() {
+    public function __construct() {
         parent::__construct();
-        		$this->load->database();                                //Load Databse Class
-                $this->load->library('session');					    //Load library for session
-                $this->load->model('vacancy_model');                    // Load vacancy Model Here
-                $this->load->model('application_model');                // Load Apllication Model Here
-                $this->load->model('leave_model');                      // Load Apllication Model Here
-                $this->load->model('award_model');                      // Load Apllication Model Here
-                $this->load->model('academic_model');                   // Load Apllication Model Here
-                $this->load->model('student_model');                    // Load Apllication Model Here
-                $this->load->model('exam_question_model');              // Load Apllication Model Here
-                $this->load->model('student_payment_model');            // Load Apllication Model Here
-                $this->load->model('event_model');                      // Load Apllication Model Here
-                $this->load->model('language_model');                      // Load Apllication Model Here
-                $this->load->model('admin_model');                      // Load Apllication Model Here
-                $this->load->model('timetable_model');                  // Load Timetable Model Here
-                $this->load->library('role_based_access');
-                
-                // Check if user is logged in and has admin role
-                $this->role_based_access->check_access('admin');
+        
+        // Load required models and libraries
+        $this->load->database();
+        $this->load->library('session');
+        $this->load->library('role_based_access');
+        $this->load->helper('url');
+        
+        // Load all required models
+        $this->load->model(array(
+            'vacancy_model',
+            'application_model',
+            'leave_model',
+            'award_model',
+            'academic_model',
+            'student_model',
+            'exam_question_model',
+            'student_payment_model',
+            'event_model',
+            'language_model',
+            'admin_model',
+            'timetable_model',
+            'teacher_model',
+            'crud_model',
+            'sms_model'
+        ));
+        
+        // Check admin login status
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url('login'));
+        }
+        
+        // Check role access
+        $this->role_based_access->check_access('admin');
     }
 
     /**default functin, redirects to login page if no admin logged in yet***/
@@ -2131,112 +2145,89 @@ class Admin extends CI_Controller {
     
     // Get timetable data for calendar view
     public function get_timetable_data_ajax() {
-        if ($this->session->userdata('admin_login') != 1) {
+        if (!$this->session->userdata('admin_login')) {
             redirect(base_url(), 'refresh');
         }
-        
+
         $class_id = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
-        $teacher_id = $this->input->post('teacher_id');
-        $subject_id = $this->input->post('subject_id');
-        $month = $this->input->post('month');
-        $year = $this->input->post('year');
-        
-        $start_date = date('Y-m-d', strtotime($year . '-' . $month . '-01'));
-        $end_date = date('Y-m-t', strtotime($start_date));
-        
-        $this->db->select('calendar_timetable.*, subject.name as subject_name, teacher.name as teacher_name');
-        $this->db->from('calendar_timetable');
-        $this->db->join('subject', 'subject.subject_id = calendar_timetable.subject_id');
-        $this->db->join('teacher', 'teacher.teacher_id = calendar_timetable.teacher_id');
-        $this->db->where('calendar_timetable.class_id', $class_id);
-        $this->db->where('calendar_timetable.section_id', $section_id);
-        $this->db->where('calendar_timetable.date >=', $start_date);
-        $this->db->where('calendar_timetable.date <=', $end_date);
-        
-        if ($teacher_id) {
-            $this->db->where('calendar_timetable.teacher_id', $teacher_id);
-        }
-        if ($subject_id) {
-            $this->db->where('calendar_timetable.subject_id', $subject_id);
-        }
-        
-        $query = $this->db->get();
-        $results = $query->result_array();
-        
-        // Format results as associative array with date as key
-        $formatted = array();
-        foreach ($results as $row) {
-            if (!isset($formatted[$row['date']])) {
-                $formatted[$row['date']] = array();
-            }
-            $formatted[$row['date']][] = array(
-                'time_slot' => $row['time_slot'],
-                'teacher_name' => $row['teacher_name'],
-                'subject_name' => $row['subject_name'],
-                'teacher_id' => $row['teacher_id'],
-                'subject_id' => $row['subject_id']
-            );
-        }
-        
-        echo json_encode($formatted);
+        $events = $this->timetable_model->get_timetable_events($class_id);
+        echo json_encode($events);
     }
     
     // Save timetable slot
     public function save_timetable_slot_ajax() {
-        if ($this->session->userdata('admin_login') != 1) {
+        if (!$this->session->userdata('admin_login')) {
             redirect(base_url(), 'refresh');
         }
+
+        $response = array();
         
-        $data = array(
-            'class_id' => $this->input->post('class_id'),
-            'section_id' => $this->input->post('section_id'),
-            'teacher_id' => $this->input->post('teacher_id'),
-            'subject_id' => $this->input->post('subject_id'),
-            'date' => $this->input->post('date'),
-            'time_slot' => $this->input->post('time_slot')
-        );
-        
-        // Check for existing entry
-        $this->db->where('class_id', $data['class_id']);
-        $this->db->where('section_id', $data['section_id']);
-        $this->db->where('date', $data['date']);
-        $this->db->where('time_slot', $data['time_slot']);
-        $existing = $this->db->get('calendar_timetable')->row();
-        
-        if ($existing) {
-            // Update existing entry
-            $this->db->where('id', $existing->id);
-            $this->db->update('calendar_timetable', array(
-                'teacher_id' => $data['teacher_id'],
-                'subject_id' => $data['subject_id']
-            ));
-        } else {
-            // Insert new entry
-            $this->db->insert('calendar_timetable', $data);
+        try {
+            $data = array(
+                'class_id' => $this->input->post('class_id'),
+                'section_id' => $this->input->post('section_id'),
+                'subject_id' => $this->input->post('subject_id'),
+                'teacher_id' => $this->input->post('teacher_id'),
+                'date' => $this->input->post('date'),
+                'start_time' => $this->input->post('start_time'),
+                'end_time' => $this->input->post('end_time')
+            );
+
+            if ($this->input->post('timetable_id')) {
+                $this->db->where('id', $this->input->post('timetable_id'));
+                $this->db->update('calendar_timetable', $data);
+                $response['message'] = get_phrase('Timetable updated successfully');
+            } else {
+                $this->db->insert('calendar_timetable', $data);
+                $response['message'] = get_phrase('Timetable added successfully');
+            }
+            
+            $response['status'] = 'success';
+        } catch (Exception $e) {
+            $response['status'] = 'error';
+            $response['message'] = $e->getMessage();
         }
-        
-        echo json_encode(array('status' => 'success'));
+
+        echo json_encode($response);
     }
     
     // Delete timetable slot
     public function delete_timetable_slot_ajax() {
-        if ($this->session->userdata('admin_login') != 1) {
-            redirect(base_url(), 'refresh');
-        }
+        $timetable_id = $this->input->post('timetable_id');
         
-        $class_id = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
-        $date = $this->input->post('date');
-        $time_slot = $this->input->post('time_slot');
-        
-        $this->db->where('class_id', $class_id);
-        $this->db->where('section_id', $section_id);
-        $this->db->where('date', $date);
-        $this->db->where('time_slot', $time_slot);
+        $this->db->where('id', $timetable_id);
         $this->db->delete('calendar_timetable');
         
-        echo json_encode(array('status' => 'success'));
+        $response = array('status' => 'success', 'message' => 'Timetable slot deleted successfully');
+        echo json_encode($response);
+    }
+
+    // Get sections by class for AJAX request
+    public function get_sections_by_class($class_id) {
+        if (!$this->session->userdata('admin_login')) {
+            redirect(base_url(), 'refresh');
+        }
+
+        $sections = $this->db->get_where('section', array('class_id' => $class_id))->result_array();
+        $options = '<option value="">' . get_phrase('select_section') . '</option>';
+        foreach ($sections as $row) {
+            $options .= '<option value="' . $row['section_id'] . '">' . $row['name'] . '</option>';
+        }
+        echo $options;
+    }
+
+    // Get subjects by class for AJAX request
+    public function get_subjects_by_class($class_id) {
+        if (!$this->session->userdata('admin_login')) {
+            redirect(base_url(), 'refresh');
+        }
+
+        $subjects = $this->db->get_where('subject', array('class_id' => $class_id))->result_array();
+        $options = '<option value="">' . get_phrase('select_subject') . '</option>';
+        foreach ($subjects as $row) {
+            $options .= '<option value="' . $row['subject_id'] . '">' . $row['name'] . '</option>';
+        }
+        echo $options;
     }
 
 }

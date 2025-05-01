@@ -4,6 +4,7 @@ class Timetable_model extends CI_Model {
     
     function __construct() {
         parent::__construct();
+        $this->load->database();
     }
     
     // Create the timetable table if it doesn't exist
@@ -213,5 +214,37 @@ class Timetable_model extends CI_Model {
         }
         
         return $teacher_names;
+    }
+    
+    public function get_timetable_events($class_id = null) {
+        $this->db->select('calendar_timetable.*, subject.name as subject_name, teacher.name as teacher_name, class.name as class_name, section.name as section_name');
+        $this->db->from('calendar_timetable');
+        $this->db->join('subject', 'subject.subject_id = calendar_timetable.subject_id');
+        $this->db->join('teacher', 'teacher.teacher_id = calendar_timetable.teacher_id');
+        $this->db->join('class', 'class.class_id = calendar_timetable.class_id');
+        $this->db->join('section', 'section.section_id = calendar_timetable.section_id');
+        
+        if ($class_id) {
+            $this->db->where('calendar_timetable.class_id', $class_id);
+        }
+        
+        $result = $this->db->get()->result_array();
+        
+        $events = array();
+        foreach ($result as $row) {
+            $events[] = array(
+                'id' => $row['id'],
+                'title' => $row['class_name'] . ' - ' . $row['section_name'] . ' - ' . $row['subject_name'],
+                'start' => $row['date'] . 'T' . $row['start_time'],
+                'end' => $row['date'] . 'T' . $row['end_time'],
+                'class_id' => $row['class_id'],
+                'section_id' => $row['section_id'],
+                'subject_id' => $row['subject_id'],
+                'teacher_id' => $row['teacher_id'],
+                'description' => 'Teacher: ' . $row['teacher_name']
+            );
+        }
+        
+        return $events;
     }
 } 

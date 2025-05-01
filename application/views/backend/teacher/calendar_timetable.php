@@ -217,9 +217,9 @@ $(document).ready(function() {
             const dayCell = $(`.calendar-day[data-date="${entry.date}"]`);
             if (dayCell.length) {
                 const timeSlot = `<div class="time-slot">
+                    <div class="time-info">${entry.time_slot}</div>
                     <div class="class-info">${entry.class_name} - ${entry.section_name}</div>
                     <div class="subject-info">${entry.subject_name}</div>
-                    <div class="time-info">${entry.time_slot}</div>
                 </div>`;
                 dayCell.find('.time-slots').append(timeSlot);
             }
