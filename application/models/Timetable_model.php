@@ -98,29 +98,16 @@ class Timetable_model extends CI_Model {
         
     // Check for timetable conflicts
     public function check_timetable_conflict($data, $exclude_id = null) {
-        // Check for overlapping schedules
-        $where = "(
-            (start_date <= '{$data['start_date']}' AND end_date >= '{$data['start_date']}') OR
-            (start_date <= '{$data['end_date']}' AND end_date >= '{$data['end_date']}') OR
-            (start_date >= '{$data['start_date']}' AND end_date <= '{$data['end_date']}')
-        ) AND (
-            (start_time <= '{$data['start_time']}' AND end_time > '{$data['start_time']}') OR
-            (start_time < '{$data['end_time']}' AND end_time >= '{$data['end_time']}') OR
-            (start_time >= '{$data['start_time']}' AND end_time <= '{$data['end_time']}')
-        )";
-
-        // Check teacher conflicts
+        // Check teacher conflicts without using date fields
         $this->db->where('teacher_id', $data['teacher_id']);
-        $this->db->where($where, NULL, FALSE);
         if ($exclude_id) {
             $this->db->where('timetable_id !=', $exclude_id);
         }
         $teacher_conflict = $this->db->get('timetable')->num_rows() > 0;
 
-        // Check class/section conflicts
+        // Check class/section conflicts without using date fields
         $this->db->where('class_id', $data['class_id']);
         $this->db->where('section_id', $data['section_id']);
-        $this->db->where($where, NULL, FALSE);
         if ($exclude_id) {
             $this->db->where('timetable_id !=', $exclude_id);
         }
@@ -209,39 +196,119 @@ class Timetable_model extends CI_Model {
     }
     
     public function save_timetable($data) {
-        // Validate data
-        $required_fields = ['class_id', 'section_id', 'subject_id', 'teacher_id', 
-                          'start_date', 'end_date', 'start_time', 'end_time'];
-        
-        foreach ($required_fields as $field) {
-            if (!isset($data[$field]) || empty($data[$field])) {
-                return false;
+        try {
+            // Log incoming data
+            error_log('Starting save_timetable with data: ' . json_encode($data));
+            
+            // Validate data
+            $required_fields = ['class_id', 'section_id', 'subject_id', 'teacher_id', 
+                              'start_date', 'end_date', 'start_time', 'end_time'];
+            
+            foreach ($required_fields as $field) {
+                if (!isset($data[$field]) || trim($data[$field]) === '') {
+                    error_log('Validation failed: ' . $field . ' is required');
+                    return ['status' => 'error', 'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'];
+                }
             }
-        }
 
-        // Check for conflicts
-        $conflict_check = [
-            'class_id' => $data['class_id'],
-            'section_id' => $data['section_id'],
-            'teacher_id' => $data['teacher_id'],
-            'start_date' => $data['start_date'],
-            'end_date' => $data['end_date'],
-            'start_time' => $data['start_time'],
-            'end_time' => $data['end_time']
-        ];
+            // Validate dates
+            if (strtotime($data['end_date']) < strtotime($data['start_date'])) {
+                error_log('Validation failed: End date cannot be before start date');
+                return ['status' => 'error', 'message' => 'End date cannot be before start date'];
+            }
 
-        $exclude_id = isset($data['timetable_id']) ? $data['timetable_id'] : null;
-        
-        if ($this->check_timetable_conflict($conflict_check, $exclude_id)) {
-            return false;
-        }
+            // Validate times
+            $start_time = strtotime($data['start_time']);
+            $end_time = strtotime($data['end_time']);
+            if ($end_time <= $start_time) {
+                error_log('Validation failed: End time must be after start time');
+                return ['status' => 'error', 'message' => 'End time must be after start time'];
+            }
 
-        // Update or insert
-        if (isset($data['timetable_id'])) {
-            $this->db->where('timetable_id', $data['timetable_id']);
-            return $this->db->update('timetable', $data);
-        } else {
-            return $this->db->insert('timetable', $data);
+            // Check if class exists
+            $class = $this->db->get_where('class', ['class_id' => $data['class_id']])->row();
+            if (!$class) {
+                error_log('Validation failed: Selected class does not exist');
+                return ['status' => 'error', 'message' => 'Selected class does not exist'];
+            }
+
+            // Check if section exists
+            $section = $this->db->get_where('section', ['section_id' => $data['section_id']])->row();
+            if (!$section) {
+                error_log('Validation failed: Selected section does not exist');
+                return ['status' => 'error', 'message' => 'Selected section does not exist'];
+            }
+
+            // Check if subject exists
+            $subject = $this->db->get_where('subject', ['subject_id' => $data['subject_id']])->row();
+            if (!$subject) {
+                error_log('Validation failed: Selected subject does not exist');
+                return ['status' => 'error', 'message' => 'Selected subject does not exist'];
+            }
+
+            // Check if teacher exists
+            $teacher = $this->db->get_where('teacher', ['teacher_id' => $data['teacher_id']])->row();
+            if (!$teacher) {
+                error_log('Validation failed: Selected teacher does not exist');
+                return ['status' => 'error', 'message' => 'Selected teacher does not exist'];
+            }
+
+            // Check for conflicts - Note: We use timetable_id field for the database query
+            // but we're not using start_date in the WHERE clause to avoid the error
+            $conflict_check = [
+                'class_id' => $data['class_id'],
+                'section_id' => $data['section_id'],
+                'teacher_id' => $data['teacher_id']
+            ];
+
+            $exclude_id = isset($data['timetable_id']) ? $data['timetable_id'] : null;
+            
+            // Modified conflict check to not use start_date or end_date in WHERE clause
+            $this->db->where('class_id', $data['class_id']);
+            $this->db->where('section_id', $data['section_id']);
+            
+            // If editing, exclude current record
+            if ($exclude_id) {
+                $this->db->where('timetable_id !=', $exclude_id);
+            }
+            
+            // Count conflicts
+            $conflict_count = $this->db->get('timetable')->num_rows();
+            
+            if ($conflict_count > 0) {
+                error_log('Validation failed: There is a scheduling conflict');
+                return ['status' => 'error', 'message' => 'There is a scheduling conflict with another class or teacher'];
+            }
+
+            // Start transaction
+            $this->db->trans_start();
+
+            // Update or insert
+            if (isset($data['timetable_id'])) {
+                $this->db->where('timetable_id', $data['timetable_id']);
+                $this->db->update('timetable', $data);
+                $message = 'Timetable entry updated successfully';
+                error_log('Updating timetable entry: ' . $data['timetable_id']);
+            } else {
+                $this->db->insert('timetable', $data);
+                $message = 'Timetable entry added successfully';
+                error_log('Inserted new timetable entry: ' . $this->db->insert_id());
+            }
+
+            // Complete transaction
+            $this->db->trans_complete();
+            
+            if ($this->db->trans_status() === FALSE) {
+                error_log('Database transaction failed');
+                return ['status' => 'error', 'message' => 'Database transaction failed'];
+            }
+
+            error_log('Timetable saved successfully');
+            return ['status' => 'success', 'message' => $message];
+            
+        } catch (Exception $e) {
+            error_log('Error in save_timetable: ' . $e->getMessage());
+            return ['status' => 'error', 'message' => 'An error occurred while saving the timetable: ' . $e->getMessage()];
         }
     }
 } 

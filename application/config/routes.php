@@ -72,3 +72,5 @@ $route['student/timetable'] = 'student/timetable';
 $route['admin/calendar_timetable'] = 'admin/calendar_timetable';
 $route['admin/calendar_timetable/(:num)'] = 'admin/calendar_timetable/$1';
 $route['admin/calendar_timetable/(:num)/(:num)'] = 'admin/calendar_timetable/$1/$2';
+
+$route['admin/save_timetable_ajax'] = 'admin/save_timetable_ajax';

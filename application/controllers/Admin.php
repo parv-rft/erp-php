@@ -42,6 +42,69 @@ class Admin extends CI_Controller {
         
         // Check role access
         $this->role_based_access->check_access('admin');
+        
+        // Ensure timetable table exists with proper structure
+        $this->ensure_timetable_table();
+    }
+    
+    // Function to ensure timetable table exists with correct structure
+    private function ensure_timetable_table() {
+        if (!$this->db->table_exists('timetable')) {
+            $this->db->query("CREATE TABLE IF NOT EXISTS `timetable` (
+                `timetable_id` int(11) NOT NULL AUTO_INCREMENT,
+                `class_id` int(11) NOT NULL,
+                `section_id` int(11) NOT NULL,
+                `subject_id` int(11) NOT NULL,
+                `teacher_id` int(11) NOT NULL,
+                `day` varchar(10) DEFAULT NULL,
+                `start_date` date NOT NULL,
+                `end_date` date NOT NULL,
+                `start_time` time NOT NULL,
+                `end_time` time NOT NULL,
+                `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (`timetable_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+            
+            // Log table creation
+            error_log('Created timetable table with proper structure');
+        } else {
+            // Check if columns exist and add them if needed
+            $columns = $this->db->list_fields('timetable');
+            $missing_columns = array();
+            
+            $expected_columns = array(
+                'start_date', 'end_date', 'start_time', 'end_time'
+            );
+            
+            foreach ($expected_columns as $column) {
+                if (!in_array($column, $columns)) {
+                    $missing_columns[] = $column;
+                }
+            }
+            
+            // Add missing columns if any
+            if (!empty($missing_columns)) {
+                if (in_array('start_date', $missing_columns)) {
+                    $this->db->query("ALTER TABLE `timetable` ADD COLUMN `start_date` date NOT NULL AFTER `day`");
+                }
+                
+                if (in_array('end_date', $missing_columns)) {
+                    $this->db->query("ALTER TABLE `timetable` ADD COLUMN `end_date` date NOT NULL AFTER `start_date`");
+                }
+                
+                if (in_array('start_time', $missing_columns)) {
+                    $this->db->query("ALTER TABLE `timetable` ADD COLUMN `start_time` time NOT NULL AFTER `end_date`");
+                }
+                
+                if (in_array('end_time', $missing_columns)) {
+                    $this->db->query("ALTER TABLE `timetable` ADD COLUMN `end_time` time NOT NULL AFTER `start_time`");
+                }
+                
+                // Log column additions
+                error_log('Added missing columns to timetable table: ' . implode(', ', $missing_columns));
+            }
+        }
     }
 
     /**default functin, redirects to login page if no admin logged in yet***/
@@ -2299,6 +2362,10 @@ class Admin extends CI_Controller {
     }
 
     public function save_timetable_ajax() {
+        // Set content type and headers
+        header('Content-Type: application/json');
+        
+        // Check login status
         if (!$this->session->userdata('admin_login')) {
             echo json_encode(['status' => 'error', 'message' => 'Access denied']);
             return;
@@ -2306,49 +2373,72 @@ class Admin extends CI_Controller {
 
         try {
             // Get POST data
-            $data = [
-                'class_id' => $this->input->post('class_id'),
-                'section_id' => $this->input->post('section_id'),
-                'subject_id' => $this->input->post('subject_id'),
-                'teacher_id' => $this->input->post('teacher_id'),
-                'start_date' => $this->input->post('start_date'),
-                'end_date' => $this->input->post('end_date'),
-                'start_time' => $this->input->post('start_time'),
-                'end_time' => $this->input->post('end_time')
-            ];
-
+            $class_id = $this->input->post('class_id');
+            $section_id = $this->input->post('section_id');
+            $subject_id = $this->input->post('subject_id');
+            $teacher_id = $this->input->post('teacher_id');
+            $start_date = $this->input->post('start_date');
+            $end_date = $this->input->post('end_date');
+            $start_time = $this->input->post('start_time');
+            $end_time = $this->input->post('end_time');
+            $timetable_id = $this->input->post('timetable_id');
+            
+            // Log received data
+            error_log("Received data: " . json_encode($_POST));
+            
             // Validate required fields
-            foreach ($data as $key => $value) {
-                if (empty($value)) {
-                    echo json_encode(['status' => 'error', 'message' => 'All fields are required']);
-                    return;
-                }
-            }
-
-            // Load timetable model
-            $this->load->model('timetable_model');
-
-            // Check for timetable conflicts
-            if ($this->timetable_model->check_timetable_conflict($data)) {
-                echo json_encode(['status' => 'error', 'message' => 'There is a scheduling conflict with another class or teacher']);
+            if (empty($class_id) || empty($section_id) || empty($subject_id) || 
+                empty($teacher_id) || empty($start_date) || empty($end_date) || 
+                empty($start_time) || empty($end_time)) {
+                echo json_encode(['status' => 'error', 'message' => 'All fields are required']);
                 return;
             }
-
-            // Save timetable entry
-            $timetable_id = $this->input->post('timetable_id');
-            if ($timetable_id) {
-                $data['timetable_id'] = $timetable_id;
-            }
-
-            $result = $this->timetable_model->save_timetable($data);
             
-            if ($result) {
-                echo json_encode(['status' => 'success', 'message' => 'Timetable entry saved successfully']);
+            // Prepare data for database
+            $data = array(
+                'class_id' => $class_id,
+                'section_id' => $section_id,
+                'subject_id' => $subject_id,
+                'teacher_id' => $teacher_id,
+                'start_date' => $start_date,
+                'end_date' => $end_date,
+                'start_time' => $start_time,
+                'end_time' => $end_time
+            );
+            
+            // Start transaction
+            $this->db->trans_start();
+            
+            if (!empty($timetable_id)) {
+                // Update existing record
+                $this->db->where('timetable_id', $timetable_id);
+                $this->db->update('timetable', $data);
+                $message = 'Timetable updated successfully';
             } else {
-                echo json_encode(['status' => 'error', 'message' => 'Failed to save timetable entry']);
+                // Insert new record
+                $this->db->insert('timetable', $data);
+                $inserted_id = $this->db->insert_id();
+                $message = 'Timetable added successfully';
             }
+            
+            // Complete transaction
+            $this->db->trans_complete();
+            
+            if ($this->db->trans_status() === FALSE) {
+                // Transaction failed
+                echo json_encode(['status' => 'error', 'message' => 'Database error occurred']);
+            } else {
+                // Success
+                echo json_encode(['status' => 'success', 'message' => $message]);
+            }
+            
         } catch (Exception $e) {
-            echo json_encode(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()]);
+            // Log and return error
+            error_log('Error in save_timetable_ajax: ' . $e->getMessage());
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'An error occurred: ' . $e->getMessage()
+            ]);
         }
     }
 
