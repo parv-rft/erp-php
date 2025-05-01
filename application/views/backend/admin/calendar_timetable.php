@@ -1,5 +1,10 @@
 <?php
 $this->load->helper('form');
+$page_title = get_phrase('calendar_timetable');
+$breadcrumb = array(
+    array('name' => get_phrase('dashboard'), 'url' => 'admin/dashboard'),
+    array('name' => $page_title, 'url' => 'admin/calendar_timetable')
+);
 ?>
 <div class="row">
     <div class="col-md-12">
@@ -10,59 +15,6 @@ $this->load->helper('form');
                 </div>
             </div>
             <div class="panel-body">
-                <!-- Class & Section Selector -->
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <select name="class_id" class="form-control" id="class_selector" required>
-                            <option value=""><?php echo get_phrase('select_class'); ?></option>
-                            <?php
-                            $classes = $this->db->get('class')->result_array();
-                            foreach ($classes as $row) {
-                                $selected = ($row['class_id'] == $class_id) ? 'selected' : '';
-                                echo '<option value="' . $row['class_id'] . '" ' . $selected . '>' . $row['name'] . '</option>';
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select name="section_id" class="form-control" id="section_selector" required>
-                            <option value=""><?php echo get_phrase('select_section'); ?></option>
-                            <?php
-                            if ($class_id) {
-                                $sections = $this->db->get_where('section', array('class_id' => $class_id))->result_array();
-                                foreach ($sections as $row) {
-                                    $selected = ($row['section_id'] == $section_id) ? 'selected' : '';
-                                    echo '<option value="' . $row['section_id'] . '" ' . $selected . '>' . $row['name'] . '</option>';
-                                }
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select name="teacher_id" class="form-control" id="teacher_selector">
-                            <option value=""><?php echo get_phrase('select_teacher'); ?></option>
-                            <?php
-                            $teachers = $this->db->get('teacher')->result_array();
-                            foreach ($teachers as $row) {
-                                echo '<option value="' . $row['teacher_id'] . '">' . $row['name'] . '</option>';
-                            }
-                            ?>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select name="subject_id" class="form-control" id="subject_selector">
-                            <option value=""><?php echo get_phrase('select_subject'); ?></option>
-                            <?php
-                            if ($class_id) {
-                                $subjects = $this->db->get_where('subject', array('class_id' => $class_id))->result_array();
-                                foreach ($subjects as $row) {
-                                    echo '<option value="' . $row['subject_id'] . '">' . $row['name'] . '</option>';
-                                }
-                            }
-                            ?>
-                        </select>
-                    </div>
-                </div>
 
                 <!-- Filter Options -->
                 <div class="row mb-3">
@@ -80,6 +32,9 @@ $this->load->helper('form');
                     <div class="col-md-8 text-right">
                         <button class="btn btn-primary" id="add_timetable">
                             <i class="fa fa-plus"></i> <?php echo get_phrase('add_timetable'); ?>
+                        </button>
+                        <button class="btn btn-default" id="print_timetable">
+                            <i class="fa fa-print"></i> <?php echo get_phrase('print'); ?>
                         </button>
                     </div>
                 </div>
@@ -99,11 +54,7 @@ $this->load->helper('form');
                             </button>
                         </div>
                     </div>
-                    <div class="col-md-8 text-right">
-                        <button class="btn btn-primary" id="print_timetable">
-                            <i class="fa fa-print"></i> <?php echo get_phrase('print_timetable'); ?>
-                        </button>
-                    </div>
+                    
                 </div>
 
                 <!-- Calendar View -->
@@ -202,8 +153,13 @@ $this->load->helper('form');
                     <input type="hidden" id="timetable_id" name="timetable_id">
                     
                     <div class="form-group">
-                        <label><?php echo get_phrase('date'); ?> *</label>
-                        <input type="date" class="form-control" id="date" name="date" required>
+                        <label><?php echo get_phrase('start_date'); ?> *</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label><?php echo get_phrase('end_date'); ?> *</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" required>
                     </div>
 
                     <div class="form-group">
@@ -268,6 +224,10 @@ $this->load->helper('form');
         </div>
     </div>
 </div>
+
+<!-- Include Toastr -->
+<link href="<?php echo base_url();?>assets/vendors/toastr/toastr.min.css" rel="stylesheet">
+<script src="<?php echo base_url();?>assets/vendors/toastr/toastr.min.js"></script>
 
 <style>
 #calendar {
@@ -666,16 +626,20 @@ $(document).ready(function() {
                 } else {
                     toastr.error(data.message);
                 }
+            },
+            error: function() {
+                toastr.error('An error occurred while saving the timetable');
             }
         });
     });
 
     function openTimetableModal(date, event = null) {
         $('#timetableForm')[0].reset();
-        $('#date').val(moment(date).format('YYYY-MM-DD'));
         
-        if(event) {
-            $('#timetable_id').val(event.id);
+        // Set default start and end dates
+        if (event) {
+            $('#start_date').val(moment(event.start).format('YYYY-MM-DD'));
+            $('#end_date').val(moment(event.end || event.start).format('YYYY-MM-DD'));
             $('#class_id').val(event.class_id).trigger('change');
             setTimeout(function() {
                 $('#section_id').val(event.section_id);
@@ -683,7 +647,12 @@ $(document).ready(function() {
             }, 500);
             $('#teacher_id').val(event.teacher_id);
             $('#start_time').val(moment(event.start).format('HH:mm'));
-            $('#end_time').val(moment(event.end).format('HH:mm'));
+            $('#end_time').val(moment(event.end || moment(event.start).add(1, 'hour')).format('HH:mm'));
+            $('#timetable_id').val(event.id);
+        } else {
+            $('#start_date').val(moment(date).format('YYYY-MM-DD'));
+            $('#end_date').val(moment(date).format('YYYY-MM-DD'));
+            $('#timetable_id').val('');
         }
         
         $('#timetableModal').modal('show');
@@ -713,5 +682,108 @@ $(document).ready(function() {
             openTimetableModal(event.start, event);
         }
     });
+
+    // Filter class change handler
+    $('#filter_class_id').change(function() {
+        calendar.fullCalendar('refetchEvents');
+    });
+
+    // Add Timetable button click
+    $('#add_timetable').click(function() {
+        openTimetableModal(new Date());
+    });
+
+    // Print button click
+    $('#print_timetable').click(function() {
+        window.print();
+    });
+
+    // Class change handler in modal
+    $('#class_id').change(function() {
+        var class_id = $(this).val();
+        if(class_id) {
+            $.ajax({
+                url: '<?php echo base_url();?>admin/get_sections_by_class/' + class_id,
+                success: function(response) {
+                    $('#section_id').html(response);
+                }
+            });
+            
+            $.ajax({
+                url: '<?php echo base_url();?>admin/get_subjects_by_class/' + class_id,
+                success: function(response) {
+                    $('#subject_id').html(response);
+                }
+            });
+        }
+    });
+
+    // Save timetable
+    $('#save_timetable').click(function() {
+        var formData = $('#timetableForm').serialize();
+        
+        $.ajax({
+            url: '<?php echo base_url();?>admin/save_timetable_slot_ajax',
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                var data = JSON.parse(response);
+                if(data.status == 'success') {
+                    $('#timetableModal').modal('hide');
+                    calendar.fullCalendar('refetchEvents');
+                    toastr.success(data.message);
+                } else {
+                    toastr.error(data.message);
+                }
+            },
+            error: function() {
+                toastr.error('An error occurred while saving the timetable');
+            }
+        });
+    });
+
+    function openTimetableModal(date, event = null) {
+        $('#timetableForm')[0].reset();
+        
+        // Set default start and end dates
+        if (event) {
+            $('#start_date').val(moment(event.start).format('YYYY-MM-DD'));
+            $('#end_date').val(moment(event.end || event.start).format('YYYY-MM-DD'));
+            $('#class_id').val(event.class_id).trigger('change');
+            setTimeout(function() {
+                $('#section_id').val(event.section_id);
+                $('#subject_id').val(event.subject_id);
+            }, 500);
+            $('#teacher_id').val(event.teacher_id);
+            $('#start_time').val(moment(event.start).format('HH:mm'));
+            $('#end_time').val(moment(event.end || moment(event.start).add(1, 'hour')).format('HH:mm'));
+            $('#timetable_id').val(event.id);
+        } else {
+            $('#start_date').val(moment(date).format('YYYY-MM-DD'));
+            $('#end_date').val(moment(date).format('YYYY-MM-DD'));
+            $('#timetable_id').val('');
+        }
+        
+        $('#timetableModal').modal('show');
+    }
+
+    // Initialize toastr
+    toastr.options = {
+        "closeButton": true,
+        "debug": false,
+        "newestOnTop": false,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "5000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    };
 });
 </script> 

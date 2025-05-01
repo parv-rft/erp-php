@@ -234,14 +234,11 @@ class Timetable_model extends CI_Model {
         foreach ($result as $row) {
             $events[] = array(
                 'id' => $row['id'],
-                'title' => $row['class_name'] . ' - ' . $row['section_name'] . ' - ' . $row['subject_name'],
+                'title' => $row['subject_name'] . ' (' . $row['teacher_name'] . ')',
                 'start' => $row['date'] . 'T' . $row['start_time'],
                 'end' => $row['date'] . 'T' . $row['end_time'],
-                'class_id' => $row['class_id'],
-                'section_id' => $row['section_id'],
-                'subject_id' => $row['subject_id'],
-                'teacher_id' => $row['teacher_id'],
-                'description' => 'Teacher: ' . $row['teacher_name']
+                'className' => 'bg-info',
+                'description' => 'Class: ' . $row['class_name'] . '<br>Section: ' . $row['section_name']
             );
         }
         

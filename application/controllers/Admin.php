@@ -7,9 +7,8 @@ class Admin extends CI_Controller {
         
         // Load required models and libraries
         $this->load->database();
-        $this->load->library('session');
-        $this->load->library('role_based_access');
-        $this->load->helper('url');
+        $this->load->library(array('session', 'role_based_access'));
+        $this->load->helper(array('url', 'form'));
         
         // Load all required models
         $this->load->model(array(
@@ -24,10 +23,7 @@ class Admin extends CI_Controller {
             'event_model',
             'language_model',
             'admin_model',
-            'timetable_model',
-            'teacher_model',
-            'crud_model',
-            'sms_model'
+            'timetable_model'
         ));
         
         // Check admin login status
@@ -2157,37 +2153,81 @@ class Admin extends CI_Controller {
     // Save timetable slot
     public function save_timetable_slot_ajax() {
         if (!$this->session->userdata('admin_login')) {
-            redirect(base_url(), 'refresh');
+            $response = array('status' => 'error', 'message' => 'Not logged in');
+            echo json_encode($response);
+            return;
         }
 
-        $response = array();
-        
         try {
             $data = array(
                 'class_id' => $this->input->post('class_id'),
                 'section_id' => $this->input->post('section_id'),
                 'subject_id' => $this->input->post('subject_id'),
                 'teacher_id' => $this->input->post('teacher_id'),
-                'date' => $this->input->post('date'),
                 'start_time' => $this->input->post('start_time'),
                 'end_time' => $this->input->post('end_time')
             );
 
-            if ($this->input->post('timetable_id')) {
-                $this->db->where('id', $this->input->post('timetable_id'));
-                $this->db->update('calendar_timetable', $data);
-                $response['message'] = get_phrase('Timetable updated successfully');
-            } else {
-                $this->db->insert('calendar_timetable', $data);
-                $response['message'] = get_phrase('Timetable added successfully');
+            // Get date range
+            $start_date = strtotime($this->input->post('start_date'));
+            $end_date = strtotime($this->input->post('end_date'));
+
+            // Validate dates
+            if ($end_date < $start_date) {
+                $response = array('status' => 'error', 'message' => 'End date cannot be before start date');
+                echo json_encode($response);
+                return;
+            }
+
+            // Validate required fields
+            foreach ($data as $key => $value) {
+                if (empty($value)) {
+                    $response = array('status' => 'error', 'message' => 'All fields are required');
+                    echo json_encode($response);
+                    return;
+                }
+            }
+
+            // Create entries for each day in the range
+            $success_count = 0;
+            for ($date = $start_date; $date <= $end_date; $date = strtotime('+1 day', $date)) {
+                $data['date'] = date('Y-m-d', $date);
+                
+                // Check if entry already exists
+                $existing = $this->db->get_where('calendar_timetable', array(
+                    'date' => $data['date'],
+                    'class_id' => $data['class_id'],
+                    'section_id' => $data['section_id'],
+                    'start_time' => $data['start_time']
+                ))->num_rows();
+                
+                if ($existing > 0) {
+                    // Update existing entry
+                    $this->db->where(array(
+                        'date' => $data['date'],
+                        'class_id' => $data['class_id'],
+                        'section_id' => $data['section_id'],
+                        'start_time' => $data['start_time']
+                    ));
+                    $this->db->update('calendar_timetable', $data);
+                } else {
+                    // Insert new entry
+                    $this->db->insert('calendar_timetable', $data);
+                }
+                $success_count++;
             }
             
-            $response['status'] = 'success';
+            $response = array(
+                'status' => 'success',
+                'message' => $success_count . ' timetable entries created/updated successfully'
+            );
         } catch (Exception $e) {
-            $response['status'] = 'error';
-            $response['message'] = $e->getMessage();
+            $response = array(
+                'status' => 'error',
+                'message' => 'An error occurred: ' . $e->getMessage()
+            );
         }
-
+        
         echo json_encode($response);
     }
     
@@ -2204,30 +2244,22 @@ class Admin extends CI_Controller {
 
     // Get sections by class for AJAX request
     public function get_sections_by_class($class_id) {
-        if (!$this->session->userdata('admin_login')) {
-            redirect(base_url(), 'refresh');
-        }
-
         $sections = $this->db->get_where('section', array('class_id' => $class_id))->result_array();
-        $options = '<option value="">' . get_phrase('select_section') . '</option>';
-        foreach ($sections as $row) {
-            $options .= '<option value="' . $row['section_id'] . '">' . $row['name'] . '</option>';
+        $html = '<option value="">' . get_phrase('select_section') . '</option>';
+        foreach($sections as $row) {
+            $html .= '<option value="' . $row['section_id'] . '">' . $row['name'] . '</option>';
         }
-        echo $options;
+        echo $html;
     }
 
     // Get subjects by class for AJAX request
     public function get_subjects_by_class($class_id) {
-        if (!$this->session->userdata('admin_login')) {
-            redirect(base_url(), 'refresh');
-        }
-
         $subjects = $this->db->get_where('subject', array('class_id' => $class_id))->result_array();
-        $options = '<option value="">' . get_phrase('select_subject') . '</option>';
-        foreach ($subjects as $row) {
-            $options .= '<option value="' . $row['subject_id'] . '">' . $row['name'] . '</option>';
+        $html = '<option value="">' . get_phrase('select_subject') . '</option>';
+        foreach($subjects as $row) {
+            $html .= '<option value="' . $row['subject_id'] . '">' . $row['name'] . '</option>';
         }
-        echo $options;
+        echo $html;
     }
 
 }
