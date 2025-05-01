@@ -5,34 +5,37 @@ class Timetable_model extends CI_Model {
     function __construct() {
         parent::__construct();
         $this->load->database();
+        
+        // Create timetable table if it doesn't exist
+        if (!$this->db->table_exists('timetable')) {
+            $this->create_table_if_not_exists();
+        }
     }
     
     // Create the timetable table if it doesn't exist
     function create_table_if_not_exists() {
-        if (!$this->db->table_exists('timetable')) {
-            $query = "CREATE TABLE IF NOT EXISTS `timetable` (
-                `timetable_id` int(11) NOT NULL AUTO_INCREMENT,
-                `class_id` int(11) NOT NULL,
-                `section_id` int(11) NOT NULL,
-                `subject_id` int(11) NOT NULL,
-                `teacher_id` int(11) NOT NULL,
-                `day` varchar(20) NOT NULL,
-                `starting_time` varchar(20) NOT NULL,
-                `ending_time` varchar(20) NOT NULL,
-                `room_number` varchar(20) DEFAULT NULL,
-                PRIMARY KEY (`timetable_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-            $this->db->query($query);
-            return true;
-        }
-        return false;
+        $this->db->query("CREATE TABLE IF NOT EXISTS `timetable` (
+            `timetable_id` int(11) NOT NULL AUTO_INCREMENT,
+            `class_id` int(11) NOT NULL,
+            `section_id` int(11) NOT NULL,
+            `subject_id` int(11) NOT NULL,
+            `teacher_id` int(11) NOT NULL,
+            `start_date` date NOT NULL,
+            `end_date` date NOT NULL,
+            `start_time` time NOT NULL,
+            `end_time` time NOT NULL,
+            `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`timetable_id`),
+            KEY `class_id` (`class_id`),
+            KEY `section_id` (`section_id`),
+            KEY `subject_id` (`subject_id`),
+            KEY `teacher_id` (`teacher_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
     }
     
     // Add a new timetable entry
     function add_timetable($data) {
-        // Check if the table exists
-        $this->create_table_if_not_exists();
-        
         // Check for conflicts
         if ($this->check_timetable_conflict($data)) {
             return false;
@@ -92,65 +95,38 @@ class Timetable_model extends CI_Model {
         $this->db->where('timetable_id', $timetable_id);
         return $this->db->get('timetable')->row_array();
     }
-    
-    // Check for timetable conflicts
-    function check_timetable_conflict($data, $exclude_id = null) {
-        // Check for teacher conflicts (same teacher, same day, overlapping time)
-        $this->db->where('teacher_id', $data['teacher_id']);
-        $this->db->where('day', $data['day']);
-        $this->db->where('(
-            (starting_time <= "' . $data['starting_time'] . '" AND ending_time >= "' . $data['starting_time'] . '")
-            OR
-            (starting_time <= "' . $data['ending_time'] . '" AND ending_time >= "' . $data['ending_time'] . '")
-            OR
-            (starting_time >= "' . $data['starting_time'] . '" AND ending_time <= "' . $data['ending_time'] . '")
-        )', NULL, FALSE);
         
+    // Check for timetable conflicts
+    public function check_timetable_conflict($data, $exclude_id = null) {
+        // Check for overlapping schedules
+        $where = "(
+            (start_date <= '{$data['start_date']}' AND end_date >= '{$data['start_date']}') OR
+            (start_date <= '{$data['end_date']}' AND end_date >= '{$data['end_date']}') OR
+            (start_date >= '{$data['start_date']}' AND end_date <= '{$data['end_date']}')
+        ) AND (
+            (start_time <= '{$data['start_time']}' AND end_time > '{$data['start_time']}') OR
+            (start_time < '{$data['end_time']}' AND end_time >= '{$data['end_time']}') OR
+            (start_time >= '{$data['start_time']}' AND end_time <= '{$data['end_time']}')
+        )";
+
+        // Check teacher conflicts
+        $this->db->where('teacher_id', $data['teacher_id']);
+        $this->db->where($where, NULL, FALSE);
         if ($exclude_id) {
             $this->db->where('timetable_id !=', $exclude_id);
         }
-        
-        $teacher_conflict = $this->db->get('timetable')->num_rows();
-        
-        // Check for class/section conflicts (same class, same section, same day, overlapping time)
+        $teacher_conflict = $this->db->get('timetable')->num_rows() > 0;
+
+        // Check class/section conflicts
         $this->db->where('class_id', $data['class_id']);
         $this->db->where('section_id', $data['section_id']);
-        $this->db->where('day', $data['day']);
-        $this->db->where('(
-            (starting_time <= "' . $data['starting_time'] . '" AND ending_time >= "' . $data['starting_time'] . '")
-            OR
-            (starting_time <= "' . $data['ending_time'] . '" AND ending_time >= "' . $data['ending_time'] . '")
-            OR
-            (starting_time >= "' . $data['starting_time'] . '" AND ending_time <= "' . $data['ending_time'] . '")
-        )', NULL, FALSE);
-        
+        $this->db->where($where, NULL, FALSE);
         if ($exclude_id) {
             $this->db->where('timetable_id !=', $exclude_id);
         }
-        
-        $class_conflict = $this->db->get('timetable')->num_rows();
-        
-        // Check for room conflicts if a room is specified
-        $room_conflict = 0;
-        if (!empty($data['room_number'])) {
-            $this->db->where('room_number', $data['room_number']);
-            $this->db->where('day', $data['day']);
-            $this->db->where('(
-                (starting_time <= "' . $data['starting_time'] . '" AND ending_time >= "' . $data['starting_time'] . '")
-                OR
-                (starting_time <= "' . $data['ending_time'] . '" AND ending_time >= "' . $data['ending_time'] . '")
-                OR
-                (starting_time >= "' . $data['starting_time'] . '" AND ending_time <= "' . $data['ending_time'] . '")
-            )', NULL, FALSE);
-            
-            if ($exclude_id) {
-                $this->db->where('timetable_id !=', $exclude_id);
-            }
-            
-            $room_conflict = $this->db->get('timetable')->num_rows();
-        }
-        
-        return ($teacher_conflict > 0 || $class_conflict > 0 || $room_conflict > 0);
+        $class_conflict = $this->db->get('timetable')->num_rows() > 0;
+
+        return $teacher_conflict || $class_conflict;
     }
     
     // Get unique time slots for a class and section
@@ -217,31 +193,55 @@ class Timetable_model extends CI_Model {
     }
     
     public function get_timetable_events($class_id = null) {
-        $this->db->select('calendar_timetable.*, subject.name as subject_name, teacher.name as teacher_name, class.name as class_name, section.name as section_name');
-        $this->db->from('calendar_timetable');
-        $this->db->join('subject', 'subject.subject_id = calendar_timetable.subject_id');
-        $this->db->join('teacher', 'teacher.teacher_id = calendar_timetable.teacher_id');
-        $this->db->join('class', 'class.class_id = calendar_timetable.class_id');
-        $this->db->join('section', 'section.section_id = calendar_timetable.section_id');
+        $this->db->select('t.*, c.name as class_name, s.name as section_name, 
+                          sub.name as subject_name, tea.name as teacher_name');
+        $this->db->from('timetable t');
+        $this->db->join('class c', 'c.class_id = t.class_id');
+        $this->db->join('section s', 's.section_id = t.section_id');
+        $this->db->join('subject sub', 'sub.subject_id = t.subject_id');
+        $this->db->join('teacher tea', 'tea.teacher_id = t.teacher_id');
         
         if ($class_id) {
-            $this->db->where('calendar_timetable.class_id', $class_id);
+            $this->db->where('t.class_id', $class_id);
         }
         
-        $result = $this->db->get()->result_array();
+        return $this->db->get()->result_array();
+    }
+    
+    public function save_timetable($data) {
+        // Validate data
+        $required_fields = ['class_id', 'section_id', 'subject_id', 'teacher_id', 
+                          'start_date', 'end_date', 'start_time', 'end_time'];
         
-        $events = array();
-        foreach ($result as $row) {
-            $events[] = array(
-                'id' => $row['id'],
-                'title' => $row['subject_name'] . ' (' . $row['teacher_name'] . ')',
-                'start' => $row['date'] . 'T' . $row['start_time'],
-                'end' => $row['date'] . 'T' . $row['end_time'],
-                'className' => 'bg-info',
-                'description' => 'Class: ' . $row['class_name'] . '<br>Section: ' . $row['section_name']
-            );
+        foreach ($required_fields as $field) {
+            if (!isset($data[$field]) || empty($data[$field])) {
+                return false;
+            }
         }
+
+        // Check for conflicts
+        $conflict_check = [
+            'class_id' => $data['class_id'],
+            'section_id' => $data['section_id'],
+            'teacher_id' => $data['teacher_id'],
+            'start_date' => $data['start_date'],
+            'end_date' => $data['end_date'],
+            'start_time' => $data['start_time'],
+            'end_time' => $data['end_time']
+        ];
+
+        $exclude_id = isset($data['timetable_id']) ? $data['timetable_id'] : null;
         
-        return $events;
+        if ($this->check_timetable_conflict($conflict_check, $exclude_id)) {
+            return false;
+        }
+
+        // Update or insert
+        if (isset($data['timetable_id'])) {
+            $this->db->where('timetable_id', $data['timetable_id']);
+            return $this->db->update('timetable', $data);
+        } else {
+            return $this->db->insert('timetable', $data);
+        }
     }
 } 

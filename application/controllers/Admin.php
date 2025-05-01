@@ -15,15 +15,24 @@ class Admin extends CI_Controller {
             'vacancy_model',
             'application_model',
             'leave_model',
-            'award_model',
-            'academic_model',
+            'admin_model',
+            'teacher_model',
             'student_model',
-            'exam_question_model',
-            'student_payment_model',
+            'timetable_model',
+            'class_model',
+            'section_model',
+            'exam_model',
+            'library_model',
             'event_model',
             'language_model',
-            'admin_model',
-            'timetable_model'
+            'crud_model',
+            'sms_model',
+            'alumni_model',
+            'dormitory_model',
+            'academic_model',
+            'student_payment_model',
+            'award_model',
+            'payroll_model'
         ));
         
         // Check admin login status
@@ -2142,93 +2151,102 @@ class Admin extends CI_Controller {
     // Get timetable data for calendar view
     public function get_timetable_data_ajax() {
         if (!$this->session->userdata('admin_login')) {
-            redirect(base_url(), 'refresh');
+            echo json_encode(['error' => 'Access denied']);
+            return;
         }
 
         $class_id = $this->input->post('class_id');
-        $events = $this->timetable_model->get_timetable_events($class_id);
-        echo json_encode($events);
+        
+        $this->db->select('t.*, c.name as class_name, s.name as section_name, 
+                          sub.name as subject_name, tea.name as teacher_name');
+        $this->db->from('timetable t');
+        $this->db->join('class c', 'c.class_id = t.class_id');
+        $this->db->join('section s', 's.section_id = t.section_id');
+        $this->db->join('subject sub', 'sub.subject_id = t.subject_id');
+        $this->db->join('teacher tea', 'tea.teacher_id = t.teacher_id');
+        
+        if ($class_id) {
+            $this->db->where('t.class_id', $class_id);
+        }
+        
+        $events = $this->db->get()->result_array();
+        
+        $calendar_events = array_map(function($event) {
+            return [
+                'id' => $event['timetable_id'],
+                'title' => $event['subject_name'] . ' (' . $event['teacher_name'] . ')',
+                'start' => $event['start_date'] . 'T' . $event['start_time'],
+                'end' => $event['end_date'] . 'T' . $event['end_time'],
+                'className' => 'bg-info',
+                'description' => sprintf(
+                    'Class: %s<br>Section: %s<br>Subject: %s<br>Teacher: %s',
+                    $event['class_name'],
+                    $event['section_name'],
+                    $event['subject_name'],
+                    $event['teacher_name']
+                )
+            ];
+        }, $events);
+        
+        echo json_encode($calendar_events);
     }
     
     // Save timetable slot
     public function save_timetable_slot_ajax() {
         if (!$this->session->userdata('admin_login')) {
-            $response = array('status' => 'error', 'message' => 'Not logged in');
-            echo json_encode($response);
+            echo json_encode(['status' => 'error', 'message' => 'Access denied']);
             return;
         }
 
         try {
-            $data = array(
+            $data = [
                 'class_id' => $this->input->post('class_id'),
                 'section_id' => $this->input->post('section_id'),
                 'subject_id' => $this->input->post('subject_id'),
                 'teacher_id' => $this->input->post('teacher_id'),
+                'date' => $this->input->post('start_date'),
                 'start_time' => $this->input->post('start_time'),
                 'end_time' => $this->input->post('end_time')
-            );
-
-            // Get date range
-            $start_date = strtotime($this->input->post('start_date'));
-            $end_date = strtotime($this->input->post('end_date'));
-
-            // Validate dates
-            if ($end_date < $start_date) {
-                $response = array('status' => 'error', 'message' => 'End date cannot be before start date');
-                echo json_encode($response);
-                return;
-            }
+            ];
 
             // Validate required fields
             foreach ($data as $key => $value) {
                 if (empty($value)) {
-                    $response = array('status' => 'error', 'message' => 'All fields are required');
-                    echo json_encode($response);
+                    echo json_encode(['status' => 'error', 'message' => ucfirst($key) . ' is required']);
                     return;
                 }
             }
 
-            // Create entries for each day in the range
-            $success_count = 0;
-            for ($date = $start_date; $date <= $end_date; $date = strtotime('+1 day', $date)) {
-                $data['date'] = date('Y-m-d', $date);
-                
-                // Check if entry already exists
-                $existing = $this->db->get_where('calendar_timetable', array(
-                    'date' => $data['date'],
-                    'class_id' => $data['class_id'],
-                    'section_id' => $data['section_id'],
-                    'start_time' => $data['start_time']
-                ))->num_rows();
-                
-                if ($existing > 0) {
-                    // Update existing entry
-                    $this->db->where(array(
-                        'date' => $data['date'],
-                        'class_id' => $data['class_id'],
-                        'section_id' => $data['section_id'],
-                        'start_time' => $data['start_time']
-                    ));
-                    $this->db->update('calendar_timetable', $data);
-                } else {
-                    // Insert new entry
-                    $this->db->insert('calendar_timetable', $data);
-                }
-                $success_count++;
+            // Load the timetable model
+            $this->load->model('timetable_model');
+
+            // Check for conflicts
+            if ($this->timetable_model->check_timetable_conflict($data)) {
+                echo json_encode(['status' => 'error', 'message' => 'Time slot conflicts with existing schedule']);
+                return;
             }
-            
-            $response = array(
-                'status' => 'success',
-                'message' => $success_count . ' timetable entries created/updated successfully'
-            );
+
+            // Save the timetable entry
+            $timetable_id = $this->input->post('timetable_id');
+            if ($timetable_id) {
+                // Update existing entry
+                $success = $this->timetable_model->update_timetable($timetable_id, $data);
+                $message = 'Timetable updated successfully';
+            } else {
+                // Add new entry
+                $success = $this->timetable_model->add_timetable($data);
+                $message = 'Timetable added successfully';
+            }
+
+            if ($success) {
+                echo json_encode(['status' => 'success', 'message' => $message]);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Failed to save timetable']);
+            }
+
         } catch (Exception $e) {
-            $response = array(
-                'status' => 'error',
-                'message' => 'An error occurred: ' . $e->getMessage()
-            );
+            echo json_encode(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()]);
         }
-        
-        echo json_encode($response);
     }
     
     // Delete timetable slot
@@ -2260,6 +2278,78 @@ class Admin extends CI_Controller {
             $html .= '<option value="' . $row['subject_id'] . '">' . $row['name'] . '</option>';
         }
         echo $html;
+    }
+
+    // Get sections for a class
+    public function get_sections($class_id) {
+        $sections = $this->db->get_where('section', array('class_id' => $class_id))->result_array();
+        echo '<option value="">Select Section</option>';
+        foreach($sections as $row) {
+            echo '<option value="'.$row['section_id'].'">'.$row['name'].'</option>';
+        }
+    }
+
+    // Get subjects for a class
+    public function get_subjects($class_id) {
+        $subjects = $this->db->get_where('subject', array('class_id' => $class_id))->result_array();
+        echo '<option value="">Select Subject</option>';
+        foreach($subjects as $row) {
+            echo '<option value="'.$row['subject_id'].'">'.$row['name'].'</option>';
+        }
+    }
+
+    public function save_timetable_ajax() {
+        if (!$this->session->userdata('admin_login')) {
+            echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+            return;
+        }
+
+        try {
+            // Get POST data
+            $data = [
+                'class_id' => $this->input->post('class_id'),
+                'section_id' => $this->input->post('section_id'),
+                'subject_id' => $this->input->post('subject_id'),
+                'teacher_id' => $this->input->post('teacher_id'),
+                'start_date' => $this->input->post('start_date'),
+                'end_date' => $this->input->post('end_date'),
+                'start_time' => $this->input->post('start_time'),
+                'end_time' => $this->input->post('end_time')
+            ];
+
+            // Validate required fields
+            foreach ($data as $key => $value) {
+                if (empty($value)) {
+                    echo json_encode(['status' => 'error', 'message' => 'All fields are required']);
+                    return;
+                }
+            }
+
+            // Load timetable model
+            $this->load->model('timetable_model');
+
+            // Check for timetable conflicts
+            if ($this->timetable_model->check_timetable_conflict($data)) {
+                echo json_encode(['status' => 'error', 'message' => 'There is a scheduling conflict with another class or teacher']);
+                return;
+            }
+
+            // Save timetable entry
+            $timetable_id = $this->input->post('timetable_id');
+            if ($timetable_id) {
+                $data['timetable_id'] = $timetable_id;
+            }
+
+            $result = $this->timetable_model->save_timetable($data);
+            
+            if ($result) {
+                echo json_encode(['status' => 'success', 'message' => 'Timetable entry saved successfully']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Failed to save timetable entry']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()]);
+        }
     }
 
 }
