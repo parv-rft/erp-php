@@ -10,34 +10,48 @@ $teacher_id = $this->session->userdata('teacher_id');
                 </div>
             </div>
             <div class="panel-body">
-                <!-- Calendar Navigation -->
+                <!-- Class filter -->
                 <div class="row mb-3">
                     <div class="col-md-4">
-                        <div class="btn-group">
-                            <button class="btn btn-default" id="prev-month">
-                                <i class="fa fa-chevron-left"></i>
-                            </button>
-                            <button class="btn btn-default" id="current-month">
-                                <?php echo date('F Y'); ?>
-                            </button>
-                            <button class="btn btn-default" id="next-month">
-                                <i class="fa fa-chevron-right"></i>
-                            </button>
-                        </div>
+                        <select name="filter_class_id" class="form-control" id="filter_class_id">
+                            <option value=""><?php echo get_phrase('all_classes'); ?></option>
+                            <?php
+                            // Get classes assigned to this teacher
+                            $this->db->select('DISTINCT(c.class_id), c.name');
+                            $this->db->from('timetable t');
+                            $this->db->join('class c', 'c.class_id = t.class_id');
+                            $this->db->where('t.teacher_id', $teacher_id);
+                            $this->db->order_by('c.name', 'ASC');
+                            $classes = $this->db->get()->result_array();
+                            
+                            foreach ($classes as $row) {
+                                echo '<option value="' . $row['class_id'] . '">' . $row['name'] . '</option>';
+                            }
+                            ?>
+                        </select>
                     </div>
                     <div class="col-md-8 text-right">
-                        <button class="btn btn-info" id="print_timetable">
-                            <i class="fa fa-print"></i> <?php echo get_phrase('print_timetable'); ?>
+                        <button class="btn btn-default" id="print_timetable">
+                            <i class="fa fa-print"></i> <?php echo get_phrase('print'); ?>
                         </button>
                     </div>
                 </div>
-
-                <!-- Calendar View -->
+                
+                <!-- Calendar -->
                 <div id="calendar"></div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Include required CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+<!-- Include required JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <style>
 #calendar {
@@ -47,66 +61,13 @@ $teacher_id = $this->session->userdata('teacher_id');
     margin-top: 20px;
 }
 
-.calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 1px;
-    background: #dee2e6;
+.fc-event {
+    cursor: pointer;
 }
 
-.calendar-day {
-    background: white;
-    min-height: 120px;
-    padding: 5px;
-    position: relative;
-}
-
-.calendar-day.other-month {
-    background: #f8f9fa;
-}
-
-.calendar-day-header {
-    text-align: right;
-    padding: 2px 5px;
-    font-weight: bold;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.time-slots {
-    margin-top: 5px;
-}
-
-.time-slot {
-    padding: 3px;
-    margin: 2px 0;
-    border-radius: 3px;
-    font-size: 12px;
-    background: #e3f2fd;
-    border: 1px solid #90caf9;
-}
-
-.time-slot:hover {
-    background: #bbdefb;
-}
-
-.class-info {
-    font-weight: bold;
-}
-
-.subject-info {
-    color: #666;
-}
-
-.mb-3 {
-    margin-bottom: 15px;
-}
-
-.calendar-day.today {
-    background: #fff8e1;
-}
-
-.calendar-day.weekend {
-    background: #f8f9fa;
+.fc-day-grid-event .fc-content {
+    white-space: normal;
+    overflow: hidden;
 }
 
 @media print {
@@ -117,131 +78,141 @@ $teacher_id = $this->session->userdata('teacher_id');
     #calendar {
         box-shadow: none;
     }
-    
-    .time-slot {
-        border: 1px solid #ddd !important;
-        background: white !important;
-        color: black !important;
-    }
 }
 </style>
 
+<!-- View Event Modal -->
+<div class="modal fade" id="viewEventModal" tabindex="-1" role="dialog" aria-labelledby="viewEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewEventModalLabel">Timetable Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="viewEventBody">
+                <!-- Event details will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
 $(document).ready(function() {
-    let currentDate = new Date();
-    
-    // Initialize calendar
-    function initCalendar(year, month) {
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        const startingDay = firstDay.getDay();
-        const monthLength = lastDay.getDate();
-        const today = new Date();
-        
-        let calendarHtml = '<div class="calendar-grid">';
-        
-        // Add day headers
-        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        days.forEach(day => {
-            calendarHtml += `<div class="calendar-day-header">${day}</div>`;
-        });
-        
-        // Add calendar days
-        let day = 1;
-        let nextMonthDay = 1;
-        let prevMonthLastDay = new Date(year, month, 0).getDate();
-        let prevMonthStartDay = prevMonthLastDay - startingDay + 1;
-        
-        for (let i = 0; i < 42; i++) {
-            if (i < startingDay) {
-                // Previous month days
-                calendarHtml += `<div class="calendar-day other-month">
-                    <div class="date">${prevMonthStartDay + i}</div>
-                    <div class="time-slots"></div>
-                </div>`;
-            } else if (day <= monthLength) {
-                // Current month days
-                const isToday = day === today.getDate() && 
-                              month === today.getMonth() && 
-                              year === today.getFullYear();
-                const isWeekend = (i % 7 === 0) || (i % 7 === 6);
-                
-                calendarHtml += `<div class="calendar-day${isToday ? ' today' : ''}${isWeekend ? ' weekend' : ''}" 
-                                     data-date="${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}">
-                    <div class="date">${day}</div>
-                    <div class="time-slots"></div>
-                </div>`;
-                day++;
-            } else {
-                // Next month days
-                calendarHtml += `<div class="calendar-day other-month">
-                    <div class="date">${nextMonthDay}</div>
-                    <div class="time-slots"></div>
-                </div>`;
-                nextMonthDay++;
-            }
-        }
-        
-        calendarHtml += '</div>';
-        $('#calendar').html(calendarHtml);
-        
-        // Update month display
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                          'July', 'August', 'September', 'October', 'November', 'December'];
-        $('#current-month').text(monthNames[month] + ' ' + year);
-        
-        // Load timetable data
-        loadTeacherTimetable(year, month + 1);
-    }
-    
-    // Load teacher's timetable data
-    function loadTeacherTimetable(year, month) {
-        $.ajax({
+    // Initialize toastr
+    toastr.options = {
+        "closeButton": true,
+        "debug": false,
+        "newestOnTop": false,
+        "progressBar": true,
+        "positionClass": "toast-top-right",
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "5000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    };
+
+    // Store the current event being viewed
+    var currentEvent = null;
+
+    // Initialize FullCalendar
+    var calendar = $('#calendar').fullCalendar({
+        header: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'month,agendaWeek,agendaDay,listWeek'
+        },
+        events: {
             url: '<?php echo base_url();?>teacher/get_teacher_timetable_data',
             type: 'POST',
-            data: {
-                year: year,
-                month: month,
-                teacher_id: <?php echo $teacher_id; ?>
+            data: function() {
+                var date = $('#calendar').fullCalendar('getDate');
+                return {
+                    class_id: $('#filter_class_id').val(),
+                    year: date.format('YYYY'),
+                    month: date.format('M')
+                };
             },
-            success: function(response) {
-                const data = JSON.parse(response);
-                displayTimetableData(data);
+            error: function(xhr, textStatus, errorThrown) {
+                console.error("Error fetching events:", textStatus, errorThrown);
+                console.log(xhr.responseText);
+                toastr.error('Error loading timetable data: ' + errorThrown);
             }
-        });
-    }
-    
-    // Display timetable data on calendar
-    function displayTimetableData(data) {
-        data.forEach(entry => {
-            const dayCell = $(`.calendar-day[data-date="${entry.date}"]`);
-            if (dayCell.length) {
-                const timeSlot = `<div class="time-slot">
-                    <div class="time-info">${entry.time_slot}</div>
-                    <div class="class-info">${entry.class_name} - ${entry.section_name}</div>
-                    <div class="subject-info">${entry.subject_name}</div>
-                </div>`;
-                dayCell.find('.time-slots').append(timeSlot);
+        },
+        eventRender: function(event, element) {
+            if (event.description) {
+                element.attr('title', event.description.replace(/<br>/g, '\n'));
+                
+                // Add tooltip with bootstrap or a tooltip library if available
+                if (typeof $(element).tooltip === 'function') {
+                    $(element).tooltip({
+                        placement: 'top',
+                        title: event.description.replace(/<br>/g, '\n'),
+                        container: 'body',
+                        html: true
+                    });
+                }
             }
-        });
-    }
-    
-    // Initialize calendar with current month
-    initCalendar(currentDate.getFullYear(), currentDate.getMonth());
-    
-    // Previous month button
-    $('#prev-month').click(function() {
-        currentDate.setMonth(currentDate.getMonth() - 1);
-        initCalendar(currentDate.getFullYear(), currentDate.getMonth());
+        },
+        eventClick: function(event) {
+            // Store current event
+            currentEvent = event;
+            
+            // Format the event details
+            var startTime = moment(event.start).format('h:mm A');
+            var endTime = moment(event.end).format('h:mm A');
+            var dateRange = moment(event.start).format('MMMM D, YYYY');
+            
+            if (moment(event.start).format('YYYY-MM-DD') !== moment(event.end).format('YYYY-MM-DD')) {
+                dateRange += ' to ' + moment(event.end).format('MMMM D, YYYY');
+            }
+            
+            // Display event details in modal
+            var content = `
+                <div class="event-details">
+                    <p><strong>Subject:</strong> ${event.title}</p>
+                    <p><strong>Date:</strong> ${dateRange}</p>
+                    <p><strong>Time:</strong> ${startTime} - ${endTime}</p>
+                    <p>${event.description}</p>
+                </div>
+            `;
+            
+            // Display in modal
+            $('#viewEventBody').html(content);
+            $('#viewEventModal').modal('show');
+        },
+        timeFormat: 'h:mm A',
+        displayEventEnd: true,
+        firstDay: 0, // Sunday as first day
+        height: 'auto',
+        aspectRatio: 1.8,
+        loading: function(isLoading) {
+            if (isLoading) {
+                // Show loading indicator
+                $('#calendar').addClass('loading');
+            } else {
+                // Hide loading indicator
+                $('#calendar').removeClass('loading');
+            }
+        }
     });
     
-    // Next month button
-    $('#next-month').click(function() {
-        currentDate.setMonth(currentDate.getMonth() + 1);
-        initCalendar(currentDate.getFullYear(), currentDate.getMonth());
+    // Filter class change handler
+    $('#filter_class_id').change(function() {
+        calendar.fullCalendar('refetchEvents');
     });
     
-    // Print button
+    // Print button click
     $('#print_timetable').click(function() {
         window.print();
     });

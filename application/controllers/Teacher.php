@@ -639,27 +639,84 @@ class Teacher extends CI_Controller {
     // Get teacher's timetable data for calendar
     public function get_teacher_timetable_data() {
         if ($this->session->userdata('teacher_login') != 1) {
-            redirect(base_url(), 'refresh');
+            echo json_encode(['error' => 'Access denied']);
+            return;
         }
         
-        $teacher_id = $this->session->userdata('teacher_id');
-        $year = $this->input->post('year');
-        $month = $this->input->post('month');
-        
-        // Get the teacher's timetable from the calendar_timetable table
-        $this->db->select('calendar_timetable.*, class.name as class_name, section.name as section_name, subject.name as subject_name');
-        $this->db->from('calendar_timetable');
-        $this->db->join('class', 'class.class_id = calendar_timetable.class_id');
-        $this->db->join('section', 'section.section_id = calendar_timetable.section_id');
-        $this->db->join('subject', 'subject.subject_id = calendar_timetable.subject_id');
-        $this->db->where('calendar_timetable.teacher_id', $teacher_id);
-        $this->db->where('YEAR(calendar_timetable.date)', $year);
-        $this->db->where('MONTH(calendar_timetable.date)', $month);
-        
-        $query = $this->db->get();
-        $timetable_data = $query->result_array();
-        
-        echo json_encode($timetable_data);
+        try {
+            $teacher_id = $this->session->userdata('teacher_id');
+            $class_id = $this->input->post('class_id');
+            $year = $this->input->post('year');
+            $month = $this->input->post('month');
+            
+            // Log input parameters for debugging
+            error_log("Teacher timetable request: teacher_id=$teacher_id, class_id=$class_id, year=$year, month=$month");
+            
+            // Get the teacher's timetable from the timetable table
+            $this->db->select('t.timetable_id, t.class_id, t.section_id, t.subject_id, 
+                             t.start_date, t.end_date, t.start_time, t.end_time, 
+                             c.name as class_name, s.name as section_name, 
+                             sub.name as subject_name');
+            $this->db->from('timetable t');
+            $this->db->join('class c', 'c.class_id = t.class_id');
+            $this->db->join('section s', 's.section_id = t.section_id');
+            $this->db->join('subject sub', 'sub.subject_id = t.subject_id');
+            $this->db->where('t.teacher_id', $teacher_id);
+            
+            // Filter by class if provided
+            if (!empty($class_id)) {
+                $this->db->where('t.class_id', $class_id);
+            }
+            
+            // Filter by year and month if provided
+            if (!empty($year) && !empty($month)) {
+                $this->db->where('YEAR(t.start_date) =', $year);
+                $this->db->where('MONTH(t.start_date) =', $month);
+            }
+            
+            $query = $this->db->get();
+            
+            // Log the query for debugging
+            error_log("Teacher timetable query: " . $this->db->last_query());
+            
+            if (!$query) {
+                error_log("Query failed: " . $this->db->error()['message']);
+                echo json_encode([]);
+                return;
+            }
+            
+            $events = $query->result_array();
+            
+            // Log results count
+            error_log("Teacher timetable results: " . count($events) . " entries found");
+            
+            // Format events for FullCalendar
+            $calendar_events = array_map(function($event) {
+                return [
+                    'id' => $event['timetable_id'],
+                    'title' => $event['subject_name'] . ' - ' . $event['class_name'] . '/' . $event['section_name'],
+                    'start' => $event['start_date'] . 'T' . $event['start_time'],
+                    'end' => $event['end_date'] . 'T' . $event['end_time'],
+                    'className' => 'bg-info',
+                    'description' => sprintf(
+                        'Class: %s<br>Section: %s<br>Subject: %s<br>Time: %s - %s',
+                        $event['class_name'],
+                        $event['section_name'],
+                        $event['subject_name'],
+                        date('h:i A', strtotime($event['start_time'])),
+                        date('h:i A', strtotime($event['end_time']))
+                    ),
+                    'class_id' => $event['class_id'],
+                    'section_id' => $event['section_id'],
+                    'subject_id' => $event['subject_id']
+                ];
+            }, $events);
+            
+            echo json_encode($calendar_events);
+        } catch (Exception $e) {
+            error_log("Exception in get_teacher_timetable_data: " . $e->getMessage());
+            echo json_encode([]);
+        }
     }
 
 }

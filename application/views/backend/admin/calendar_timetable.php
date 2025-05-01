@@ -71,7 +71,18 @@ $breadcrumb = array(
                                 ?>
                             </select>
                         </div>
-                        <div class="col-md-8 text-right">
+                        <div class="col-md-3">
+                            <select name="filter_teacher_id" class="form-control" id="filter_teacher_id">
+                                <option value=""><?php echo get_phrase('all_teachers'); ?></option>
+                                <?php
+                                $teachers = $this->db->get('teacher')->result_array();
+                                foreach ($teachers as $row) {
+                                    echo '<option value="' . $row['teacher_id'] . '">' . $row['name'] . '</option>';
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-md-5 text-right">
                             <button class="btn btn-primary" id="add_timetable">
                                 <i class="fa fa-plus"></i> <?php echo get_phrase('add_timetable'); ?>
                             </button>
@@ -288,16 +299,36 @@ $breadcrumb = array(
         </div>
     </div>
 
+    <!-- View Event Modal -->
+    <div class="modal fade" id="viewEventModal" tabindex="-1" role="dialog" aria-labelledby="viewEventModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewEventModalLabel">Timetable Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="viewEventBody">
+                    <!-- Event details will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning" id="editEvent">Edit</button>
+                    <button type="button" class="btn btn-danger" id="deleteEvent">Delete</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Include required CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css">
-    <link href="<?php echo base_url('assets/css/toastr.min.css'); ?>" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
     <!-- Include required JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script src="<?php echo base_url('assets/js/toastr.min.js'); ?>"></script>
 
     <script type="text/javascript">
     $(document).ready(function() {
@@ -320,271 +351,176 @@ $breadcrumb = array(
             "hideMethod": "fadeOut"
         };
 
-        let currentDate = new Date();
-        let selectedTeacher = '';
-        let selectedSubject = '';
-        let timetableData = {};
-        
-        // Initialize calendar
-        function initCalendar(year, month) {
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            const startingDay = firstDay.getDay();
-            const monthLength = lastDay.getDate();
-            const today = new Date();
-            
-            let calendarHtml = '<div class="calendar-grid">';
-            
-            // Add day headers
-            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            days.forEach(day => {
-                calendarHtml += `<div class="calendar-day-header">${day}</div>`;
-            });
-            
-            // Add calendar days
-            let day = 1;
-            let nextMonthDay = 1;
-            let prevMonthLastDay = new Date(year, month, 0).getDate();
-            let prevMonthStartDay = prevMonthLastDay - startingDay + 1;
-            
-            for (let i = 0; i < 42; i++) {
-                if (i < startingDay) {
-                    // Previous month days
-                    calendarHtml += `<div class="calendar-day other-month">
-                        <div class="calendar-day-header">${prevMonthStartDay + i}</div>
-                        <div class="time-slots"></div>
-                    </div>`;
-                } else if (day > monthLength) {
-                    // Next month days
-                    calendarHtml += `<div class="calendar-day other-month">
-                        <div class="calendar-day-header">${nextMonthDay}</div>
-                        <div class="time-slots"></div>
-                    </div>`;
-                    nextMonthDay++;
-                } else {
-                    // Current month days
-                    const isToday = year === today.getFullYear() && 
-                                  month === today.getMonth() && 
-                                  day === today.getDate();
-                    const isWeekend = (i % 7 === 0 || i % 7 === 6);
-                    const classes = ['calendar-day'];
-                    if (isToday) classes.push('today');
-                    if (isWeekend) classes.push('weekend');
-                    
-                    const currentDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                    const slots = timetableData[currentDate] || [];
-                    
-                    calendarHtml += `
-                        <div class="${classes.join(' ')}" data-date="${currentDate}">
-                            <div class="calendar-day-header">${day}</div>
-                            <div class="time-slots">
-                                ${renderTimeSlots(slots, currentDate)}
-                            </div>
-                        </div>`;
-                    day++;
-                }
-            }
-            
-            calendarHtml += '</div>';
-            $('#calendar').html(calendarHtml);
-            
-            // Add click handlers for time slots
-            $('.time-slot').click(function() {
-                const date = $(this).closest('.calendar-day').data('date');
-                const timeSlot = $(this).data('time');
-                openTimeSlotModal(date, timeSlot);
-            });
-        }
-        
-        function renderTimeSlots(slots, date) {
-            const timeSlots = [
-                '08:00-08:45', '08:45-09:30', '09:30-10:15',
-                '10:15-11:00', '11:00-11:45', '11:45-12:30',
-                '13:30-14:15', '14:15-15:00'
-            ];
-            
-            return timeSlots.map(slot => {
-                const existingSlot = slots.find(s => s.time_slot === slot);
-                if (existingSlot) {
-                    return `
-                        <div class="time-slot has-class" data-time="${slot}">
-                            ${slot}<br>
-                            <div class="teacher-subject-info">
-                                ${existingSlot.subject_name}<br>
-                                ${existingSlot.teacher_name}
-                            </div>
-                        </div>`;
-                } else {
-                    return `<div class="time-slot empty" data-time="${slot}">${slot}</div>`;
-                }
-            }).join('');
-        }
-        
-        function loadTimetableData() {
-            const classId = $('#filter_class_id').val();
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth() + 1;
-            
-            $.ajax({
+        // Store the current event being viewed
+        var currentEvent = null;
+
+        // Initialize fullCalendar
+        var calendar = $('#calendar').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaWeek,agendaDay'
+            },
+            events: {
                 url: '<?php echo base_url();?>admin/get_timetable_data_ajax',
                 type: 'POST',
-                data: {
-                    class_id: classId,
-                    month: month,
-                    year: year
+                data: function() {
+                    return {
+                        class_id: $('#filter_class_id').val(),
+                        teacher_id: $('#filter_teacher_id').val()
+                    };
                 },
-                success: function(response) {
-                    const data = JSON.parse(response);
-                    displayTimetableData(data);
+                error: function(xhr, textStatus, errorThrown) {
+                    console.error("Error fetching events:", textStatus, errorThrown);
+                    console.log(xhr.responseText);
+                    toastr.error('Error loading timetable data: ' + errorThrown);
                 }
-            });
-        }
-        
-        function openTimeSlotModal(date, timeSlot) {
-            $('#selected_date').val(date);
-            $('#modal_class_id').val(classId);
-            $('#modal_section_id').html(sectionId);
-            $('#modal_subject_id').html(subjectId);
-            $('#modal_teacher_id').val(teacherId);
-            $('#start_time').val(timeSlot.split('-')[0]);
-            $('#end_time').val(timeSlot.split('-')[1]);
-            $('#timeSlotModal').modal('show');
-        }
-        
-        // Event handlers
-        $('#class_selector, #section_selector').change(function() {
-            const classId = $('#class_selector').val();
-            if ($(this).attr('id') === 'class_selector') {
-                // Update sections dropdown
-                $.ajax({
-                    url: '<?php echo base_url(); ?>admin/get_class_section/' + classId,
-                    success: function(response) {
-                        $('#section_selector').html(response);
-                    }
-                });
+            },
+            selectable: true,
+            select: function(start, end) {
+                openTimetableModal(start);
+            },
+            eventClick: function(event) {
+                // Store current event
+                currentEvent = event;
                 
-                // Update subjects dropdown
-                $.ajax({
-                    url: '<?php echo base_url(); ?>admin/get_class_subject/' + classId,
-                    success: function(response) {
-                        $('#subject_selector').html(response);
-                    }
-                });
-            }
-            loadTimetableData();
-        });
-        
-        $('#teacher_selector, #subject_selector').change(loadTimetableData);
-        
-        $('#prev-month').click(function() {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            $('#current-month').text(currentDate.toLocaleString('default', { month: 'long', year: 'numeric' }));
-            loadTimetableData();
-        });
-        
-        $('#next-month').click(function() {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            $('#current-month').text(currentDate.toLocaleString('default', { month: 'long', year: 'numeric' }));
-            loadTimetableData();
-        });
-        
-        $('#save_slot').click(function() {
-            const classId = $('#modal_class_id').val();
-            const sectionId = $('#modal_section_id').val();
-            const teacherId = $('#modal_teacher_id').val();
-            const subjectId = $('#modal_subject_id').val();
-            const date = $('#selected_date').val();
-            const startTime = $('#start_time').val();
-            const endTime = $('#end_time').val();
-            
-            if (!classId || !sectionId || !teacherId || !subjectId || !startTime || !endTime) {
-                alert('Please fill all required fields');
-                return;
-            }
-            
-            const timeSlot = `${startTime}-${endTime}`;
-            
-            $.ajax({
-                url: '<?php echo base_url(); ?>admin/save_timetable_slot_ajax',
-                type: 'POST',
-                data: {
-                    class_id: classId,
-                    section_id: sectionId,
-                    teacher_id: teacherId,
-                    subject_id: subjectId,
-                    date: date,
-                    time_slot: timeSlot
-                },
-                success: function(response) {
-                    $('#timeSlotModal').modal('hide');
-                    loadTimetableData();
+                // Format the event details
+                var startTime = moment(event.start).format('h:mm A');
+                var endTime = moment(event.end).format('h:mm A');
+                var dateRange = moment(event.start).format('MMMM D, YYYY');
+                
+                if (moment(event.start).format('YYYY-MM-DD') !== moment(event.end).format('YYYY-MM-DD')) {
+                    dateRange += ' to ' + moment(event.end).format('MMMM D, YYYY');
                 }
-            });
-        });
-        
-        $('#remove_slot').click(function() {
-            if (confirm('Are you sure you want to remove this time slot?')) {
-                const classId = $('#modal_class_id').val();
-                const sectionId = $('#modal_section_id').val();
-                const date = $('#selected_date').val();
-                const startTime = $('#start_time').val();
-                const endTime = $('#end_time').val();
                 
-                const timeSlot = `${startTime}-${endTime}`;
+                // Display event details in modal
+                var content = `
+                    <div class="event-details">
+                        <p><strong>Subject:</strong> ${event.title}</p>
+                        <p><strong>Date:</strong> ${dateRange}</p>
+                        <p><strong>Time:</strong> ${startTime} - ${endTime}</p>
+                        <p>${event.description}</p>
+                    </div>
+                `;
                 
-                $.ajax({
-                    url: '<?php echo base_url(); ?>admin/delete_timetable_slot_ajax',
-                    type: 'POST',
-                    data: {
-                        class_id: classId,
-                        section_id: sectionId,
-                        date: date,
-                        time_slot: timeSlot
-                    },
-                    success: function(response) {
-                        $('#timeSlotModal').modal('hide');
-                        loadTimetableData();
-                    }
-                });
-            }
-        });
-        
-        $('#print_timetable').click(function() {
-            window.print();
-        });
-        
-        // Update sections when class is selected in modal
-        $('#modal_class_id').change(function() {
-            var class_id = $(this).val();
-            $.ajax({
-                url: '<?php echo base_url();?>admin/get_sections_by_class/' + class_id,
-                success: function(response) {
-                    $('#modal_section_id').html(response);
+                // Display in modal
+                $('#viewEventBody').html(content);
+                $('#viewEventModal').modal('show');
+            },
+            eventRender: function(event, element) {
+                element.attr('title', event.description.replace(/<br>/g, '\n'));
+                
+                if (typeof $(element).tooltip === 'function') {
+                    $(element).tooltip({
+                        placement: 'top',
+                        title: event.description.replace(/<br>/g, '\n'),
+                        container: 'body',
+                        html: true
+                    });
                 }
-            });
+            },
+            timeFormat: 'h:mm A',
+            displayEventEnd: true
+        });
 
-            // Update subjects for the selected class
-            $.ajax({
-                url: '<?php echo base_url();?>admin/get_subjects_by_class/' + class_id,
-                success: function(response) {
-                    $('#modal_subject_id').html(response);
-                }
-            });
-        });
-        
-        // Filter class change handler
-        $('#filter_class_id').change(function() {
-            loadTimetableData();
+        // Filter class or teacher change handler
+        $('#filter_class_id, #filter_teacher_id').change(function() {
+            calendar.fullCalendar('refetchEvents');
         });
 
         // Add Timetable button click
         $('#add_timetable').click(function() {
-            try {
-                openTimetableModal(new Date());
-            } catch(e) {
-                toastr.error('Error opening timetable form: ' + e.message);
+            openTimetableModal(new Date());
+        });
+
+        // Print button click
+        $('#print_timetable').click(function() {
+            window.print();
+        });
+        
+        // Edit event button click
+        $('#editEvent').click(function() {
+            if (currentEvent) {
+                $('#viewEventModal').modal('hide');
+                openTimetableModal(currentEvent.start, currentEvent);
             }
         });
+        
+        // Delete event button click
+        $('#deleteEvent').click(function() {
+            if (currentEvent && confirm('Are you sure you want to delete this timetable entry?')) {
+                // Show loading state
+                $(this).prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Deleting...');
+                
+                // Send delete request
+                $.ajax({
+                    url: '<?php echo base_url(); ?>admin/delete_timetable_slot_ajax',
+                    type: 'POST',
+                    data: { timetable_id: currentEvent.id },
+                    success: function(response) {
+                        try {
+                            var data = typeof response === 'string' ? JSON.parse(response) : response;
+                            
+                            if (data.status === 'success') {
+                                // Show success message
+                                toastr.success(data.message || 'Timetable deleted successfully');
+                                
+                                // Close modal and refresh calendar
+                                $('#viewEventModal').modal('hide');
+                                calendar.fullCalendar('refetchEvents');
+                            } else {
+                                // Show error message
+                                toastr.error(data.message || 'Failed to delete timetable');
+                            }
+                        } catch (e) {
+                            console.error('Error parsing response:', e);
+                            toastr.error('Error processing response: ' + e.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX error:', status, error);
+                        toastr.error('Server error: ' + error);
+                    },
+                    complete: function() {
+                        // Reset button
+                        $('#deleteEvent').prop('disabled', false).html('Delete');
+                    }
+                });
+            }
+        });
+
+        // Open timetable modal with date or event
+        function openTimetableModal(date, event = null) {
+            $('#timetableForm')[0].reset();
+            
+            // Set default start and end dates
+            if (event) {
+                $('#timetable_id').val(event.id);
+                $('#timetable_start_date').val(moment(event.start).format('YYYY-MM-DD'));
+                $('#timetable_end_date').val(moment(event.end || event.start).format('YYYY-MM-DD'));
+                $('#timetable_start_time').val(moment(event.start).format('HH:mm'));
+                $('#timetable_end_time').val(moment(event.end || moment(event.start).add(1, 'hour')).format('HH:mm'));
+                
+                // Set class_id and trigger change to load sections and subjects
+                $('#class_id').val(event.class_id).trigger('change');
+                
+                // Set teacher and wait for sections/subjects to load
+                setTimeout(function() {
+                    $('#section_id').val(event.section_id);
+                    $('#subject_id').val(event.subject_id);
+                    $('#teacher_id').val(event.teacher_id);
+                }, 500);
+            } else {
+                $('#timetable_id').val('');
+                $('#timetable_start_date').val(moment(date).format('YYYY-MM-DD'));
+                $('#timetable_end_date').val(moment(date).format('YYYY-MM-DD'));
+                var currentHour = moment().startOf('hour').add(1, 'hour');
+                $('#timetable_start_time').val(currentHour.format('HH:mm'));
+                $('#timetable_end_time').val(currentHour.add(1, 'hour').format('HH:mm'));
+            }
+            
+            $('#timetableModal').modal('show');
+        }
 
         // Class change handler in modal
         $('#class_id').change(function() {
@@ -606,11 +542,9 @@ $breadcrumb = array(
             }
         });
 
-        // Direct button click handler instead of form submit
+        // Save timetable button click
         $('#save_timetable').click(function(e) {
             e.preventDefault();
-            
-            console.log('Save timetable button clicked');
             
             // Get form data
             var formData = {
@@ -631,27 +565,25 @@ $breadcrumb = array(
             }
 
             // Validate form
-            var errors = [];
+            var isValid = true;
             Object.keys(formData).forEach(function(key) {
-                if (!formData[key]) {
-                    errors.push(key.replace('_', ' ').toUpperCase() + ' is required');
+                if (!formData[key] && key !== 'timetable_id') {
+                    toastr.error(key.replace('_', ' ').toUpperCase() + ' is required');
+                    isValid = false;
                 }
             });
 
-            if (errors.length > 0) {
-                errors.forEach(function(error) {
-                    toastr.error(error);
-                });
+            if (!isValid) {
                 return false;
             }
 
             // Show loading indicator
             $('#save_timetable').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
-
+            
             console.log('Submitting data to: ' + '<?php echo base_url("admin/save_timetable_ajax"); ?>');
             console.log('Form data:', formData);
             
-            // Submit form via direct AJAX
+            // Submit form via AJAX
             $.ajax({
                 url: '<?php echo base_url("admin/save_timetable_ajax"); ?>',
                 type: 'POST',
@@ -667,14 +599,9 @@ $breadcrumb = array(
                             // Show success message
                             toastr.success(data.message || 'Timetable saved successfully');
                             
-                            // Close modal and reset form
+                            // Close modal and refresh calendar
                             $('#timetableModal').modal('hide');
-                            $('#timetableForm')[0].reset();
-                            
-                            // Refresh calendar
-                            if (typeof calendar !== 'undefined') {
-                                calendar.fullCalendar('refetchEvents');
-                            }
+                            calendar.fullCalendar('refetchEvents');
                         } else {
                             // Show error message
                             toastr.error(data.message || 'Failed to save timetable');
@@ -694,86 +621,6 @@ $breadcrumb = array(
                     $('#save_timetable').prop('disabled', false).html('Save');
                 }
             });
-        });
-
-        function openTimetableModal(date, event = null) {
-            $('#timetableForm')[0].reset();
-            
-            // Set default start and end dates
-            if (event) {
-                $('#timetable_start_date').val(moment(event.start).format('YYYY-MM-DD'));
-                $('#timetable_end_date').val(moment(event.end || event.start).format('YYYY-MM-DD'));
-                $('#class_id').val(event.class_id).trigger('change');
-                setTimeout(function() {
-                    $('#section_id').val(event.section_id);
-                    $('#subject_id').val(event.subject_id);
-                }, 500);
-                $('#teacher_id').val(event.teacher_id);
-                $('#timetable_start_time').val(moment(event.start).format('HH:mm'));
-                $('#timetable_end_time').val(moment(event.end || moment(event.start).add(1, 'hour')).format('HH:mm'));
-                $('#timetable_id').val(event.id);
-            } else {
-                $('#timetable_start_date').val(moment(date).format('YYYY-MM-DD'));
-                $('#timetable_end_date').val(moment(date).format('YYYY-MM-DD'));
-                $('#timetable_id').val('');
-            }
-            
-            $('#timetableModal').modal('show');
-        }
-
-        // Initialize fullCalendar
-        var calendar = $('#calendar').fullCalendar({
-            header: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'month,agendaWeek,agendaDay'
-            },
-            events: {
-                url: '<?php echo base_url();?>admin/get_timetable_data_ajax',
-                type: 'POST',
-                data: function() {
-                    return {
-                        class_id: $('#filter_class_id').val()
-                    };
-                }
-            },
-            selectable: true,
-            select: function(start, end) {
-                openTimetableModal(start);
-            },
-            eventClick: function(event) {
-                openTimetableModal(event.start, event);
-            }
-        });
-
-        // Filter class change handler
-        $('#filter_class_id').change(function() {
-            calendar.fullCalendar('refetchEvents');
-        });
-
-        // Print button click
-        $('#print_timetable').click(function() {
-            window.print();
-        });
-
-        // Class change handler in modal
-        $('#class_id').change(function() {
-            var class_id = $(this).val();
-            if(class_id) {
-                $.ajax({
-                    url: '<?php echo base_url();?>admin/get_sections_by_class/' + class_id,
-                    success: function(response) {
-                        $('#section_id').html(response);
-                    }
-                });
-                
-                $.ajax({
-                    url: '<?php echo base_url();?>admin/get_subjects_by_class/' + class_id,
-                    success: function(response) {
-                        $('#subject_id').html(response);
-                    }
-                });
-            }
         });
     });
     </script> 

@@ -114,6 +114,13 @@
                 </a>
         </li>
 
+        <li class="<?php if ($page_name == 'teacher_timetable') echo 'active'; ?>">
+                <a href="<?php echo base_url(); ?>admin/teacher_timetable">
+                <i class="fa fa-angle-double-right p-r-10"></i>
+                     <span class="hide-menu"><?php echo get_phrase('teacher_timetable'); ?></span>
+                </a>
+        </li>
+
         <li class="<?php if ($page_name == 'teacher_diaries' || $page_name == 'view_teacher_diary') echo 'active'; ?>">
                 <a href="<?php echo base_url(); ?>admin/teacher_diaries">
                 <i class="fa fa-angle-double-right p-r-10"></i>

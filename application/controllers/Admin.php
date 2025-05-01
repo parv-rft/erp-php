@@ -2213,45 +2213,98 @@ class Admin extends CI_Controller {
     
     // Get timetable data for calendar view
     public function get_timetable_data_ajax() {
-        if (!$this->session->userdata('admin_login')) {
+        if (!$this->session->userdata('admin_login') && !$this->session->userdata('teacher_login')) {
             echo json_encode(['error' => 'Access denied']);
             return;
         }
 
-        $class_id = $this->input->post('class_id');
-        
-        $this->db->select('t.*, c.name as class_name, s.name as section_name, 
-                          sub.name as subject_name, tea.name as teacher_name');
-        $this->db->from('timetable t');
-        $this->db->join('class c', 'c.class_id = t.class_id');
-        $this->db->join('section s', 's.section_id = t.section_id');
-        $this->db->join('subject sub', 'sub.subject_id = t.subject_id');
-        $this->db->join('teacher tea', 'tea.teacher_id = t.teacher_id');
-        
-        if ($class_id) {
-            $this->db->where('t.class_id', $class_id);
+        try {
+            $class_id = $this->input->post('class_id');
+            $teacher_id = $this->session->userdata('teacher_login') == 1 ? $this->session->userdata('teacher_id') : $this->input->post('teacher_id');
+            
+            // Log input parameters
+            error_log("get_timetable_data_ajax called with: class_id=$class_id, teacher_id=$teacher_id");
+            
+            // First check if timetable table exists
+            if (!$this->db->table_exists('timetable')) {
+                error_log("Timetable table does not exist");
+                echo json_encode([]);
+                return;
+            }
+            
+            // Use a direct query to get timetable data including names from related tables
+            $this->db->select('t.timetable_id, t.class_id, t.section_id, t.subject_id, t.teacher_id, 
+                               t.start_date, t.end_date, t.start_time, t.end_time, 
+                               c.name as class_name, s.name as section_name, 
+                               sub.name as subject_name, tea.name as teacher_name');
+            $this->db->from('timetable t');
+            $this->db->join('class c', 'c.class_id = t.class_id');
+            $this->db->join('section s', 's.section_id = t.section_id');
+            $this->db->join('subject sub', 'sub.subject_id = t.subject_id');
+            $this->db->join('teacher tea', 'tea.teacher_id = t.teacher_id');
+            
+            // Add filters
+            if ($class_id) {
+                $this->db->where('t.class_id', $class_id);
+            }
+            
+            if ($teacher_id) {
+                $this->db->where('t.teacher_id', $teacher_id);
+            }
+            
+            $query = $this->db->get();
+            
+            // Log the query
+            error_log("Timetable query: " . $this->db->last_query());
+            
+            if (!$query) {
+                error_log("Query failed: " . $this->db->error()['message']);
+                echo json_encode([]);
+                return;
+            }
+            
+            $events = $query->result_array();
+            
+            // Log results count
+            error_log("Timetable results: " . count($events) . " entries found");
+            
+            if (count($events) === 0) {
+                // Check if we have any records in the timetable table
+                $total_count = $this->db->count_all('timetable');
+                error_log("Total records in timetable table: $total_count");
+            } else {
+                // Log the first result for debugging
+                error_log("First result: " . json_encode($events[0]));
+            }
+            
+            // Format events for FullCalendar
+            $calendar_events = array_map(function($event) {
+                return [
+                    'id' => $event['timetable_id'],
+                    'title' => $event['subject_name'] . ' (' . $event['teacher_name'] . ')',
+                    'start' => $event['start_date'] . 'T' . $event['start_time'],
+                    'end' => $event['end_date'] . 'T' . $event['end_time'],
+                    'className' => 'bg-info',
+                    'description' => sprintf(
+                        'Class: %s<br>Section: %s<br>Subject: %s<br>Teacher: %s',
+                        $event['class_name'],
+                        $event['section_name'],
+                        $event['subject_name'],
+                        $event['teacher_name']
+                    ),
+                    // Add these fields for edit mode
+                    'class_id' => $event['class_id'],
+                    'section_id' => $event['section_id'],
+                    'subject_id' => $event['subject_id'],
+                    'teacher_id' => $event['teacher_id']
+                ];
+            }, $events);
+            
+            echo json_encode($calendar_events);
+        } catch (Exception $e) {
+            error_log("Exception in get_timetable_data_ajax: " . $e->getMessage());
+            echo json_encode([]);
         }
-        
-        $events = $this->db->get()->result_array();
-        
-        $calendar_events = array_map(function($event) {
-            return [
-                'id' => $event['timetable_id'],
-                'title' => $event['subject_name'] . ' (' . $event['teacher_name'] . ')',
-                'start' => $event['start_date'] . 'T' . $event['start_time'],
-                'end' => $event['end_date'] . 'T' . $event['end_time'],
-                'className' => 'bg-info',
-                'description' => sprintf(
-                    'Class: %s<br>Section: %s<br>Subject: %s<br>Teacher: %s',
-                    $event['class_name'],
-                    $event['section_name'],
-                    $event['subject_name'],
-                    $event['teacher_name']
-                )
-            ];
-        }, $events);
-        
-        echo json_encode($calendar_events);
     }
     
     // Save timetable slot
@@ -2314,13 +2367,36 @@ class Admin extends CI_Controller {
     
     // Delete timetable slot
     public function delete_timetable_slot_ajax() {
-        $timetable_id = $this->input->post('timetable_id');
+        // Check login status
+        if (!$this->session->userdata('admin_login')) {
+            echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+            return;
+        }
         
-        $this->db->where('id', $timetable_id);
-        $this->db->delete('calendar_timetable');
-        
-        $response = array('status' => 'success', 'message' => 'Timetable slot deleted successfully');
-        echo json_encode($response);
+        try {
+            $timetable_id = $this->input->post('timetable_id');
+            
+            if (empty($timetable_id)) {
+                echo json_encode(['status' => 'error', 'message' => 'Timetable ID is required']);
+                return;
+            }
+            
+            // Log the delete operation
+            error_log("Deleting timetable ID: $timetable_id");
+            
+            // Delete from timetable table - note that we use timetable_id not id
+            $this->db->where('timetable_id', $timetable_id);
+            $deleted = $this->db->delete('timetable');
+            
+            if ($deleted) {
+                echo json_encode(['status' => 'success', 'message' => 'Timetable entry deleted successfully']);
+            } else {
+                echo json_encode(['status' => 'error', 'message' => 'Failed to delete timetable entry']);
+            }
+        } catch (Exception $e) {
+            error_log("Error deleting timetable: " . $e->getMessage());
+            echo json_encode(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()]);
+        }
     }
 
     // Get sections by class for AJAX request
@@ -2440,6 +2516,24 @@ class Admin extends CI_Controller {
                 'message' => 'An error occurred: ' . $e->getMessage()
             ]);
         }
+    }
+
+    // View teacher timetable
+    public function teacher_timetable($teacher_id = '') {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        $page_data['page_name'] = 'teacher_timetable';
+        $page_data['page_title'] = get_phrase('teacher_timetable');
+        $page_data['teacher_id'] = $teacher_id;
+        
+        // Get teacher details
+        if (!empty($teacher_id)) {
+            $page_data['teacher'] = $this->db->get_where('teacher', ['teacher_id' => $teacher_id])->row_array();
+        }
+        
+        $this->load->view('backend/index', $page_data);
     }
 
 }
