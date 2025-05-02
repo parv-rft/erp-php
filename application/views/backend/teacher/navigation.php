@@ -151,6 +151,13 @@
                 </a>
             </li>
 
+            <li class="<?php if ($page_name == 'my_timetable') echo 'active'; ?>">
+                <a href="<?php echo base_url(); ?>teacher/my_timetable">
+                    <i class="fa fa-calendar"></i>
+                    <span><?php echo get_phrase('my_schedule'); ?></span>
+                </a>
+            </li>
+
             <li class="">
                 <a href="<?php echo base_url(); ?>login/logout">
                     <i class="fa fa-sign-out p-r-10"></i>

@@ -729,4 +729,53 @@ class Teacher extends CI_Controller {
         echo json_encode($sections);
     }
 
+    public function my_timetable() {
+        if ($this->session->userdata('teacher_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        $page_data['page_name'] = 'my_timetable';
+        $page_data['page_title'] = get_phrase('my_teaching_schedule');
+        $page_data['classes'] = $this->db->get('class')->result_array();
+        
+        $this->load->view('backend/index', $page_data);
+    }
+
+    public function get_my_timetable_data() {
+        if ($this->session->userdata('teacher_login') != 1) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Access denied']));
+            return;
+        }
+
+        try {
+            $teacher_id = $this->session->userdata('teacher_id');
+            
+            // Get all timetable entries for this teacher
+            $this->db->select('t.*, c.name as class_name, s.name as section_name, sub.name as subject_name');
+            $this->db->from('calendar_timetable t');
+            $this->db->join('class c', 'c.class_id = t.class_id');
+            $this->db->join('section s', 's.section_id = t.section_id');
+            $this->db->join('subject sub', 'sub.subject_id = t.subject_id');
+            $this->db->where('t.teacher_id', $teacher_id);
+            $this->db->order_by('t.time_slot_start', 'ASC');
+            
+            $query = $this->db->get();
+            
+            if ($query->num_rows() > 0) {
+                $this->output->set_content_type('application/json')
+                    ->set_output(json_encode($query->result_array()));
+            } else {
+                $this->output->set_content_type('application/json')
+                    ->set_output(json_encode([]));
+            }
+        } catch (Exception $e) {
+            $this->output->set_content_type('application/json')
+                ->set_output(json_encode([
+                    'status' => 'error',
+                    'message' => 'Failed to load timetable data: ' . $e->getMessage()
+                ]));
+        }
+    }
+
 }

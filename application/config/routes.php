@@ -85,6 +85,10 @@ $route['admin/delete_calendar_timetable_entry'] = 'admin/delete_calendar_timetab
 $route['teacher/calendar_timetable'] = 'teacher/calendar_timetable';
 $route['teacher/get_calendar_timetable_data'] = 'teacher/get_calendar_timetable_data';
 
+// Teacher routes
+$route['teacher/my_timetable'] = 'teacher/my_timetable';
+$route['teacher/get_my_timetable_data'] = 'teacher/get_my_timetable_data';
+
 // Common routes for both
 $route['get_sections/(:num)'] = 'admin/get_sections/$1';
 $route['get_subjects/(:num)'] = 'admin/get_subjects/$1';
