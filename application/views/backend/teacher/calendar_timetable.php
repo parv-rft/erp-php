@@ -18,7 +18,7 @@ $teacher_id = $this->session->userdata('teacher_id');
                         <div class="form-group">
                             <div class="col-sm-4">
                                 <select name="class_id" id="class_id" class="form-control select2">
-                                    <option value=""><?php echo get_phrase('all_classes'); ?></option>
+                            <option value=""><?php echo get_phrase('all_classes'); ?></option>
                                     <?php foreach($classes as $class): ?>
                                         <option value="<?php echo $class['class_id']; ?>"><?php echo $class['name']; ?></option>
                                     <?php endforeach; ?>
@@ -27,15 +27,15 @@ $teacher_id = $this->session->userdata('teacher_id');
                             <div class="col-sm-4">
                                 <select name="section_id" id="section_id" class="form-control select2">
                                     <option value=""><?php echo get_phrase('all_sections'); ?></option>
-                                </select>
-                            </div>
+                        </select>
+                    </div>
                             <div class="col-sm-4">
                                 <button class="btn btn-info" onclick="loadTimetable()">
                                     <i class="fa fa-search"></i> <?php echo get_phrase('load_timetable'); ?>
                                 </button>
                                 <button class="btn btn-success" onclick="window.print()">
-                                    <i class="fa fa-print"></i> <?php echo get_phrase('print'); ?>
-                                </button>
+                            <i class="fa fa-print"></i> <?php echo get_phrase('print'); ?>
+                        </button>
                             </div>
                         </div>
                     </div>
@@ -186,7 +186,7 @@ $(document).ready(function() {
         "showMethod": "fadeIn",
         "hideMethod": "fadeOut"
     };
-    
+
     // Load initial timetable
     loadTimetable();
 });
@@ -210,7 +210,7 @@ $('#class_id').change(function() {
         });
     } else {
         $('#section_id').html('<option value=""><?php echo get_phrase('all_sections'); ?></option>');
-    }
+            }
 });
 
 // Section change event
@@ -247,7 +247,7 @@ function loadTimetable() {
             console.error('Error loading timetable:', error);
             toastr.error('Failed to load timetable');
             $('#timetable-body').html('<tr><td colspan="8" class="text-center text-danger"><?php echo get_phrase('error_loading_timetable'); ?></td></tr>');
-        }
+            }
     });
 }
 

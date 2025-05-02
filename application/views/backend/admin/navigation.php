@@ -100,26 +100,14 @@
                 </a>
         </li>
 
-        <li class="<?php if ($page_name == 'timetable' || $page_name == 'timetable_view') echo 'active'; ?>">
-                <a href="<?php echo base_url(); ?>admin/timetable">
-                <i class="fa fa-angle-double-right p-r-10"></i>
-                     <span class="hide-menu"><?php echo get_phrase('class_timetable'); ?></span>
-                </a>
-        </li>
-
-        <li class="<?php if ($page_name == 'calendar_timetable') echo 'active'; ?>">
+        <li class="<?php if ($page_name == 'class_timetable') echo 'active'; ?>">
                 <a href="<?php echo base_url(); ?>admin/calendar_timetable">
                 <i class="fa fa-angle-double-right p-r-10"></i>
                      <span class="hide-menu"><?php echo get_phrase('calendar_timetable'); ?></span>
                 </a>
         </li>
 
-        <li class="<?php if ($page_name == 'teacher_timetable') echo 'active'; ?>">
-                <a href="<?php echo base_url(); ?>admin/teacher_timetable">
-                <i class="fa fa-angle-double-right p-r-10"></i>
-                     <span class="hide-menu"><?php echo get_phrase('teacher_timetable'); ?></span>
-                </a>
-        </li>
+
 
         <li class="<?php if ($page_name == 'teacher_diaries' || $page_name == 'view_teacher_diary') echo 'active'; ?>">
                 <a href="<?php echo base_url(); ?>admin/teacher_diaries">

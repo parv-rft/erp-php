@@ -170,7 +170,7 @@ class Calendar_timetable_model extends CI_Model {
                     'status' => 'success',
                     'message' => 'No changes were made to the timetable entry.'
                 ];
-            }
+        }
         } catch (Exception $e) {
             log_message('error', 'Error in update_timetable_entry: ' . $e->getMessage());
             return [
@@ -190,8 +190,8 @@ class Calendar_timetable_model extends CI_Model {
                     'status' => 'error',
                     'message' => 'The entry does not exist'
                 ];
-            }
-            
+        }
+        
             // Verify the entry exists
             $exists = $this->db->get_where('calendar_timetable', array('id' => $id))->num_rows() > 0;
             if (!$exists) {

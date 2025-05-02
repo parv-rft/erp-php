@@ -330,17 +330,17 @@ $breadcrumb = array(
                                     <option value="friday">Friday</option>
                                     <option value="saturday">Saturday</option>
                                     <option value="sunday">Sunday</option>
-                                </select>
-                            </div>
+                            </select>
                         </div>
-                        
+                        </div>
+
                         <div class="form-group">
                             <label class="col-sm-3 control-label"><?php echo get_phrase('start_time'); ?></label>
                             <div class="col-sm-9">
                                 <input type="time" name="start_time" id="start_time" class="form-control" required>
-                            </div>
                         </div>
-                        
+                        </div>
+
                         <div class="form-group">
                             <label class="col-sm-3 control-label"><?php echo get_phrase('end_time'); ?></label>
                             <div class="col-sm-9">
@@ -348,16 +348,16 @@ $breadcrumb = array(
                             </div>
                         </div>
                         
-                        <div class="form-group">
+                                <div class="form-group">
                             <label class="col-sm-3 control-label"><?php echo get_phrase('subject'); ?></label>
                             <div class="col-sm-9">
                                 <select name="subject_id" id="subject_id" class="form-control" required>
                                     <option value=""><?php echo get_phrase('select_subject'); ?></option>
-                                </select>
+                                    </select>
                             </div>
                         </div>
-                        
-                        <div class="form-group">
+
+                                <div class="form-group">
                             <label class="col-sm-3 control-label"><?php echo get_phrase('teacher'); ?></label>
                             <div class="col-sm-9">
                                 <select name="teacher_id" id="teacher_id" class="form-control" required>
@@ -365,11 +365,11 @@ $breadcrumb = array(
                                     <?php foreach($teachers as $teacher): ?>
                                     <option value="<?php echo $teacher['teacher_id']; ?>"><?php echo $teacher['name']; ?></option>
                                     <?php endforeach; ?>
-                                </select>
+                                    </select>
                             </div>
                         </div>
-                        
-                        <div class="form-group">
+
+                                <div class="form-group">
                             <label class="col-sm-3 control-label"><?php echo get_phrase('room_number'); ?></label>
                             <div class="col-sm-9">
                                 <input type="text" name="room_number" id="room_number" class="form-control">
@@ -723,26 +723,26 @@ $breadcrumb = array(
             return;
         }
         
-        $.ajax({
+                $.ajax({
             url: '<?php echo base_url(); ?>admin/save_calendar_timetable_entry',
-            type: 'POST',
+                    type: 'POST',
             data: formData,
             dataType: 'json',
             beforeSend: function() {
                 $('.modal-footer .btn-primary').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> <?php echo get_phrase('saving'); ?>...');
             },
-            success: function(response) {
+                    success: function(response) {
                 $('.modal-footer .btn-primary').prop('disabled', false).html('<?php echo get_phrase('save'); ?>');
                 
                 if (response.status === 'success') {
                     toastr.success(response.message);
                     $('#timetable-modal').modal('hide');
                     loadTimetable();
-                } else {
+                            } else {
                     toastr.error(response.message);
-                }
-            },
-            error: function(xhr, status, error) {
+                        }
+                    },
+                    error: function(xhr, status, error) {
                 console.error('Error saving timetable:', error);
                 toastr.error('<?php echo get_phrase('error_saving_timetable'); ?>');
                 $('.modal-footer .btn-primary').prop('disabled', false).html('<?php echo get_phrase('save'); ?>');
@@ -815,27 +815,27 @@ $breadcrumb = array(
             return;
         }
         
-        $.ajax({
+            $.ajax({
             url: '<?php echo base_url(); ?>admin/delete_calendar_timetable_entry',
-            type: 'POST',
+                type: 'POST',
             data: { id: deleteEntryId },
             dataType: 'json',
             beforeSend: function() {
                 $('#confirmDelete').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Deleting...');
             },
-            success: function(response) {
+                success: function(response) {
                 $('#deleteModal').modal('hide');
                 $('#confirmDelete').prop('disabled', false).html('Delete');
                 
                 if (response.status === 'success') {
                     toastr.success(response.message);
                     loadTimetable();
-                } else {
+                        } else {
                     toastr.error(response.message || 'Failed to delete entry');
-                }
+                        }
                 deleteEntryId = null;
-            },
-            error: function(xhr, status, error) {
+                },
+                error: function(xhr, status, error) {
                 $('#deleteModal').modal('hide');
                 $('#confirmDelete').prop('disabled', false).html('Delete');
                 console.error('Error deleting entry:', error);

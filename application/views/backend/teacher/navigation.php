@@ -143,19 +143,6 @@
                 </a>
             </li>
 
-            <li class="<?php if ($page_name == 'class_timetable') echo 'active'; ?>">
-                <a href="<?php echo base_url(); ?>teacher/timetable">
-                    <i class="fa fa-calendar"></i>
-                    <span><?php echo get_phrase('class_timetable'); ?></span>
-                </a>
-            </li>
-
-            <li class="<?php if ($page_name == 'calendar_timetable') echo 'active'; ?>">
-                <a href="<?php echo base_url(); ?>teacher/calendar_timetable">
-                    <i class="fa fa-calendar-o"></i>
-                    <span><?php echo get_phrase('calendar_timetable'); ?></span>
-                </a>
-            </li>
 
             <li class="<?php if($page_name == 'my_diaries' || $page_name == 'view_diary' || $page_name == 'edit_diary') echo 'active'; ?>">
                 <a href="<?php echo base_url(); ?>teacher/my_diaries">
