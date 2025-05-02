@@ -625,98 +625,108 @@ class Teacher extends CI_Controller {
         }
     }
 
-    // Calendar Timetable
-    public function calendar_timetable() {
+    // Calendar Timetable View for Teachers
+    public function calendar_timetable($param1 = '', $param2 = '', $param3 = '') {
         if ($this->session->userdata('teacher_login') != 1) {
             redirect(base_url(), 'refresh');
         }
         
         $page_data['page_name'] = 'calendar_timetable';
-        $page_data['page_title'] = get_phrase('calendar_timetable');
+        $page_data['page_title'] = get_phrase('my_timetable');
+        
+        // Get current month and year if not specified
+        $page_data['current_month'] = date('n');
+        $page_data['current_year'] = date('Y');
+        
+        // Get classes and subjects for dropdowns
+        $page_data['classes'] = $this->db->get('class')->result_array();
+        $page_data['teacher_id'] = $this->session->userdata('teacher_id');
+        
         $this->load->view('backend/index', $page_data);
     }
     
-    // Get teacher's timetable data for calendar
+    // AJAX endpoint for getting teacher timetable data
     public function get_teacher_timetable_data() {
         if ($this->session->userdata('teacher_login') != 1) {
-            echo json_encode(['error' => 'Access denied']);
+            echo json_encode(['status' => 'error', 'message' => 'Access denied']);
             return;
         }
         
         try {
             $teacher_id = $this->session->userdata('teacher_id');
-            $class_id = $this->input->post('class_id');
-            $year = $this->input->post('year');
             $month = $this->input->post('month');
+            $year = $this->input->post('year');
+            $class_id = $this->input->post('class_id');
+            $section_id = $this->input->post('section_id');
             
-            // Log input parameters for debugging
-            error_log("Teacher timetable request: teacher_id=$teacher_id, class_id=$class_id, year=$year, month=$month");
-            
-            // Get the teacher's timetable from the timetable table
-            $this->db->select('t.timetable_id, t.class_id, t.section_id, t.subject_id, 
-                             t.start_date, t.end_date, t.start_time, t.end_time, 
-                             c.name as class_name, s.name as section_name, 
-                             sub.name as subject_name');
-            $this->db->from('timetable t');
-            $this->db->join('class c', 'c.class_id = t.class_id');
-            $this->db->join('section s', 's.section_id = t.section_id');
-            $this->db->join('subject sub', 'sub.subject_id = t.subject_id');
-            $this->db->where('t.teacher_id', $teacher_id);
-            
-            // Filter by class if provided
-            if (!empty($class_id)) {
-                $this->db->where('t.class_id', $class_id);
-            }
-            
-            // Filter by year and month if provided
-            if (!empty($year) && !empty($month)) {
-                $this->db->where('YEAR(t.start_date) =', $year);
-                $this->db->where('MONTH(t.start_date) =', $month);
-            }
-            
-            $query = $this->db->get();
-            
-            // Log the query for debugging
-            error_log("Teacher timetable query: " . $this->db->last_query());
-            
-            if (!$query) {
-                error_log("Query failed: " . $this->db->error()['message']);
-                echo json_encode([]);
+            // Validate inputs
+            if (!is_numeric($month) || $month < 1 || $month > 12) {
+                echo json_encode(['status' => 'error', 'message' => 'Invalid month']);
                 return;
             }
             
-            $events = $query->result_array();
+            if (!is_numeric($year) || $year < 2000 || $year > 2100) {
+                echo json_encode(['status' => 'error', 'message' => 'Invalid year']);
+                return;
+            }
             
-            // Log results count
-            error_log("Teacher timetable results: " . count($events) . " entries found");
+            // Get timetable data from model
+            $this->load->model('calendar_timetable_model');
+            $timetable = $this->calendar_timetable_model->get_teacher_timetable($teacher_id, $month, $year);
             
-            // Format events for FullCalendar
-            $calendar_events = array_map(function($event) {
-                return [
-                    'id' => $event['timetable_id'],
-                    'title' => $event['subject_name'] . ' - ' . $event['class_name'] . '/' . $event['section_name'],
-                    'start' => $event['start_date'] . 'T' . $event['start_time'],
-                    'end' => $event['end_date'] . 'T' . $event['end_time'],
-                    'className' => 'bg-info',
-                    'description' => sprintf(
-                        'Class: %s<br>Section: %s<br>Subject: %s<br>Time: %s - %s',
-                        $event['class_name'],
-                        $event['section_name'],
-                        $event['subject_name'],
-                        date('h:i A', strtotime($event['start_time'])),
-                        date('h:i A', strtotime($event['end_time']))
-                    ),
-                    'class_id' => $event['class_id'],
-                    'section_id' => $event['section_id'],
-                    'subject_id' => $event['subject_id']
-                ];
-            }, $events);
+            // Filter by class and section if specified
+            if ($class_id) {
+                $timetable = array_filter($timetable, function($entry) use ($class_id) {
+                    return $entry['class_id'] == $class_id;
+                });
+                
+                if ($section_id) {
+                    $timetable = array_filter($timetable, function($entry) use ($section_id) {
+                        return $entry['section_id'] == $section_id;
+                    });
+                }
+            }
             
-            echo json_encode($calendar_events);
+            // Add subject and class/section names to each entry
+            foreach ($timetable as &$entry) {
+                if ($entry['subject_id']) {
+                    $subject = $this->db->get_where('subject', array('subject_id' => $entry['subject_id']))->row_array();
+                    $entry['subject_name'] = $subject ? $subject['name'] : 'Unknown Subject';
+                } else {
+                    $entry['subject_name'] = '';
+                }
+                
+                if ($entry['class_id']) {
+                    $class = $this->db->get_where('class', array('class_id' => $entry['class_id']))->row_array();
+                    $entry['class_name'] = $class ? $class['name'] : 'Unknown Class';
+                } else {
+                    $entry['class_name'] = '';
+                }
+                
+                if ($entry['section_id']) {
+                    $section = $this->db->get_where('section', array('section_id' => $entry['section_id']))->row_array();
+                    $entry['section_name'] = $section ? $section['name'] : 'Unknown Section';
+                } else {
+                    $entry['section_name'] = '';
+                }
+            }
+            
+            echo json_encode(array_values($timetable));
         } catch (Exception $e) {
-            error_log("Exception in get_teacher_timetable_data: " . $e->getMessage());
-            echo json_encode([]);
+            log_message('error', 'Error in get_teacher_timetable_data: ' . $e->getMessage());
+            echo json_encode(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()]);
         }
+    }
+    
+    // Get sections for a class (for AJAX)
+    public function get_sections_for_calendar($class_id) {
+        if ($this->session->userdata('teacher_login') != 1) {
+            echo '[]';
+            return;
+        }
+        
+        $sections = $this->db->get_where('section', array('class_id' => $class_id))->result_array();
+        echo json_encode($sections);
     }
 
 }

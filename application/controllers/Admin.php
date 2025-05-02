@@ -32,7 +32,8 @@ class Admin extends CI_Controller {
             'academic_model',
             'student_payment_model',
             'award_model',
-            'payroll_model'
+            'payroll_model',
+            'calendar_timetable_model'
         ));
         
         // Check admin login status
@@ -2201,12 +2202,142 @@ class Admin extends CI_Controller {
             redirect(base_url(), 'refresh');
         }
         
+        $this->load->model('calendar_timetable_model');
+        
+        if ($param1 == 'create') {
+            // Validate and sanitize inputs
+            $class_id = $this->input->post('class_id');
+            $section_id = $this->input->post('section_id');
+            $subject_id = $this->input->post('subject_id');
+            $teacher_id = $this->input->post('teacher_id');
+            $day_of_week = $this->input->post('day_of_week');
+            $time_slot_start = $this->input->post('time_slot_start');
+            $time_slot_end = $this->input->post('time_slot_end');
+            $month = $this->input->post('month');
+            $year = $this->input->post('year');
+            $room_number = $this->input->post('room_number');
+            $notes = $this->input->post('notes');
+            
+            $data = array(
+                'class_id' => $class_id,
+                'section_id' => $section_id,
+                'subject_id' => $subject_id,
+                'teacher_id' => $teacher_id,
+                'day_of_week' => $day_of_week,
+                'time_slot_start' => $time_slot_start,
+                'time_slot_end' => $time_slot_end,
+                'month' => $month,
+                'year' => $year,
+                'room_number' => $room_number,
+                'notes' => $notes
+            );
+            
+            $result = $this->calendar_timetable_model->add_timetable_entry($data);
+            
+            if ($result['status'] == 'success') {
+                $this->session->set_flashdata('flash_message', $result['message']);
+            } else {
+                $this->session->set_flashdata('error_message', $result['message']);
+            }
+            
+            redirect(base_url() . 'admin/calendar_timetable', 'refresh');
+        }
+        
+        if ($param1 == 'update') {
+            $id = $param2;
+            
+            // Validate and sanitize inputs
+            $class_id = $this->input->post('class_id');
+            $section_id = $this->input->post('section_id');
+            $subject_id = $this->input->post('subject_id');
+            $teacher_id = $this->input->post('teacher_id');
+            $day_of_week = $this->input->post('day_of_week');
+            $time_slot_start = $this->input->post('time_slot_start');
+            $time_slot_end = $this->input->post('time_slot_end');
+            $month = $this->input->post('month');
+            $year = $this->input->post('year');
+            $room_number = $this->input->post('room_number');
+            $notes = $this->input->post('notes');
+            
+            $data = array(
+                'class_id' => $class_id,
+                'section_id' => $section_id,
+                'subject_id' => $subject_id,
+                'teacher_id' => $teacher_id,
+                'day_of_week' => $day_of_week,
+                'time_slot_start' => $time_slot_start,
+                'time_slot_end' => $time_slot_end,
+                'month' => $month,
+                'year' => $year,
+                'room_number' => $room_number,
+                'notes' => $notes
+            );
+            
+            $result = $this->calendar_timetable_model->update_timetable_entry($id, $data);
+            
+            if ($result['status'] == 'success') {
+                $this->session->set_flashdata('flash_message', $result['message']);
+            } else {
+                $this->session->set_flashdata('error_message', $result['message']);
+            }
+            
+            redirect(base_url() . 'admin/calendar_timetable', 'refresh');
+        }
+        
+        if ($param1 == 'delete') {
+            $id = $param2;
+            
+            $result = $this->calendar_timetable_model->delete_timetable_entry($id);
+            
+            if ($result['status'] == 'success') {
+                $this->session->set_flashdata('flash_message', $result['message']);
+            } else {
+                $this->session->set_flashdata('error_message', $result['message']);
+            }
+            
+            redirect(base_url() . 'admin/calendar_timetable', 'refresh');
+        }
+        
+        if ($param1 == 'get_timetable') {
+            $month = $this->input->post('month');
+            $year = $this->input->post('year');
+            $class_id = $this->input->post('class_id');
+            $section_id = $this->input->post('section_id');
+            
+            $timetable = $this->calendar_timetable_model->get_month_timetable($month, $year, $class_id, $section_id);
+            
+            // Get subject and teacher names
+            foreach ($timetable as &$entry) {
+                if ($entry['subject_id']) {
+                    $subject = $this->db->get_where('subject', array('subject_id' => $entry['subject_id']))->row_array();
+                    $entry['subject_name'] = $subject ? $subject['name'] : '';
+                } else {
+                    $entry['subject_name'] = '';
+                }
+                
+                if ($entry['teacher_id']) {
+                    $teacher = $this->db->get_where('teacher', array('teacher_id' => $entry['teacher_id']))->row_array();
+                    $entry['teacher_name'] = $teacher ? $teacher['name'] : '';
+                } else {
+                    $entry['teacher_name'] = '';
+                }
+            }
+            
+            echo json_encode($timetable);
+            exit;
+        }
+        
         $page_data['page_name'] = 'calendar_timetable';
         $page_data['page_title'] = get_phrase('calendar_timetable');
         
-        // Get class and section if provided
-        $page_data['class_id'] = $param1 ? $param1 : '';
-        $page_data['section_id'] = $param2 ? $param2 : '';
+        // Get current month and year if not specified
+        $page_data['current_month'] = date('n');
+        $page_data['current_year'] = date('Y');
+        
+        // Get classes and subjects for dropdowns
+        $page_data['classes'] = $this->db->get('class')->result_array();
+        $page_data['subjects'] = $this->db->get('subject')->result_array();
+        $page_data['teachers'] = $this->db->get('teacher')->result_array();
         
         $this->load->view('backend/index', $page_data);
     }
@@ -2534,6 +2665,152 @@ class Admin extends CI_Controller {
         }
         
         $this->load->view('backend/index', $page_data);
+    }
+
+    // Inside Admin class, after the calendar_timetable method
+
+    // AJAX endpoint for getting timetable data
+    public function get_calendar_timetable_data() {
+        if ($this->session->userdata('admin_login') != 1) {
+            echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+            return;
+        }
+        
+        try {
+            $month = $this->input->post('month');
+            $year = $this->input->post('year');
+            $class_id = $this->input->post('class_id');
+            $section_id = $this->input->post('section_id');
+            $teacher_id = $this->input->post('teacher_id');
+            
+            // Validate inputs
+            if (!is_numeric($month) || $month < 1 || $month > 12) {
+                echo json_encode(['status' => 'error', 'message' => 'Invalid month']);
+                return;
+            }
+            
+            if (!is_numeric($year) || $year < 2000 || $year > 2100) {
+                echo json_encode(['status' => 'error', 'message' => 'Invalid year']);
+                return;
+            }
+            
+            // Get timetable data from model
+            $timetable = $this->calendar_timetable_model->get_month_timetable($month, $year, $class_id, $section_id);
+            
+            // Filter by teacher if needed
+            if ($teacher_id) {
+                $timetable = array_filter($timetable, function($entry) use ($teacher_id) {
+                    return $entry['teacher_id'] == $teacher_id;
+                });
+            }
+            
+            // Add subject and teacher names to each entry
+            foreach ($timetable as &$entry) {
+                if ($entry['subject_id']) {
+                    $subject = $this->db->get_where('subject', array('subject_id' => $entry['subject_id']))->row_array();
+                    $entry['subject_name'] = $subject ? $subject['name'] : 'Unknown Subject';
+                } else {
+                    $entry['subject_name'] = '';
+                }
+                
+                if ($entry['teacher_id']) {
+                    $teacher = $this->db->get_where('teacher', array('teacher_id' => $entry['teacher_id']))->row_array();
+                    $entry['teacher_name'] = $teacher ? $teacher['name'] : 'Unknown Teacher';
+                } else {
+                    $entry['teacher_name'] = '';
+                }
+                
+                if ($entry['class_id']) {
+                    $class = $this->db->get_where('class', array('class_id' => $entry['class_id']))->row_array();
+                    $entry['class_name'] = $class ? $class['name'] : 'Unknown Class';
+                } else {
+                    $entry['class_name'] = '';
+                }
+                
+                if ($entry['section_id']) {
+                    $section = $this->db->get_where('section', array('section_id' => $entry['section_id']))->row_array();
+                    $entry['section_name'] = $section ? $section['name'] : 'Unknown Section';
+                } else {
+                    $entry['section_name'] = '';
+                }
+            }
+            
+            echo json_encode(array_values($timetable));
+        } catch (Exception $e) {
+            log_message('error', 'Error in get_calendar_timetable_data: ' . $e->getMessage());
+            echo json_encode(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()]);
+        }
+    }
+
+    // AJAX endpoint for saving a calendar timetable entry
+    public function save_calendar_timetable_entry() {
+        if ($this->session->userdata('admin_login') != 1) {
+            echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+            return;
+        }
+        
+        try {
+            // Get POST data
+            $data = array(
+                'class_id' => $this->input->post('class_id'),
+                'section_id' => $this->input->post('section_id'),
+                'subject_id' => $this->input->post('subject_id'),
+                'teacher_id' => $this->input->post('teacher_id'),
+                'day_of_week' => $this->input->post('day_of_week'),
+                'time_slot_start' => $this->input->post('time_slot_start'),
+                'time_slot_end' => $this->input->post('time_slot_end'),
+                'month' => $this->input->post('month'),
+                'year' => $this->input->post('year'),
+                'room_number' => $this->input->post('room_number'),
+                'notes' => $this->input->post('notes')
+            );
+            
+            // Validate required fields
+            $required_fields = ['class_id', 'section_id', 'subject_id', 'day_of_week', 'time_slot_start', 'time_slot_end', 'month', 'year'];
+            foreach ($required_fields as $field) {
+                if (empty($data[$field])) {
+                    echo json_encode(['status' => 'error', 'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required']);
+                    return;
+                }
+            }
+            
+            $id = $this->input->post('id');
+            if ($id) {
+                // Update existing entry
+                $result = $this->calendar_timetable_model->update_timetable_entry($id, $data);
+            } else {
+                // Add new entry
+                $result = $this->calendar_timetable_model->add_timetable_entry($data);
+            }
+            
+            echo json_encode($result);
+        } catch (Exception $e) {
+            log_message('error', 'Error in save_calendar_timetable_entry: ' . $e->getMessage());
+            echo json_encode(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()]);
+        }
+    }
+
+    // AJAX endpoint for deleting a calendar timetable entry
+    public function delete_calendar_timetable_entry() {
+        if ($this->session->userdata('admin_login') != 1) {
+            echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+            return;
+        }
+        
+        try {
+            $id = $this->input->post('id');
+            
+            if (!$id) {
+                echo json_encode(['status' => 'error', 'message' => 'ID is required']);
+                return;
+            }
+            
+            $result = $this->calendar_timetable_model->delete_timetable_entry($id);
+            echo json_encode($result);
+        } catch (Exception $e) {
+            log_message('error', 'Error in delete_calendar_timetable_entry: ' . $e->getMessage());
+            echo json_encode(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()]);
+        }
     }
 
 }
