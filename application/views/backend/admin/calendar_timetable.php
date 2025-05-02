@@ -52,30 +52,44 @@ $breadcrumb = array(
             width: 100%;
         }
         
+        .timetable-table thead th {
+            background: #337ab7;
+            color: #fff !important;
+            font-weight: 600;
+            text-align: center;
+            padding: 12px 8px;
+            border: 1px solid #2e6da4;
+        }
+        
         .time-col { 
             width: 120px;
-            background: #f8f9fa;
+            background: #f8f9fa !important;
+            color: #333 !important;
+            font-weight: bold;
         }
         
         .timetable-cell { 
             height: 100px;
-            padding: 5px !important;
+            padding: 5px !important;~
             vertical-align: top;
             position: relative;
+            background: #fff;
         }
         
         .time-display { 
             text-align: center;
             font-weight: bold;
             padding: 5px;
+            color: #333;
         }
         
-        .editable-cell, .view-cell { 
+        .editable-cell { 
             height: 100%;
             padding: 10px;
             background: #f5f5f5;
             border-radius: 4px;
             transition: all 0.3s ease;
+            position: relative;
         }
         
         .editable-cell:hover {
@@ -98,17 +112,19 @@ $breadcrumb = array(
         .room-number { 
             color: #999;
             font-size: 12px;
+            margin-bottom: 20px; /* Make space for action buttons */
         }
         
         .actions {
             position: absolute;
             bottom: 5px;
             right: 5px;
-            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
         
         .editable-cell:hover .actions {
-            display: block;
+            opacity: 1;
         }
         
         .empty-cell { 
@@ -141,6 +157,93 @@ $breadcrumb = array(
             line-height: 1.5;
             border-radius: 3px;
             margin-left: 3px;
+        }
+        
+        /* Improved Modal Styles */
+        .modal-confirm {
+            color: #636363;
+        }
+        
+        .modal-confirm .modal-content {
+            padding: 20px;
+            border-radius: 5px;
+            border: none;
+            text-align: center;
+        }
+        
+        .modal-confirm .modal-header {
+            border-bottom: none;   
+            position: relative;
+            text-align: center;
+            margin: -20px -20px 0;
+            border-radius: 5px 5px 0 0;
+            padding: 35px;
+        }
+        
+        .modal-confirm h4 {
+            text-align: center;
+            font-size: 26px;
+            margin: 30px 0 -15px;
+        }
+        
+        .modal-confirm .modal-body {
+            color: #999;
+        }
+        
+        .modal-confirm .modal-footer {
+            border: none;
+            text-align: center;
+            border-radius: 5px;
+            font-size: 13px;
+            padding: 10px 15px 25px;
+        }
+        
+        .modal-confirm .icon-box {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+            border-radius: 50%;
+            z-index: 9;
+            text-align: center;
+            border: 3px solid #f15e5e;
+        }
+        
+        .modal-confirm .icon-box i {
+            color: #f15e5e;
+            font-size: 46px;
+            display: inline-block;
+            margin-top: 13px;
+        }
+        
+        .modal-confirm .btn-danger {
+            background: #f15e5e;
+            border-color: #f15e5e;
+        }
+        
+        .modal-confirm .btn-danger:hover, 
+        .modal-confirm .btn-danger:focus {
+            background: #ee3535;
+            border-color: #ee3535;
+        }
+        
+        /* Center the modal */
+        .modal {
+            text-align: center;
+            padding: 0!important;
+        }
+        
+        .modal:before {
+            content: '';
+            display: inline-block;
+            height: 100%;
+            vertical-align: middle;
+            margin-right: -4px;
+        }
+        
+        .modal-dialog {
+            display: inline-block;
+            text-align: left;
+            vertical-align: middle;
         }
     </style>
 </head>
@@ -277,6 +380,27 @@ $breadcrumb = array(
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal"><?php echo get_phrase('close'); ?></button>
                     <button type="button" class="btn btn-primary" onclick="saveTimetable()"><?php echo get_phrase('save'); ?></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add delete confirmation modal -->
+    <div id="deleteModal" class="modal fade modal-confirm">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header flex-column">
+                    <div class="icon-box">
+                        <i class="fa fa-times"></i>
+                    </div>
+                    <h4 class="modal-title w-100">Are you sure?</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Do you really want to delete this timetable entry? This process cannot be undone.</p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
                 </div>
             </div>
         </div>
@@ -627,52 +751,99 @@ $breadcrumb = array(
     }
 
     function editEntry(id) {
-        const entry = timetableData.find(e => e.id === id);
+        if (!timetableData || !timetableData.length) {
+            toastr.error('No timetable data available');
+            return;
+        }
+
+        const entry = timetableData.find(e => e.id == id);
         if (!entry) {
-            toastr.error('<?php echo get_phrase('entry_not_found'); ?>');
+            toastr.error('Entry not found');
             return;
         }
         
+        // Reset form and clear previous data
+        $('#timetable-form')[0].reset();
+        $('#timetable_id').val('');
+        
+        // Set form values
         $('#timetable_id').val(id);
-        $('#day').val(entry.day_of_week);
+        $('#day').val(entry.day_of_week.toLowerCase());
         $('#start_time').val(entry.time_slot_start);
         $('#end_time').val(entry.time_slot_end);
         $('#room_number').val(entry.room_number);
         
-        // Load subjects then set selected
+        // Load subjects for selected class
         loadSubjects(selectedClassId);
+        
+        // Set subject and teacher after a short delay
         setTimeout(() => {
-            $('#subject_id').val(entry.subject_id);
-            $('#teacher_id').val(entry.teacher_id);
+            if ($('#subject_id').find(`option[value='${entry.subject_id}']`).length) {
+                $('#subject_id').val(entry.subject_id).trigger('change');
+            }
+            if ($('#teacher_id').find(`option[value='${entry.teacher_id}']`).length) {
+                $('#teacher_id').val(entry.teacher_id).trigger('change');
+            }
         }, 500);
         
+        // Update modal title and show
+        $('#timetable-modal .modal-title').text('Edit Timetable Entry');
         $('#timetable-modal').modal('show');
     }
 
+    let deleteEntryId = null;
+
     function deleteEntry(id) {
-        if (!confirm('<?php echo get_phrase('are_you_sure_you_want_to_delete_this_entry'); ?>')) {
+        if (!timetableData || !timetableData.length) {
+            toastr.error('No timetable data available');
+            return;
+        }
+
+        const entry = timetableData.find(e => e.id == id);
+        if (!entry) {
+            toastr.error('Entry not found');
+            return;
+        }
+
+        deleteEntryId = id;
+        $('#deleteModal').modal('show');
+    }
+
+    $('#confirmDelete').click(function() {
+        if (!deleteEntryId) {
+            $('#deleteModal').modal('hide');
             return;
         }
         
         $.ajax({
             url: '<?php echo base_url(); ?>admin/delete_calendar_timetable_entry',
             type: 'POST',
-            data: { id: id },
+            data: { id: deleteEntryId },
             dataType: 'json',
+            beforeSend: function() {
+                $('#confirmDelete').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Deleting...');
+            },
             success: function(response) {
+                $('#deleteModal').modal('hide');
+                $('#confirmDelete').prop('disabled', false).html('Delete');
+                
                 if (response.status === 'success') {
                     toastr.success(response.message);
                     loadTimetable();
                 } else {
-                    toastr.error(response.message);
+                    toastr.error(response.message || 'Failed to delete entry');
                 }
+                deleteEntryId = null;
             },
             error: function(xhr, status, error) {
+                $('#deleteModal').modal('hide');
+                $('#confirmDelete').prop('disabled', false).html('Delete');
                 console.error('Error deleting entry:', error);
-                toastr.error('<?php echo get_phrase('error_deleting_entry'); ?>');
+                toastr.error('Failed to delete entry. Please try again.');
+                deleteEntryId = null;
             }
         });
-    }
+    });
     </script> 
 </body>
 </html> 
