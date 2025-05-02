@@ -45,6 +45,103 @@ $breadcrumb = array(
         .mb-3 {
             margin-bottom: 15px;
         }
+        
+        .timetable-table { 
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        .time-col { 
+            width: 120px;
+            background: #f8f9fa;
+        }
+        
+        .timetable-cell { 
+            height: 100px;
+            padding: 5px !important;
+            vertical-align: top;
+            position: relative;
+        }
+        
+        .time-display { 
+            text-align: center;
+            font-weight: bold;
+            padding: 5px;
+        }
+        
+        .editable-cell, .view-cell { 
+            height: 100%;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .editable-cell:hover {
+            background: #e3f2fd;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .subject-name { 
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 5px;
+        }
+        
+        .teacher-name { 
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+        
+        .room-number { 
+            color: #999;
+            font-size: 12px;
+        }
+        
+        .actions {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            display: none;
+        }
+        
+        .editable-cell:hover .actions {
+            display: block;
+        }
+        
+        .empty-cell { 
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .empty-cell:hover {
+            background: #e3f2fd;
+        }
+        
+        .add-slot {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #bbb;
+            font-size: 24px;
+        }
+        
+        .empty-cell:hover .add-slot {
+            color: #2196F3;
+        }
+        
+        .btn-xs {
+            padding: 1px 5px;
+            font-size: 12px;
+            line-height: 1.5;
+            border-radius: 3px;
+            margin-left: 3px;
+        }
     </style>
 </head>
 <body>
@@ -53,188 +150,133 @@ $breadcrumb = array(
             <div class="panel panel-primary">
                 <div class="panel-heading">
                     <div class="panel-title">
-                        <h4>
-                            <i class="fa fa-calendar"></i> <?php echo get_phrase('class_timetable_calendar'); ?>
-                        </h4>
+                        <?php echo get_phrase('class_timetable'); ?>
+                        <button type="button" class="btn btn-info btn-sm pull-right" onclick="showAddModal()">
+                            <i class="fa fa-plus"></i> <?php echo get_phrase('add_time_slot'); ?>
+                        </button>
                     </div>
                 </div>
                 <div class="panel-body">
-                    <!-- Month Navigation -->
                     <div class="row">
-                        <div class="col-md-12 text-center mb-20">
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-default" id="prev-month">
-                                    <i class="fa fa-chevron-left"></i> <?php echo get_phrase('previous_month'); ?>
-                                </button>
-                                <button type="button" class="btn btn-primary" id="current-month-display">
-                                    <?php echo date('F Y'); ?>
-                                </button>
-                                <button type="button" class="btn btn-default" id="next-month">
-                                    <?php echo get_phrase('next_month'); ?> <i class="fa fa-chevron-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Filter Options -->
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <div class="col-sm-3">
-                                    <select name="class_id" id="class_id" class="form-control select2" required>
-                                        <option value=""><?php echo get_phrase('select_class'); ?></option>
-                                        <?php foreach($classes as $class): ?>
-                                            <option value="<?php echo $class['class_id']; ?>"><?php echo $class['name']; ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="col-sm-3">
-                                    <select name="section_id" id="section_id" class="form-control select2" required>
-                                        <option value=""><?php echo get_phrase('select_section'); ?></option>
+                        <div class="col-md-3">
+                            <select name="class_id" id="class_id" class="form-control select2" onchange="loadSections(this.value)">
+                                <option value=""><?php echo get_phrase('select_class'); ?></option>
+                                <?php foreach($classes as $row): ?>
+                                <option value="<?php echo $row['class_id']; ?>"><?php echo $row['name']; ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
-                                <div class="col-sm-3">
-                                    <select name="teacher_id" id="teacher_id" class="form-control select2">
-                                <option value=""><?php echo get_phrase('all_teachers'); ?></option>
-                                        <?php foreach($teachers as $teacher): ?>
-                                            <option value="<?php echo $teacher['teacher_id']; ?>"><?php echo $teacher['name']; ?></option>
-                                        <?php endforeach; ?>
+                        <div class="col-md-3">
+                            <select name="section_id" id="section_id" class="form-control select2">
+                                <option value=""><?php echo get_phrase('select_section'); ?></option>
                             </select>
                         </div>
-                                <div class="col-sm-3">
-                                    <button class="btn btn-info" id="load-timetable">
-                                        <i class="fa fa-search"></i> <?php echo get_phrase('load_timetable'); ?>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-primary" onclick="loadTimetable()">
+                                <?php echo get_phrase('load_timetable'); ?>
                             </button>
-                                    <button class="btn btn-success" id="btn-view-mode" data-mode="admin">
-                                        <i class="fa fa-eye"></i> <span id="view-mode-text"><?php echo get_phrase('admin_view'); ?></span>
-                            </button>
-                                </div>
-                            </div>
                         </div>
                     </div>
-
-                    <div class="row" style="margin-top: 20px;">
-                        <div class="col-md-12">
-                            <!-- Weekly Timetable Calendar -->
-                            <div id="weekly-timetable-container" class="timetable-container">
-                                <table class="table table-bordered timetable-table">
-                                    <thead>
-                                        <tr class="bg-primary">
-                                            <th class="time-col"><?php echo get_phrase('time_slot'); ?></th>
-                                            <th><?php echo get_phrase('monday'); ?></th>
-                                            <th><?php echo get_phrase('tuesday'); ?></th>
-                                            <th><?php echo get_phrase('wednesday'); ?></th>
-                                            <th><?php echo get_phrase('thursday'); ?></th>
-                                            <th><?php echo get_phrase('friday'); ?></th>
-                                            <th><?php echo get_phrase('saturday'); ?></th>
-                                            <th><?php echo get_phrase('sunday'); ?></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="timetable-body">
-                                        <!-- Time slots will be dynamically generated -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Actions Footer -->
-                    <div class="row" style="margin-top: 20px;">
-                        <div class="col-md-12 text-right">
-                            <button class="btn btn-primary" id="add-time-slot">
-                                <i class="fa fa-plus"></i> <?php echo get_phrase('add_time_slot'); ?>
-                            </button>
-                            <button class="btn btn-success" id="print-timetable">
-                                <i class="fa fa-print"></i> <?php echo get_phrase('print'); ?>
-                            </button>
-                            <button class="btn btn-info" id="export-pdf">
-                                <i class="fa fa-file-pdf-o"></i> <?php echo get_phrase('export_pdf'); ?>
-                            </button>
-                        </div>
+                    <hr>
+                    <div class="table-responsive">
+                        <table class="table table-bordered timetable-table">
+                            <thead>
+                                <tr>
+                                    <th class="time-col">Time Slot</th>
+                                    <th>Monday</th>
+                                    <th>Tuesday</th>
+                                    <th>Wednesday</th>
+                                    <th>Thursday</th>
+                                    <th>Friday</th>
+                                    <th>Saturday</th>
+                                    <th>Sunday</th>
+                                </tr>
+                            </thead>
+                            <tbody id="timetable-body">
+                                <tr>
+                                    <td colspan="8" class="text-center"><?php echo get_phrase('please_select_class_and_section'); ?></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Time Slot Add Modal -->
-    <div class="modal fade" id="time-slot-modal" tabindex="-1" role="dialog" aria-labelledby="timeSlotModalLabel">
-        <div class="modal-dialog" role="document">
+    <!-- Add/Edit Modal -->
+    <div class="modal fade" id="timetable-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="timeSlotModalLabel"><?php echo get_phrase('add_time_slot'); ?></h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title"><?php echo get_phrase('add_time_slot'); ?></h4>
                 </div>
                 <div class="modal-body">
-                    <form id="time-slot-form">
-                        <div class="form-group">
-                            <label for="time-start"><?php echo get_phrase('start_time'); ?></label>
-                            <input type="time" class="form-control" id="time-start" name="time_start" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="time-end"><?php echo get_phrase('end_time'); ?></label>
-                            <input type="time" class="form-control" id="time-end" name="time_end" required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal"><?php echo get_phrase('close'); ?></button>
-                    <button type="button" class="btn btn-primary" id="save-time-slot"><?php echo get_phrase('save'); ?></button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Subject Teacher Add Modal -->
-    <div class="modal fade" id="subject-teacher-modal" tabindex="-1" role="dialog" aria-labelledby="subjectTeacherModalLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="subjectTeacherModalLabel"><?php echo get_phrase('add_subject_teacher'); ?></h4>
-                </div>
-                <div class="modal-body">
-                    <form id="subject-teacher-form">
-                        <input type="hidden" id="day-of-week" name="day_of_week">
-                        <input type="hidden" id="time-slot-id" name="time_slot_id">
-                        <input type="hidden" id="timetable-id" name="timetable_id">
-                        <input type="hidden" id="edit-mode" name="edit_mode" value="false">
+                    <form id="timetable-form" class="form-horizontal">
+                        <input type="hidden" id="timetable_id" name="timetable_id">
                         
-                                <div class="form-group">
-                            <label for="modal-subject-id"><?php echo get_phrase('subject'); ?></label>
-                            <select class="form-control select2" id="modal-subject-id" name="subject_id" required>
-                                <option value=""><?php echo get_phrase('select_subject'); ?></option>
-                                <?php foreach($subjects as $subject): ?>
-                                    <option value="<?php echo $subject['subject_id']; ?>"><?php echo $subject['name']; ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label"><?php echo get_phrase('day'); ?></label>
+                            <div class="col-sm-9">
+                                <select name="day" id="day" class="form-control" required>
+                                    <option value="monday">Monday</option>
+                                    <option value="tuesday">Tuesday</option>
+                                    <option value="wednesday">Wednesday</option>
+                                    <option value="thursday">Thursday</option>
+                                    <option value="friday">Friday</option>
+                                    <option value="saturday">Saturday</option>
+                                    <option value="sunday">Sunday</option>
+                                </select>
+                            </div>
                         </div>
-
-                                <div class="form-group">
-                            <label for="modal-teacher-id"><?php echo get_phrase('teacher'); ?></label>
-                            <select class="form-control select2" id="modal-teacher-id" name="teacher_id">
-                                <option value=""><?php echo get_phrase('select_teacher'); ?></option>
-                                <?php foreach($teachers as $teacher): ?>
+                        
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label"><?php echo get_phrase('start_time'); ?></label>
+                            <div class="col-sm-9">
+                                <input type="time" name="start_time" id="start_time" class="form-control" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label"><?php echo get_phrase('end_time'); ?></label>
+                            <div class="col-sm-9">
+                                <input type="time" name="end_time" id="end_time" class="form-control" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label"><?php echo get_phrase('subject'); ?></label>
+                            <div class="col-sm-9">
+                                <select name="subject_id" id="subject_id" class="form-control" required>
+                                    <option value=""><?php echo get_phrase('select_subject'); ?></option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label"><?php echo get_phrase('teacher'); ?></label>
+                            <div class="col-sm-9">
+                                <select name="teacher_id" id="teacher_id" class="form-control" required>
+                                    <option value=""><?php echo get_phrase('select_teacher'); ?></option>
+                                    <?php foreach($teachers as $teacher): ?>
                                     <option value="<?php echo $teacher['teacher_id']; ?>"><?php echo $teacher['name']; ?></option>
-                                <?php endforeach; ?>
-                                    </select>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
                         </div>
-
-                                <div class="form-group">
-                            <label for="room-number"><?php echo get_phrase('room_number'); ?></label>
-                            <input type="text" class="form-control" id="room-number" name="room_number">
-                        </div>
-
-                                <div class="form-group">
-                            <label for="notes"><?php echo get_phrase('notes'); ?></label>
-                            <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                        
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label"><?php echo get_phrase('room_number'); ?></label>
+                            <div class="col-sm-9">
+                                <input type="text" name="room_number" id="room_number" class="form-control">
+                            </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal"><?php echo get_phrase('close'); ?></button>
-                    <button type="button" class="btn btn-danger" id="delete-subject-teacher" style="display:none;"><?php echo get_phrase('delete'); ?></button>
-                    <button type="button" class="btn btn-primary" id="save-subject-teacher"><?php echo get_phrase('save'); ?></button>
+                    <button type="button" class="btn btn-primary" onclick="saveTimetable()"><?php echo get_phrase('save'); ?></button>
                 </div>
             </div>
         </div>
@@ -342,7 +384,14 @@ $breadcrumb = array(
     </style>
 
     <script type="text/javascript">
+    let selectedClassId = '';
+    let selectedSectionId = '';
+    let timetableData = [];
+
     $(document).ready(function() {
+        // Initialize select2
+        $('.select2').select2();
+        
         // Initialize toastr
         toastr.options = {
             "closeButton": true,
@@ -361,443 +410,269 @@ $breadcrumb = array(
             "showMethod": "fadeIn",
             "hideMethod": "fadeOut"
         };
-
-            let currentMonth = <?php echo $current_month; ?>;
-            let currentYear = <?php echo $current_year; ?>;
-            let selectedClassId = '';
-            let selectedSectionId = '';
-            let selectedTeacherId = '';
-            let timeSlots = [];
-            let timetableData = [];
-            let viewMode = 'admin'; // 'admin' or 'teacher'
-            
-            // Initialize select2 dropdowns
-            $('.select2').select2();
-            
-            // Update month display
-            function updateMonthDisplay() {
-                const monthNames = [
-                    "January", "February", "March", "April", "May", "June",
-                    "July", "August", "September", "October", "November", "December"
-                ];
-                $('#current-month-display').text(monthNames[currentMonth - 1] + ' ' + currentYear);
-            }
-            
-            // Initial month display update
-            updateMonthDisplay();
-            
-            // Previous month button
-            $('#prev-month').click(function() {
-                currentMonth--;
-                if (currentMonth < 1) {
-                    currentMonth = 12;
-                    currentYear--;
-                }
-                updateMonthDisplay();
-                if (selectedClassId && selectedSectionId) {
-                    loadTimetable();
-                }
-            });
-            
-            // Next month button
-            $('#next-month').click(function() {
-                currentMonth++;
-                if (currentMonth > 12) {
-                    currentMonth = 1;
-                    currentYear++;
-                }
-                updateMonthDisplay();
-                if (selectedClassId && selectedSectionId) {
-                    loadTimetable();
-                }
-            });
-            
-            // Toggle view mode (Admin/Teacher)
-            $('#btn-view-mode').click(function() {
-                if (viewMode === 'admin') {
-                    viewMode = 'teacher';
-                    $(this).data('mode', 'teacher');
-                    $('#view-mode-text').text('<?php echo get_phrase('teacher_view'); ?>');
-                    $(this).removeClass('btn-success').addClass('btn-warning');
-                } else {
-                    viewMode = 'admin';
-                    $(this).data('mode', 'admin');
-                    $('#view-mode-text').text('<?php echo get_phrase('admin_view'); ?>');
-                    $(this).removeClass('btn-warning').addClass('btn-success');
-                }
-                if (selectedClassId && selectedSectionId) {
-                    loadTimetable();
-                }
-            });
-            
-            // Class change event - load sections
-            $('#class_id').change(function() {
-                const classId = $(this).val();
-                if (classId) {
-                    $.ajax({
-                        url: '<?php echo base_url(); ?>admin/get_sections/' + classId,
-                        type: 'GET',
-                        success: function(response) {
-                            const sections = JSON.parse(response);
-                            let options = '<option value=""><?php echo get_phrase('select_section'); ?></option>';
-                            sections.forEach(function(section) {
-                                options += `<option value="${section.section_id}">${section.name}</option>`;
-                            });
-                            $('#section_id').html(options);
-                        }
-                    });
-                } else {
-                    $('#section_id').html('<option value=""><?php echo get_phrase('select_section'); ?></option>');
-                }
-            });
-            
-            // Load timetable button
-            $('#load-timetable').click(function() {
-                selectedClassId = $('#class_id').val();
-                selectedSectionId = $('#section_id').val();
-                selectedTeacherId = $('#teacher_id').val();
-                
-                if (selectedClassId && selectedSectionId) {
-                    loadTimetable();
-                } else {
-                    alert('<?php echo get_phrase('please_select_class_and_section'); ?>');
-                }
-            });
-            
-            // Function to load timetable data
-            function loadTimetable() {
-                $.ajax({
-                    url: '<?php echo base_url(); ?>admin/get_calendar_timetable_data',
-                    type: 'POST',
-                    data: {
-                        class_id: selectedClassId,
-                        section_id: selectedSectionId,
-                        teacher_id: selectedTeacherId,
-                        month: currentMonth,
-                        year: currentYear
-                    },
-                    dataType: 'json',
-                    beforeSend: function() {
-                        $('#timetable-body').html('<tr><td colspan="8" class="text-center"><i class="fa fa-spinner fa-spin"></i> <?php echo get_phrase('loading'); ?>...</td></tr>');
-                    },
-                    success: function(response) {
-                        if (response.status && response.status === 'error') {
-                            // Show error message
-                            toastr.error(response.message);
-                            $('#timetable-body').html('<tr><td colspan="8" class="text-center text-danger">' + response.message + '</td></tr>');
-                            } else {
-                            // Successful response
-                            timetableData = response;
-                            renderTimetable();
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error loading timetable:', error);
-                        toastr.error('Failed to load timetable data. Please try again.');
-                        $('#timetable-body').html('<tr><td colspan="8" class="text-center text-danger"><?php echo get_phrase('error_loading_timetable'); ?></td></tr>');
-                    }
-                });
-            }
-            
-            // Generate default time slots
-            function generateDefaultTimeSlots() {
-                return [
-                    { start: '07:00', end: '08:30' },
-                    { start: '08:30', end: '09:45' },
-                    { start: '09:45', end: '11:00' },
-                    { start: '11:00', end: '12:15' },
-                    { start: '12:15', end: '13:30' },
-                    { start: '13:30', end: '14:45' },
-                    { start: '14:45', end: '16:00' }
-                ];
-            }
-            
-            // Function to format time in 12-hour format
-            function formatTime(time) {
-                const [hours, minutes] = time.split(':');
-                const hour = parseInt(hours);
-                const ampm = hour >= 12 ? 'PM' : 'AM';
-                const formattedHour = hour % 12 || 12;
-                return `${formattedHour}:${minutes} ${ampm}`;
-            }
-            
-            // Render timetable with data
-            function renderTimetable() {
-                // First, determine time slots
-                if (timetableData.length > 0) {
-                    // Extract unique time slots from data
-                    const uniqueTimeSlots = [];
-                    const timeSlotMap = {};
-                    
-                    timetableData.forEach(entry => {
-                        const key = `${entry.time_slot_start}-${entry.time_slot_end}`;
-                        if (!timeSlotMap[key]) {
-                            timeSlotMap[key] = true;
-                            uniqueTimeSlots.push({
-                                start: entry.time_slot_start,
-                                end: entry.time_slot_end
-                            });
-                        }
-                    });
-                    
-                    // Sort time slots by start time
-                    uniqueTimeSlots.sort((a, b) => {
-                        return a.start.localeCompare(b.start);
-                    });
-                    
-                    if (uniqueTimeSlots.length > 0) {
-                        timeSlots = uniqueTimeSlots;
-                    } else {
-                        timeSlots = generateDefaultTimeSlots();
-                    }
-                } else {
-                    timeSlots = generateDefaultTimeSlots();
-                }
-                
-                // Now render the timetable
-                let html = '';
-                const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-                
-                timeSlots.forEach((timeSlot, index) => {
-                    html += `<tr class="time-slot-row" data-index="${index}">`;
-                    html += `<td class="time-col time-display">${formatTime(timeSlot.start)} - ${formatTime(timeSlot.end)}</td>`;
-                    
-                    days.forEach(day => {
-                        const cellData = timetableData.find(entry => 
-                            entry.day_of_week === day && 
-                            entry.time_slot_start === timeSlot.start && 
-                            entry.time_slot_end === timeSlot.end
-                        );
-                        
-                        const cellClass = cellData ? 'timetable-cell active' : 'timetable-cell';
-                        
-                        html += `<td class="${cellClass}" data-day="${day}" data-time-start="${timeSlot.start}" data-time-end="${timeSlot.end}">`;
-                        html += `<div class="editable-cell">`;
-                        
-                        if (cellData) {
-                            html += `<div class="subject-name">${cellData.subject_name || ''}</div>`;
-                            html += `<div class="teacher-name">${cellData.teacher_name || ''}</div>`;
-                            if (cellData.room_number) {
-                                html += `<div class="room-number">Room: ${cellData.room_number}</div>`;
-                            }
-                            html += `<input type="hidden" class="timetable-id" value="${cellData.id}">`;
-                        } else {
-                            html += `<div class="text-center" style="padding-top: 30px;">
-                                        <i class="fa fa-plus-circle text-muted"></i>
-                                    </div>`;
-                        }
-                        
-                        html += `</div>`;
-                        html += `</td>`;
-                    });
-                    
-                    html += `</tr>`;
-                });
-                
-                $('#timetable-body').html(html);
-                
-                // Add cell click event
-                $('.timetable-cell').click(function() {
-                    const day = $(this).data('day');
-                    const timeStart = $(this).data('time-start');
-                    const timeEnd = $(this).data('time-end');
-                    const timetableId = $(this).find('.timetable-id').val();
-                    
-                    // Reset form
-                    $('#subject-teacher-form')[0].reset();
-                    $('#day-of-week').val(day);
-                    $('#time-slot-id').val(`${timeStart}-${timeEnd}`);
-                    
-                    if (timetableId) {
-                        // Edit mode
-                        $('#timetable-id').val(timetableId);
-                        $('#edit-mode').val('true');
-                        $('#subjectTeacherModalLabel').text('<?php echo get_phrase('edit_subject_teacher'); ?>');
-                        $('#delete-subject-teacher').show();
-                        
-                        // Find entry data
-                        const entry = timetableData.find(item => item.id == timetableId);
-                        if (entry) {
-                            $('#modal-subject-id').val(entry.subject_id).trigger('change');
-                            $('#modal-teacher-id').val(entry.teacher_id).trigger('change');
-                            $('#room-number').val(entry.room_number);
-                            $('#notes').val(entry.notes);
-                        }
-                    } else {
-                        // Add mode
-                        $('#timetable-id').val('');
-                        $('#edit-mode').val('false');
-                        $('#subjectTeacherModalLabel').text('<?php echo get_phrase('add_subject_teacher'); ?>');
-                        $('#delete-subject-teacher').hide();
-                    }
-                    
-                    $('#subject-teacher-modal').modal('show');
-                });
-            }
-            
-            // Add time slot button
-            $('#add-time-slot').click(function() {
-                $('#time-slot-form')[0].reset();
-                $('#time-slot-modal').modal('show');
-            });
-            
-            // Save time slot
-            $('#save-time-slot').click(function() {
-                const timeStart = $('#time-start').val();
-                const timeEnd = $('#time-end').val();
-                
-                if (!timeStart || !timeEnd) {
-                    alert('<?php echo get_phrase('please_enter_both_start_and_end_times'); ?>');
-                    return;
-                }
-                
-                if (timeStart >= timeEnd) {
-                    alert('<?php echo get_phrase('end_time_must_be_after_start_time'); ?>');
-                    return;
-                }
-                
-                // Check for overlap
-                const overlap = timeSlots.some(slot => {
-                    return (timeStart < slot.end && timeEnd > slot.start);
-                });
-                
-                if (overlap) {
-                    alert('<?php echo get_phrase('time_slot_overlaps_with_existing_slot'); ?>');
-                    return;
-                }
-                
-                // Add new time slot
-                timeSlots.push({ start: timeStart, end: timeEnd });
-                
-                // Sort time slots by start time
-                timeSlots.sort((a, b) => {
-                    return a.start.localeCompare(b.start);
-                });
-                
-                // Re-render timetable
-                renderTimetable();
-                
-                // Close modal
-                $('#time-slot-modal').modal('hide');
-            });
-            
-            // Save subject teacher
-            $('#save-subject-teacher').click(function() {
-                const subjectId = $('#modal-subject-id').val();
-                const teacherId = $('#modal-teacher-id').val();
-                const dayOfWeek = $('#day-of-week').val();
-                const timeSlotId = $('#time-slot-id').val();
-                const timetableId = $('#timetable-id').val();
-                const editMode = $('#edit-mode').val() === 'true';
-                const roomNumber = $('#room-number').val();
-                const notes = $('#notes').val();
-                
-                if (!subjectId) {
-                    toastr.error('<?php echo get_phrase('please_select_a_subject'); ?>');
-                    return;
-                }
-                
-                const [timeStart, timeEnd] = timeSlotId.split('-');
-                
-                const data = {
-                    id: timetableId,
-                    class_id: selectedClassId,
-                    section_id: selectedSectionId,
-                    subject_id: subjectId,
-                    teacher_id: teacherId,
-                    day_of_week: dayOfWeek,
-                    time_slot_start: timeStart,
-                    time_slot_end: timeEnd,
-                    month: currentMonth,
-                    year: currentYear,
-                    room_number: roomNumber,
-                    notes: notes
-                };
-                
-            $.ajax({
-                    url: '<?php echo base_url(); ?>admin/save_calendar_timetable_entry',
-                type: 'POST',
-                    data: data,
-                    dataType: 'json',
-                    beforeSend: function() {
-                        $('#save-subject-teacher').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> <?php echo get_phrase('saving'); ?>...');
-                    },
-                success: function(response) {
-                        $('#save-subject-teacher').prop('disabled', false).html('<?php echo get_phrase('save'); ?>');
-                        
-                        if (response.status === 'success') {
-                            toastr.success(response.message);
-                            // Reload timetable
-                            loadTimetable();
-                            // Close modal
-                            $('#subject-teacher-modal').modal('hide');
-                        } else {
-                            toastr.error(response.message || '<?php echo get_phrase('an_error_occurred'); ?>');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        $('#save-subject-teacher').prop('disabled', false).html('<?php echo get_phrase('save'); ?>');
-                        console.error('Error saving timetable entry:', error);
-                        toastr.error('<?php echo get_phrase('an_error_occurred'); ?>');
-                    }
-                });
-            });
-            
-            // Delete subject teacher
-            $('#delete-subject-teacher').click(function() {
-                const timetableId = $('#timetable-id').val();
-                
-                if (!timetableId) {
-                    return;
-                }
-                
-                if (!confirm('<?php echo get_phrase('are_you_sure_you_want_to_delete_this_entry'); ?>?')) {
-                    return;
-                }
-                
-                $.ajax({
-                    url: '<?php echo base_url(); ?>admin/delete_calendar_timetable_entry',
-                    type: 'POST',
-                    data: { id: timetableId },
-                    dataType: 'json',
-                    beforeSend: function() {
-                        $('#delete-subject-teacher').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> <?php echo get_phrase('deleting'); ?>...');
-                    },
-                    success: function(response) {
-                        $('#delete-subject-teacher').prop('disabled', false).html('<?php echo get_phrase('delete'); ?>');
-                        
-                        if (response.status === 'success') {
-                            toastr.success(response.message);
-                            // Reload timetable
-                            loadTimetable();
-                            // Close modal
-                            $('#subject-teacher-modal').modal('hide');
-                        } else {
-                            toastr.error(response.message || '<?php echo get_phrase('an_error_occurred'); ?>');
-                    }
-                },
-                error: function(xhr, status, error) {
-                        $('#delete-subject-teacher').prop('disabled', false).html('<?php echo get_phrase('delete'); ?>');
-                        console.error('Error deleting timetable entry:', error);
-                        toastr.error('<?php echo get_phrase('an_error_occurred'); ?>');
-                    }
-                });
-            });
-            
-            // Print timetable
-            $('#print-timetable').click(function() {
-                window.print();
-            });
-            
-            // Export as PDF
-            $('#export-pdf').click(function() {
-                alert('<?php echo get_phrase('pdf_export_functionality_coming_soon'); ?>');
-                // TODO: Implement PDF export
-            });
-            
-            // Initialize with default time slots
-            renderTimetable();
     });
+
+    function showAddModal(day = null, start_time = null, end_time = null) {
+        if (!selectedClassId) {
+            toastr.error('<?php echo get_phrase('please_select_class_first'); ?>');
+            return;
+        }
+        
+        // Reset form
+        $('#timetable-form')[0].reset();
+        $('#timetable_id').val('');
+        
+        // Set values if provided
+        if (day) $('#day').val(day);
+        if (start_time) $('#start_time').val(start_time);
+        if (end_time) $('#end_time').val(end_time);
+        
+        // Load subjects for selected class
+        loadSubjects(selectedClassId);
+        
+        // Show modal
+        $('#timetable-modal').modal('show');
+    }
+
+    function loadSections(classId) {
+        if (!classId) return;
+        
+        selectedClassId = classId;
+        
+        $.ajax({
+            url: '<?php echo base_url(); ?>admin/get_sections/' + classId,
+            type: 'GET',
+            success: function(response) {
+                $('#section_id').html(response);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading sections:', error);
+                toastr.error('<?php echo get_phrase('error_loading_sections'); ?>');
+            }
+        });
+    }
+
+    function loadSubjects(classId) {
+        if (!classId) return;
+        
+        $.ajax({
+            url: '<?php echo base_url(); ?>admin/get_subjects/' + classId,
+            type: 'GET',
+            success: function(response) {
+                $('#subject_id').html(response);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading subjects:', error);
+                toastr.error('<?php echo get_phrase('error_loading_subjects'); ?>');
+            }
+        });
+    }
+
+    function loadTimetable() {
+        selectedClassId = $('#class_id').val();
+        selectedSectionId = $('#section_id').val();
+        
+        if (!selectedClassId || !selectedSectionId) {
+            toastr.error('<?php echo get_phrase('please_select_class_and_section'); ?>');
+            return;
+        }
+        
+        $.ajax({
+            url: '<?php echo base_url(); ?>admin/get_calendar_timetable_data',
+            type: 'POST',
+            data: {
+                class_id: selectedClassId,
+                section_id: selectedSectionId
+            },
+            dataType: 'json',
+            beforeSend: function() {
+                $('#timetable-body').html('<tr><td colspan="8" class="text-center"><i class="fa fa-spinner fa-spin"></i> <?php echo get_phrase('loading'); ?>...</td></tr>');
+            },
+            success: function(response) {
+                if (response.status === 'error') {
+                    toastr.error(response.message);
+                    $('#timetable-body').html('<tr><td colspan="8" class="text-center text-danger">' + response.message + '</td></tr>');
+                    return;
+                }
+                
+                timetableData = response;
+                renderTimetable();
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading timetable:', error);
+                toastr.error('<?php echo get_phrase('error_loading_timetable'); ?>');
+                $('#timetable-body').html('<tr><td colspan="8" class="text-center text-danger"><?php echo get_phrase('error_loading_timetable'); ?></td></tr>');
+            }
+        });
+    }
+
+    function renderTimetable() {
+        if (!timetableData.length) {
+            $('#timetable-body').html('<tr><td colspan="8" class="text-center"><?php echo get_phrase('no_timetable_entries_found'); ?></td></tr>');
+            return;
+        }
+        
+        // Group entries by time slot
+        const timeSlots = {};
+        timetableData.forEach(function(entry) {
+            const timeKey = `${entry.time_slot_start}-${entry.time_slot_end}`;
+            if (!timeSlots[timeKey]) {
+                timeSlots[timeKey] = {
+                    start: entry.time_slot_start,
+                    end: entry.time_slot_end,
+                    days: {
+                        monday: null,
+                        tuesday: null,
+                        wednesday: null,
+                        thursday: null,
+                        friday: null,
+                        saturday: null,
+                        sunday: null
+                    }
+                };
+            }
+            timeSlots[timeKey].days[entry.day_of_week.toLowerCase()] = entry;
+        });
+        
+        let html = '';
+        Object.keys(timeSlots).sort().forEach(function(timeKey) {
+            const slot = timeSlots[timeKey];
+            html += `
+                <tr class="time-slot-row">
+                    <td class="time-col">
+                        <div class="time-display">
+                            ${slot.start}<br>to<br>${slot.end}
+                        </div>
+                    </td>`;
+            
+            ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].forEach(function(day) {
+                const entry = slot.days[day];
+                if (entry) {
+                    html += `
+                        <td class="timetable-cell">
+                            <div class="editable-cell">
+                                <div class="subject-name">${entry.subject_name}</div>
+                                <div class="teacher-name">${entry.teacher_name}</div>
+                                <div class="room-number">Room: ${entry.room_number || 'N/A'}</div>
+                                <div class="actions">
+                                    <button type="button" class="btn btn-info btn-xs" onclick="editEntry(${entry.id})">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-xs" onclick="deleteEntry(${entry.id})">
+                                        <i class="fa fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>`;
+                } else {
+                    html += `
+                        <td class="timetable-cell empty-cell" onclick="showAddModal('${day}', '${slot.start}', '${slot.end}')">
+                            <div class="add-slot">
+                                <i class="fa fa-plus"></i>
+                            </div>
+                        </td>`;
+                }
+            });
+            html += '</tr>';
+        });
+        
+        $('#timetable-body').html(html);
+    }
+
+    function saveTimetable() {
+        const formData = {
+            id: $('#timetable_id').val(),
+            class_id: selectedClassId,
+            section_id: selectedSectionId,
+            day_of_week: $('#day').val(),
+            time_slot_start: $('#start_time').val(),
+            time_slot_end: $('#end_time').val(),
+            subject_id: $('#subject_id').val(),
+            teacher_id: $('#teacher_id').val(),
+            room_number: $('#room_number').val()
+        };
+        
+        // Validate required fields
+        if (!formData.day_of_week || !formData.time_slot_start || !formData.time_slot_end || 
+            !formData.subject_id || !formData.teacher_id) {
+            toastr.error('<?php echo get_phrase('please_fill_all_required_fields'); ?>');
+            return;
+        }
+        
+        $.ajax({
+            url: '<?php echo base_url(); ?>admin/save_calendar_timetable_entry',
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            beforeSend: function() {
+                $('.modal-footer .btn-primary').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> <?php echo get_phrase('saving'); ?>...');
+            },
+            success: function(response) {
+                $('.modal-footer .btn-primary').prop('disabled', false).html('<?php echo get_phrase('save'); ?>');
+                
+                if (response.status === 'success') {
+                    toastr.success(response.message);
+                    $('#timetable-modal').modal('hide');
+                    loadTimetable();
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error saving timetable:', error);
+                toastr.error('<?php echo get_phrase('error_saving_timetable'); ?>');
+                $('.modal-footer .btn-primary').prop('disabled', false).html('<?php echo get_phrase('save'); ?>');
+            }
+        });
+    }
+
+    function editEntry(id) {
+        const entry = timetableData.find(e => e.id === id);
+        if (!entry) {
+            toastr.error('<?php echo get_phrase('entry_not_found'); ?>');
+            return;
+        }
+        
+        $('#timetable_id').val(id);
+        $('#day').val(entry.day_of_week);
+        $('#start_time').val(entry.time_slot_start);
+        $('#end_time').val(entry.time_slot_end);
+        $('#room_number').val(entry.room_number);
+        
+        // Load subjects then set selected
+        loadSubjects(selectedClassId);
+        setTimeout(() => {
+            $('#subject_id').val(entry.subject_id);
+            $('#teacher_id').val(entry.teacher_id);
+        }, 500);
+        
+        $('#timetable-modal').modal('show');
+    }
+
+    function deleteEntry(id) {
+        if (!confirm('<?php echo get_phrase('are_you_sure_you_want_to_delete_this_entry'); ?>')) {
+            return;
+        }
+        
+        $.ajax({
+            url: '<?php echo base_url(); ?>admin/delete_calendar_timetable_entry',
+            type: 'POST',
+            data: { id: id },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    toastr.success(response.message);
+                    loadTimetable();
+                } else {
+                    toastr.error(response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error deleting entry:', error);
+                toastr.error('<?php echo get_phrase('error_deleting_entry'); ?>');
+            }
+        });
+    }
     </script> 
 </body>
 </html> 

@@ -75,15 +75,16 @@ $route['admin/calendar_timetable/(:num)/(:num)'] = 'admin/calendar_timetable/$1/
 
 $route['admin/save_timetable_ajax'] = 'admin/save_timetable_ajax';
 
-// Add calendar timetable routes below any existing routes
+// Add calendar timetable routes
 $route['admin/calendar_timetable'] = 'admin/calendar_timetable';
 $route['admin/get_calendar_timetable_data'] = 'admin/get_calendar_timetable_data';
 $route['admin/save_calendar_timetable_entry'] = 'admin/save_calendar_timetable_entry';
 $route['admin/delete_calendar_timetable_entry'] = 'admin/delete_calendar_timetable_entry';
-$route['admin/get_sections/(:num)'] = 'admin/get_sections/$1';
-$route['admin/get_subjects/(:num)'] = 'admin/get_subjects/$1';
 
 // Teacher calendar timetable routes
 $route['teacher/calendar_timetable'] = 'teacher/calendar_timetable';
-$route['teacher/get_teacher_timetable_data'] = 'teacher/get_teacher_timetable_data';
-$route['teacher/get_sections_for_calendar/(:num)'] = 'teacher/get_sections_for_calendar/$1';
+$route['teacher/get_calendar_timetable_data'] = 'teacher/get_calendar_timetable_data';
+
+// Common routes for both
+$route['get_sections/(:num)'] = 'admin/get_sections/$1';
+$route['get_subjects/(:num)'] = 'admin/get_subjects/$1';
