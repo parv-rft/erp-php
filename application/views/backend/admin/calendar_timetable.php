@@ -257,6 +257,9 @@ $breadcrumb = array(
                         <button type="button" class="btn btn-info btn-sm pull-right" onclick="showAddModal()">
                             <i class="fa fa-plus"></i> <?php echo get_phrase('add_time_slot'); ?>
                         </button>
+                        <button type="button" class="btn btn-success btn-sm pull-right" onclick="window.print()" style="margin-right: 5px;">
+                            <i class="fa fa-print"></i> <?php echo get_phrase('print_timetable'); ?>
+                        </button>
                     </div>
                 </div>
                 <div class="panel-body">
@@ -492,7 +495,10 @@ $breadcrumb = array(
         }
         
         @media print {
-            .panel-heading, .form-group, .modal, .btn {
+            .panel-heading button, 
+            .row:first-child,
+            .modal,
+            .btn {
                 display: none !important;
             }
             
@@ -503,6 +509,26 @@ $breadcrumb = array(
             
             .panel-body {
                 padding: 0 !important;
+            }
+
+            .timetable-cell {
+                border: 1px solid #ddd !important;
+            }
+
+            .editable-cell {
+                box-shadow: none !important;
+            }
+
+            .actions {
+                display: none !important;
+            }
+
+            .add-slot {
+                display: none !important;
+            }
+
+            .empty-cell {
+                border: 1px solid #ddd !important;
             }
         }
     </style>
