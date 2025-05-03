@@ -396,4 +396,80 @@ class Student extends CI_Controller {
             $this->load->view('backend/index', $page_data);
         }
 
+        // Calendar Timetable View for Students
+        function calendar_timetable() {
+            if ($this->session->userdata('student_login') != 1) {
+                redirect(base_url(), 'refresh');
+            }
+            
+            $student_id = $this->session->userdata('student_id');
+            $student = $this->db->get_where('student', array('student_id' => $student_id))->row();
+            
+            if (!$student) {
+                $this->session->set_flashdata('error_message', get_phrase('student_not_found'));
+                redirect(base_url() . 'student/dashboard', 'refresh');
+            }
+            
+            // Get current student's class and section as default
+            $page_data['default_class_id'] = $student->class_id;
+            $page_data['default_section_id'] = $student->section_id;
+            
+            // Get all classes for dropdown
+            $page_data['classes'] = $this->db->get('class')->result_array();
+            
+            $page_data['page_name'] = 'calendar_timetable';
+            $page_data['page_title'] = get_phrase('Class Calendar Timetable');
+            $this->load->view('backend/index', $page_data);
+        }
+
+        // AJAX endpoint for getting class timetable data
+        function get_class_timetable_data() {
+            if ($this->session->userdata('student_login') != 1) {
+                echo json_encode(['status' => 'error', 'message' => get_phrase('access_denied')]);
+                return;
+            }
+            
+            try {
+                $class_id = $this->input->post('class_id');
+                $section_id = $this->input->post('section_id');
+                $month = $this->input->post('month');
+                $year = $this->input->post('year');
+                
+                // Validate inputs
+                if (!$class_id || !$section_id) {
+                    echo json_encode(['status' => 'error', 'message' => get_phrase('please_select_class_and_section')]);
+                    return;
+                }
+                
+                if (!is_numeric($month) || $month < 1 || $month > 12) {
+                    echo json_encode(['status' => 'error', 'message' => get_phrase('invalid_month')]);
+                    return;
+                }
+                
+                if (!is_numeric($year) || $year < 2000 || $year > 2100) {
+                    echo json_encode(['status' => 'error', 'message' => get_phrase('invalid_year')]);
+                    return;
+                }
+                
+                // Get timetable entries for the specified class and section
+                $this->db->select('ct.*, s.name as subject_name, t.name as teacher_name');
+                $this->db->from('calendar_timetable ct');
+                $this->db->join('subject s', 's.subject_id = ct.subject_id', 'left');
+                $this->db->join('teacher t', 't.teacher_id = ct.teacher_id', 'left');
+                $this->db->where('ct.class_id', $class_id);
+                $this->db->where('ct.section_id', $section_id);
+                $this->db->where('ct.month', $month);
+                $this->db->where('ct.year', $year);
+                $this->db->order_by('ct.day_of_week', 'ASC');
+                $this->db->order_by('ct.time_slot_start', 'ASC');
+                
+                $entries = $this->db->get()->result_array();
+                
+                echo json_encode($entries);
+            } catch (Exception $e) {
+                log_message('error', 'Error in get_class_timetable_data: ' . $e->getMessage());
+                echo json_encode(['status' => 'error', 'message' => get_phrase('error_loading_timetable')]);
+            }
+        }
+
 }

@@ -83,7 +83,13 @@ $route['admin/delete_calendar_timetable_entry'] = 'admin/delete_calendar_timetab
 
 // Teacher calendar timetable routes
 $route['teacher/calendar_timetable'] = 'teacher/calendar_timetable';
-$route['teacher/get_calendar_timetable_data'] = 'teacher/get_calendar_timetable_data';
+$route['teacher/get_teacher_timetable_data'] = 'teacher/get_teacher_timetable_data';
+$route['teacher/edit_calendar_timetable_entry'] = 'teacher/edit_calendar_timetable_entry';
+$route['teacher/delete_calendar_timetable_entry'] = 'teacher/delete_calendar_timetable_entry';
+
+// Student calendar timetable routes
+$route['student/calendar_timetable'] = 'student/calendar_timetable';
+$route['student/get_class_timetable_data'] = 'student/get_class_timetable_data';
 
 // Teacher routes
 $route['teacher/my_timetable'] = 'teacher/my_timetable';

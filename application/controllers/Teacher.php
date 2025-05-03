@@ -656,8 +656,6 @@ class Teacher extends CI_Controller {
             $teacher_id = $this->session->userdata('teacher_id');
             $month = $this->input->post('month');
             $year = $this->input->post('year');
-            $class_id = $this->input->post('class_id');
-            $section_id = $this->input->post('section_id');
             
             // Validate inputs
             if (!is_numeric($month) || $month < 1 || $month > 12) {
@@ -674,59 +672,96 @@ class Teacher extends CI_Controller {
             $this->load->model('calendar_timetable_model');
             $timetable = $this->calendar_timetable_model->get_teacher_timetable($teacher_id, $month, $year);
             
-            // Filter by class and section if specified
-            if ($class_id) {
-                $timetable = array_filter($timetable, function($entry) use ($class_id) {
-                    return $entry['class_id'] == $class_id;
-                });
+            // Add additional data for each entry
+            $processed_timetable = [];
+            foreach ($timetable as $entry) {
+                // Get subject name
+                $subject = $this->db->get_where('subject', ['subject_id' => $entry['subject_id']])->row();
+                $entry['subject_name'] = $subject ? $subject->name : 'Unknown Subject';
                 
-                if ($section_id) {
-                    $timetable = array_filter($timetable, function($entry) use ($section_id) {
-                        return $entry['section_id'] == $section_id;
-                    });
-                }
+                // Get class and section names
+                $class = $this->db->get_where('class', ['class_id' => $entry['class_id']])->row();
+                $entry['class_name'] = $class ? $class->name : 'Unknown Class';
+                
+                $section = $this->db->get_where('section', ['section_id' => $entry['section_id']])->row();
+                $entry['section_name'] = $section ? $section->name : 'Unknown Section';
+                
+                $processed_timetable[] = $entry;
             }
             
-            // Add subject and class/section names to each entry
-            foreach ($timetable as &$entry) {
-                if ($entry['subject_id']) {
-                    $subject = $this->db->get_where('subject', array('subject_id' => $entry['subject_id']))->row_array();
-                    $entry['subject_name'] = $subject ? $subject['name'] : 'Unknown Subject';
-                } else {
-                    $entry['subject_name'] = '';
-                }
-                
-                if ($entry['class_id']) {
-                    $class = $this->db->get_where('class', array('class_id' => $entry['class_id']))->row_array();
-                    $entry['class_name'] = $class ? $class['name'] : 'Unknown Class';
-                } else {
-                    $entry['class_name'] = '';
-                }
-                
-                if ($entry['section_id']) {
-                    $section = $this->db->get_where('section', array('section_id' => $entry['section_id']))->row_array();
-                    $entry['section_name'] = $section ? $section['name'] : 'Unknown Section';
-                } else {
-                    $entry['section_name'] = '';
-                }
-            }
-            
-            echo json_encode(array_values($timetable));
+            echo json_encode($processed_timetable);
         } catch (Exception $e) {
-            log_message('error', 'Error in get_teacher_timetable_data: ' . $e->getMessage());
-            echo json_encode(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()]);
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
         }
     }
     
-    // Get sections for a class (for AJAX)
-    public function get_sections_for_calendar($class_id) {
+    // Edit calendar timetable entry - Only for entries assigned to this teacher
+    public function edit_calendar_timetable_entry() {
         if ($this->session->userdata('teacher_login') != 1) {
-            echo '[]';
+            echo json_encode(['status' => 'error', 'message' => get_phrase('access_denied')]);
             return;
         }
         
-        $sections = $this->db->get_where('section', array('class_id' => $class_id))->result_array();
-        echo json_encode($sections);
+        try {
+            $entry_id = $this->input->post('id');
+            $teacher_id = $this->session->userdata('teacher_id');
+            
+            // Check if this entry belongs to the teacher
+            $entry = $this->db->get_where('calendar_timetable', [
+                'id' => $entry_id,
+                'teacher_id' => $teacher_id
+            ])->row_array();
+            
+            if (!$entry) {
+                echo json_encode(['status' => 'error', 'message' => get_phrase('not_authorized_to_edit_this_entry')]);
+                return;
+            }
+            
+            // Update the entry
+            $data = [
+                'room_number' => $this->input->post('room_number'),
+                'notes' => $this->input->post('notes')
+            ];
+            
+            $this->db->where('id', $entry_id);
+            $this->db->update('calendar_timetable', $data);
+            
+            echo json_encode(['status' => 'success', 'message' => get_phrase('timetable_updated_successfully')]);
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
+    }
+
+    // Delete calendar timetable entry - Only for entries assigned to this teacher
+    public function delete_calendar_timetable_entry() {
+        if ($this->session->userdata('teacher_login') != 1) {
+            echo json_encode(['status' => 'error', 'message' => get_phrase('access_denied')]);
+            return;
+        }
+        
+        try {
+            $entry_id = $this->input->post('id');
+            $teacher_id = $this->session->userdata('teacher_id');
+            
+            // Check if this entry belongs to the teacher
+            $entry = $this->db->get_where('calendar_timetable', [
+                'id' => $entry_id,
+                'teacher_id' => $teacher_id
+            ])->row_array();
+            
+            if (!$entry) {
+                echo json_encode(['status' => 'error', 'message' => get_phrase('not_authorized_to_delete_this_entry')]);
+                return;
+            }
+            
+            // Delete the entry
+            $this->db->where('id', $entry_id);
+            $this->db->delete('calendar_timetable');
+            
+            echo json_encode(['status' => 'success', 'message' => get_phrase('timetable_deleted_successfully')]);
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        }
     }
 
     public function my_timetable() {
