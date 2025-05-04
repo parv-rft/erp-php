@@ -2,6 +2,13 @@
 
 
 class Teacher extends CI_Controller { 
+    /**
+     * @property CI_Loader $load
+     * @property CI_Session $session
+     * @property CI_Input $input
+     * @property CI_DB $db
+     * @property CI_Config $config
+     */
 
     function __construct() {
         parent::__construct();
@@ -810,6 +817,224 @@ class Teacher extends CI_Controller {
                     'status' => 'error',
                     'message' => 'Failed to load timetable data: ' . $e->getMessage()
                 ]));
+        }
+    }
+
+    public function get_sections() {
+        if ($this->session->userdata('teacher_login') != 1) {
+            echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+            return;
+        }
+        
+        $class_id = $this->input->post('class_id');
+        
+        if (!$class_id) {
+            echo json_encode([]);
+            return;
+        }
+        
+        $sections = $this->db->get_where('section', ['class_id' => $class_id])->result_array();
+        echo json_encode($sections);
+    }
+    
+    public function get_subjects() {
+        if ($this->session->userdata('teacher_login') != 1) {
+            echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+            return;
+        }
+        
+        $class_id = $this->input->post('class_id');
+        $section_id = $this->input->post('section_id');
+        
+        if (!$class_id || !$section_id) {
+            echo json_encode([]);
+            return;
+        }
+        
+        $subjects = $this->db->get_where('subject', ['class_id' => $class_id])->result_array();
+        echo json_encode($subjects);
+    }
+    
+    public function add_timetable_entry() {
+        if ($this->session->userdata('teacher_login') != 1) {
+            echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+            return;
+        }
+        
+        try {
+            $data = [
+                'class_id' => $this->input->post('class_id'),
+                'section_id' => $this->input->post('section_id'),
+                'subject_id' => $this->input->post('subject_id'),
+                'teacher_id' => $this->session->userdata('teacher_id'),
+                'day_of_week' => $this->input->post('day_of_week'),
+                'time_slot_start' => $this->input->post('time_slot_start'),
+                'time_slot_end' => $this->input->post('time_slot_end'),
+                'room_number' => $this->input->post('room_number')
+            ];
+            
+            // Validate required fields
+            foreach ($data as $key => $value) {
+                if (empty($value)) {
+                    echo json_encode(['status' => 'error', 'message' => ucfirst(str_replace('_', ' ', $key)) . ' is required']);
+                    return;
+                }
+            }
+            
+            // Check for time slot conflicts
+            $this->db->where('teacher_id', $data['teacher_id']);
+            $this->db->where('day_of_week', $data['day_of_week']);
+            $this->db->where("(
+                (time_slot_start <= '{$data['time_slot_start']}' AND time_slot_end > '{$data['time_slot_start']}') OR
+                (time_slot_start < '{$data['time_slot_end']}' AND time_slot_end >= '{$data['time_slot_end']}') OR
+                (time_slot_start >= '{$data['time_slot_start']}' AND time_slot_end <= '{$data['time_slot_end']}')
+            )");
+            
+            if ($this->db->get('calendar_timetable')->num_rows() > 0) {
+                echo json_encode(['status' => 'error', 'message' => 'Time slot conflicts with an existing class']);
+                return;
+            }
+            
+            // Insert the entry
+            $this->db->insert('calendar_timetable', $data);
+            
+            if ($this->db->affected_rows() > 0) {
+                echo json_encode([
+                    'status' => 'success',
+                    'message' => 'Class added to schedule successfully'
+                ]);
+            } else {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Failed to add class to schedule'
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'An error occurred: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
+    public function update_timetable_entry() {
+        if ($this->session->userdata('teacher_login') != 1) {
+            echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+            return;
+        }
+        
+        try {
+            $id = $this->input->post('timetable_id');
+            $teacher_id = $this->session->userdata('teacher_id');
+            
+            // Check if entry exists and belongs to this teacher
+            $existing = $this->db->get_where('calendar_timetable', [
+                'id' => $id,
+                'teacher_id' => $teacher_id
+            ])->row_array();
+            
+            if (!$existing) {
+                echo json_encode(['status' => 'error', 'message' => 'Entry not found or access denied']);
+                return;
+            }
+            
+            $data = [
+                'class_id' => $this->input->post('class_id'),
+                'section_id' => $this->input->post('section_id'),
+                'subject_id' => $this->input->post('subject_id'),
+                'day_of_week' => $this->input->post('day_of_week'),
+                'time_slot_start' => $this->input->post('time_slot_start'),
+                'time_slot_end' => $this->input->post('time_slot_end'),
+                'room_number' => $this->input->post('room_number')
+            ];
+            
+            // Validate required fields
+            foreach ($data as $key => $value) {
+                if (empty($value)) {
+                    echo json_encode(['status' => 'error', 'message' => ucfirst(str_replace('_', ' ', $key)) . ' is required']);
+                    return;
+                }
+            }
+            
+            // Check for time slot conflicts (excluding current entry)
+            $this->db->where('teacher_id', $teacher_id);
+            $this->db->where('day_of_week', $data['day_of_week']);
+            $this->db->where('id !=', $id);
+            $this->db->where("(
+                (time_slot_start <= '{$data['time_slot_start']}' AND time_slot_end > '{$data['time_slot_start']}') OR
+                (time_slot_start < '{$data['time_slot_end']}' AND time_slot_end >= '{$data['time_slot_end']}') OR
+                (time_slot_start >= '{$data['time_slot_start']}' AND time_slot_end <= '{$data['time_slot_end']}')
+            )");
+            
+            if ($this->db->get('calendar_timetable')->num_rows() > 0) {
+                echo json_encode(['status' => 'error', 'message' => 'Time slot conflicts with an existing class']);
+                return;
+            }
+            
+            // Update the entry
+            $this->db->where('id', $id);
+            $this->db->update('calendar_timetable', $data);
+            
+            if ($this->db->affected_rows() >= 0) {
+                echo json_encode([
+                    'status' => 'success',
+                    'message' => 'Class schedule updated successfully'
+                ]);
+            } else {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Failed to update class schedule'
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'An error occurred: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
+    public function delete_timetable_entry() {
+        if ($this->session->userdata('teacher_login') != 1) {
+            echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+            return;
+        }
+        
+        try {
+            $id = $this->input->post('id');
+            $teacher_id = $this->session->userdata('teacher_id');
+            
+            // Check if entry exists and belongs to this teacher
+            $existing = $this->db->get_where('calendar_timetable', [
+                'id' => $id,
+                'teacher_id' => $teacher_id
+            ])->row_array();
+            
+            if (!$existing) {
+                echo json_encode(['status' => 'error', 'message' => 'Entry not found or access denied']);
+                return;
+            }
+            
+            // Delete the entry
+            $this->db->where('id', $id);
+            $this->db->delete('calendar_timetable');
+            
+            if ($this->db->affected_rows() > 0) {
+                echo json_encode([
+                    'status' => 'success',
+                    'message' => 'Class removed from schedule successfully'
+                ]);
+            } else {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Failed to remove class from schedule'
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'An error occurred: ' . $e->getMessage()
+            ]);
         }
     }
 
