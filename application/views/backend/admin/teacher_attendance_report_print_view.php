@@ -95,8 +95,21 @@
     </div>
     
     <?php
+    // Add fallback if CAL_GREGORIAN constant is not defined
+    if (!defined('CAL_GREGORIAN')) {
+        define('CAL_GREGORIAN', 0);
+    }
+    
+    // Add fallback if cal_days_in_month is not available
+    if (!function_exists('cal_days_in_month')) {
+        function cal_days_in_month($calendar, $month, $year) {
+            // Ignore $calendar parameter since we don't need it
+            return date('t', mktime(0, 0, 0, $month, 1, $year));
+        }
+    }
+    
     // Calculate days in month
-    $number_of_days = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+    $number_of_days = date('t', mktime(0, 0, 0, $month, 1, $year));
     $days = array();
     for ($i = 1; $i <= $number_of_days; $i++) {
         $days[] = $i;
@@ -121,7 +134,16 @@
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($attendance_report as $teacher_id => $report) : ?>
+            <?php 
+            if (empty($attendance_report)) {
+                echo '<tr><td colspan="' . ($number_of_days + 5) . '" style="text-align:center;">' . get_phrase('no_data_available') . '</td></tr>';
+            } else {
+                foreach ($attendance_report as $teacher_id => $report) : 
+                    // Skip if essential data is missing
+                    if (!isset($report['teacher_name']) || !isset($report['attendance_data']) || !is_array($report['attendance_data'])) {
+                        continue;
+                    }
+            ?>
                 <tr>
                     <td><?php echo $report['teacher_name']; ?></td>
                     <?php foreach ($days as $day) : ?>
@@ -152,26 +174,31 @@
                         </td>
                     <?php endforeach; ?>
                     <td class="present">
-                        <?php echo $report['stats']['present']; ?>
+                        <?php echo isset($report['stats']['present']) ? $report['stats']['present'] : '0'; ?>
                     </td>
                     <td class="absent">
-                        <?php echo $report['stats']['absent']; ?>
+                        <?php echo isset($report['stats']['absent']) ? $report['stats']['absent'] : '0'; ?>
                     </td>
                     <td class="late">
-                        <?php echo $report['stats']['late']; ?>
+                        <?php echo isset($report['stats']['late']) ? $report['stats']['late'] : '0'; ?>
                     </td>
                     <td class="halfday">
                         <?php 
                         // Half day status is 4
                         $half_day_count = 0;
-                        foreach ($report['attendance_data'] as $status) {
-                            if ($status == 4) $half_day_count++;
+                        if (isset($report['attendance_data']) && is_array($report['attendance_data'])) {
+                            foreach ($report['attendance_data'] as $status) {
+                                if ($status == 4) $half_day_count++;
+                            }
                         }
                         echo $half_day_count;
                         ?>
                     </td>
                 </tr>
-            <?php endforeach; ?>
+            <?php 
+                endforeach; 
+            }
+            ?>
         </tbody>
     </table>
     

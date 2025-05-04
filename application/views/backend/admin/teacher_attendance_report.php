@@ -83,17 +83,25 @@
                         </div>
                     </div>
                 </div>
-                <button type="button" class="btn btn-success btn-lg" id="submit" onclick="return get_attendance_report();">
-                    <i class="fa fa-search"></i> <?php echo get_phrase('show_report');?>
-                </button>
+                <div class="row" style="margin-top: 20px;">
+                    <div class="col-md-offset-4 col-md-4 text-center">
+                        <button type="button" class="btn btn-lg btn-primary btn-block btn-rounded" onclick="get_attendance_report()">
+                            <i class="fa fa-search"></i> <?php echo get_phrase('show_report'); ?>
+                        </button>
+                    </div>
+                </div>
                 <button type="button" class="btn btn-primary" id="print_report" onclick="return print_attendance_report();" style="display:none;">
                     <i class="fa fa-print"></i> <?php echo get_phrase('print_report');?>
                 </button>
                 <a href="<?php echo base_url();?>admin/teacher_attendance" class="btn btn-default">
                     <i class="fa fa-list"></i> <?php echo get_phrase('manage_attendance');?>
                 </a>
-                <div id="status_message" class="alert alert-info" style="margin-top: 15px; display: none;"></div>
-                <div id="report_holder"></div>
+                <div id="status_message" class="alert" style="display:none; margin-top: 15px;"></div>
+                <div id="ajax_loading" style="display:none; text-align:center; margin-top: 20px; margin-bottom: 20px;">
+                    <i class="fa fa-spinner fa-spin fa-3x"></i>
+                    <p><?php echo get_phrase('loading'); ?>...</p>
+                </div>
+                <div id="report_holder" style="margin-top: 20px;"></div>
             </div>
         </div>
     </div>
@@ -106,57 +114,110 @@ function get_attendance_report() {
     var year = $('#year').val();
     
     if(month != '' && year != '') {
-        $('#status_message').html('Loading data for ' + month + '/' + year + '...').show();
-        $('#report_holder').html('<div class="text-center"><i class="fa fa-spinner fa-spin fa-3x"></i><p>Loading...</p></div>');
+        $('#report_holder').empty();
+        $('#ajax_loading').show();
+        $('#print_report').hide();
+        $('#status_message').hide();
         
-        // Show selected parameters in the browser console for debugging
-        console.log("Parameters:", {teacher_id: teacher_id, month: month, year: year});
+        console.log('Requesting teacher attendance report for: ' + month + '/' + year);
         
         $.ajax({
             url: '<?php echo base_url();?>admin/load_teacher_attendance_report/' + month + '/' + year,
             type: 'GET',
-            timeout: 15000, // 15 second timeout
+            dataType: 'html',
+            timeout: 30000, // 30 second timeout
+            beforeSend: function() {
+                console.log('AJAX request started');
+            },
             success: function(response) {
-                console.log("Response received", response ? "length: " + response.length : "none");
-                jQuery('#report_holder').html(response);
-                $('#print_report').show();
-                $('#status_message').hide();
+                $('#ajax_loading').hide();
+                console.log('AJAX request successful');
+                
+                if (response.trim() === '') {
+                    $('#status_message').html('Empty response received from server').addClass('alert-warning').show();
+                    $('#report_holder').html('<div class="alert alert-warning">No data received from server</div>');
+                } else {
+                    $('#report_holder').html(response);
+                    $('#print_report').show();
+                }
             },
             error: function(xhr, status, error) {
-                console.error("AJAX Error:", xhr, status, error);
-                $('#report_holder').html('<div class="alert alert-danger">Error loading report: ' + error + '<br>Please try again or contact administrator.</div>');
-                $('#status_message').html('Failed to load report: ' + status).show();
+                $('#ajax_loading').hide();
+                console.error("AJAX Error:", status, error);
+                
+                // Try to get more detailed error information
+                var errorMessage = error || 'Unknown error';
+                var additionalInfo = '';
+                
+                if (xhr.responseText) {
+                    // Try to extract specific error from response
+                    console.log('Response Text:', xhr.responseText);
+                    if (xhr.responseText.indexOf('Fatal error') !== -1) {
+                        additionalInfo = '<br>PHP Fatal Error detected. Check server logs.';
+                    } else if (xhr.responseText.indexOf('Warning') !== -1) {
+                        additionalInfo = '<br>PHP Warning detected. Check server logs.';
+                    } else if (xhr.responseText.indexOf('Notice') !== -1) {
+                        additionalInfo = '<br>PHP Notice detected. Check server logs.';
+                    } else if (xhr.responseText.length > 200) {
+                        additionalInfo = '<br>Large error response received. Check server logs.';
+                    } else if (xhr.responseText.length > 0) {
+                        additionalInfo = '<br>Server response: ' + xhr.responseText.substring(0, 200);
+                    }
+                }
+                
+                $('#status_message').html('Error: ' + errorMessage + additionalInfo).addClass('alert-danger').show();
+                $('#report_holder').html('<div class="alert alert-danger">' +
+                    '<h4><i class="fa fa-exclamation-triangle"></i> Error!</h4>' +
+                    '<p>Failed to load attendance report. Please try again or contact administrator.</p>' +
+                    '<p>Error details: ' + status + ' - ' + errorMessage + '</p>' +
+                    '</div>'
+                );
+                $('#print_report').hide();
             },
             complete: function() {
-                // Ensure we're getting a response at all
-                console.log("AJAX request completed");
+                console.log('AJAX request completed');
             }
         });
     } else {
-        $('#status_message').html('Please select month and year').show();
-        $('#report_holder').html('<div class="alert alert-warning">Please select month and year</div>');
+        $('#status_message').html('Please select month and year').addClass('alert-info').show();
+        $('#report_holder').html('<div class="alert alert-info">Please select month and year</div>');
+        $('#print_report').hide();
     }
-    return false;
 }
 
 function print_attendance_report() {
     var month = $('#month').val();
     var year = $('#year').val();
-    var teacher_id = $('#teacher_id').val();
     
-    // Open print view in new window
-    var print_url = '<?php echo base_url();?>admin/teacher_attendance_report_print_view/' + month + '/' + year;
-    if (teacher_id != 'all') {
-        print_url += '/' + teacher_id;
+    if(month != '' && year != '') {
+        try {
+            var printUrl = '<?php echo base_url();?>admin/teacher_attendance_report_print_view/' + month + '/' + year;
+            console.log('Opening print view: ' + printUrl);
+            window.open(printUrl, '_blank');
+        } catch (e) {
+            console.error('Error opening print view:', e);
+            alert('Error opening print view: ' + e.message);
+        }
+    } else {
+        alert('<?php echo get_phrase("please_select_month_and_year_first"); ?>');
     }
-    
-    window.open(print_url, '_blank');
     return false;
 }
 
-// Load report on page load to ensure it works
+// Initialize the page
 $(document).ready(function() {
-    // Uncomment this line to automatically load report when page loads
-    // get_attendance_report();
+    $('.selectboxit').selectBoxIt({
+        showFirstOption: true
+    });
+    
+    // Auto-hide any status messages after 5 seconds
+    setTimeout(function() {
+        $('.alert-dismissible').fadeOut('slow');
+    }, 5000);
+    
+    // Add click handlers for debugging
+    $('#print_report').on('click', function() {
+        console.log('Print report button clicked');
+    });
 });
 </script>

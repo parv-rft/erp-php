@@ -1989,7 +1989,26 @@ class Admin extends CI_Controller {
             redirect(base_url(), 'refresh');
         }
         
+        header('Content-Type: text/html; charset=utf-8');
+        
+        // Add fallback if CAL_GREGORIAN constant is not defined
+        if (!defined('CAL_GREGORIAN')) {
+            define('CAL_GREGORIAN', 0);
+        }
+        
+        // Add fallback for cal_days_in_month if it doesn't exist
+        if (!function_exists('cal_days_in_month')) {
+            function cal_days_in_month($calendar, $month, $year) {
+                // Ignore $calendar parameter since we don't need it
+                return date('t', mktime(0, 0, 0, $month, 1, $year));
+            }
+        }
+        
         try {
+            // Set error reporting to catch all issues
+            error_reporting(E_ALL);
+            ini_set('display_errors', 1);
+            
             // Log initial parameters
             error_log('load_teacher_attendance_report called with month=' . $month . ', year=' . $year);
             
@@ -2020,27 +2039,68 @@ class Admin extends CI_Controller {
                 $this->db->query($query);
             }
             
-            // Explicitly load the model
-            $this->load->model('teacher_attendance_model');
-            error_log('Teacher attendance model loaded');
+            // Load required model
+            $model_path = APPPATH . 'models/Teacher_attendance_model.php';
+            if (!file_exists($model_path)) {
+                error_log('Teacher_attendance_model.php not found at ' . $model_path);
+                echo '<div class="alert alert-danger">Model file not found. Please contact administrator.</div>';
+                return;
+            }
+            
+            // Explicitly load the model with error checking
+            try {
+                $this->load->model('teacher_attendance_model');
+                error_log('Teacher attendance model loaded successfully');
+            } catch (Exception $e) {
+                error_log('Failed to load teacher attendance model: ' . $e->getMessage());
+                echo '<div class="alert alert-danger">Failed to load model: ' . $e->getMessage() . '</div>';
+                return;
+            }
+            
+            // Verify model loaded correctly
+            if (!isset($this->teacher_attendance_model)) {
+                error_log('Teacher attendance model failed to load properly');
+                echo '<div class="alert alert-danger">Model failed to load properly.</div>';
+                return;
+            }
+            
+            // Create sample data if needed
+            try {
+                $this->teacher_attendance_model->createSampleAttendanceData($month, $year);
+                error_log('Sample data created if needed');
+            } catch (Exception $e) {
+                error_log('Failed to create sample data: ' . $e->getMessage());
+                // Continue anyway, not critical
+            }
             
             // Get the attendance report from the model with error handling
-            error_log('Getting teacher attendance report for month ' . $page_data['month'] . ' year ' . $page_data['year']);
-            $page_data['attendance_report'] = $this->teacher_attendance_model->getTeacherAttendanceReport($page_data['month'], $page_data['year']);
-            
-            // Debug the results
-            error_log('Attendance report data received: ' . (!empty($page_data['attendance_report']) ? 'Yes' : 'No'));
-            
-            if (empty($page_data['attendance_report'])) {
-                error_log('No attendance report data found');
-                echo '<div class="alert alert-info">No attendance data found for ' . date('F Y', mktime(0, 0, 0, $page_data['month'], 1, $page_data['year'])) . '</div>';
+            try {
+                error_log('Getting teacher attendance report for month ' . $page_data['month'] . ' year ' . $page_data['year']);
+                $page_data['attendance_report'] = $this->teacher_attendance_model->getTeacherAttendanceReport($page_data['month'], $page_data['year']);
+                
+                // Debug the results
+                error_log('Attendance report data received: ' . (!empty($page_data['attendance_report']) ? count($page_data['attendance_report']) . ' records' : 'No data'));
+                
+                if (empty($page_data['attendance_report'])) {
+                    error_log('No attendance report data found');
+                    echo '<div class="alert alert-info">No attendance data found for ' . date('F Y', mktime(0, 0, 0, $page_data['month'], 1, $page_data['year'])) . '</div>';
+                    return;
+                }
+            } catch (Exception $e) {
+                error_log('Error getting attendance report: ' . $e->getMessage());
+                echo '<div class="alert alert-danger">Error getting attendance data: ' . $e->getMessage() . '</div>';
                 return;
             }
             
             // Load the view
-            error_log('Loading teacher_attendance_report_ajax view');
-            $this->load->view('backend/admin/teacher_attendance_report_ajax', $page_data);
-            error_log('View loaded successfully');
+            try {
+                error_log('Loading teacher_attendance_report_ajax view');
+                $this->load->view('backend/admin/teacher_attendance_report_ajax', $page_data);
+                error_log('View loaded successfully');
+            } catch (Exception $e) {
+                error_log('Error loading view: ' . $e->getMessage());
+                echo '<div class="alert alert-danger">Error loading view: ' . $e->getMessage() . '</div>';
+            }
         } catch (Exception $e) {
             error_log('Error in load_teacher_attendance_report: ' . $e->getMessage());
             echo '<div class="alert alert-danger">Error: ' . $e->getMessage() . '</div>';
