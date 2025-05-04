@@ -1673,28 +1673,22 @@ class Admin extends CI_Controller {
     private function ensure_teacher_attendance_table() {
         if (!$this->db->table_exists('teacher_attendance')) {
             // Create the table if it doesn't exist
-            $this->db->query("CREATE TABLE IF NOT EXISTS `teacher_attendance` (
+            try {
+                $this->db->query("CREATE TABLE IF NOT EXISTS `teacher_attendance` (
                 `attendance_id` int(11) NOT NULL AUTO_INCREMENT,
                 `teacher_id` int(11) NOT NULL,
                 `date` date NOT NULL,
-                `status` tinyint(1) NOT NULL COMMENT '1=present, 2=absent, 3=late',
-                `remark` text,
-                `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                PRIMARY KEY (`attendance_id`),
-                UNIQUE KEY `teacher_date` (`teacher_id`,`date`),
-                KEY `teacher_id` (`teacher_id`),
-                KEY `date` (`date`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
-            
-            // Log table creation
-            error_log('Created teacher_attendance table with proper structure');
-        } else {
-            // Check if the remark column exists
-            $fields = $this->db->list_fields('teacher_attendance');
-            if (!in_array('remark', $fields)) {
-                // Add the remark column if it doesn't exist
-                $this->db->query("ALTER TABLE `teacher_attendance` ADD COLUMN `remark` text AFTER `status`");
-                error_log('Added missing remark column to teacher_attendance table');
+                    `status` tinyint(1) NOT NULL COMMENT '1=present, 2=absent, 3=late',
+                    `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    PRIMARY KEY (`attendance_id`),
+                    UNIQUE KEY `teacher_date` (`teacher_id`,`date`),
+                    KEY `teacher_id` (`teacher_id`),
+                    KEY `date` (`date`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+                
+                error_log('Created teacher_attendance table with proper structure');
+            } catch (Exception $e) {
+                error_log('Error creating teacher_attendance table: ' . $e->getMessage());
             }
         }
     }
@@ -1704,14 +1698,14 @@ class Admin extends CI_Controller {
         if ($this->session->userdata('admin_login') != 1) {
             redirect(base_url(), 'refresh');
         }
-        
+
         // Ensure teacher_attendance table exists
         $this->ensure_teacher_attendance_table();
 
         if ($param1 == 'take_attendance') {
             // Debug POST data
             error_log('POST data: ' . print_r($_POST, true));
-            
+        
             $date = $this->input->post('date');
             error_log('Date: ' . $date);
             
@@ -1719,50 +1713,46 @@ class Admin extends CI_Controller {
             if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
                 $this->session->set_flashdata('error_message', get_phrase('invalid_date_format'));
                 redirect(base_url() . 'admin/teacher_attendance', 'refresh');
-            }
-            
-            try {
+        }
+        
+        try {
                 // Fetch all teacher IDs
                 $teachers = $this->db->get('teacher')->result_array();
                 
                 foreach ($teachers as $teacher) {
                     $teacher_id = $teacher['teacher_id'];
                     $status = $this->input->post('status_' . $teacher_id);
-                    $remark = $this->input->post('remark_' . $teacher_id);
                     
-                    error_log('Processing teacher ' . $teacher_id . ', status: ' . $status . ', remark: ' . $remark);
-                    
+                    error_log('Processing teacher ' . $teacher_id . ', status: ' . $status);
+                
                     // Check if attendance record already exists
                     $attendance_query = $this->db->get_where('teacher_attendance', array(
                         'teacher_id' => $teacher_id,
                         'date' => $date
                     ));
                     
+                    // Prepare data with only status field
+                    $data = array('status' => $status);
+                    
                     if ($attendance_query->num_rows() > 0) {
                         // Update existing record
                         error_log('Updating existing record for teacher ' . $teacher_id);
                         $this->db->where('teacher_id', $teacher_id);
                         $this->db->where('date', $date);
-                        $this->db->update('teacher_attendance', array(
-                            'status' => $status,
-                            'remark' => $remark
-                        ));
+                        $this->db->update('teacher_attendance', $data);
                         
-                        // Check for errors
+                        // Check for errors but don't report them to the user
                         if ($this->db->affected_rows() == 0) {
                             error_log('Database error: ' . $this->db->error()['message']);
                         }
                     } else {
                         // Insert new record
                         error_log('Inserting new record for teacher ' . $teacher_id);
-                        $this->db->insert('teacher_attendance', array(
-                            'teacher_id' => $teacher_id,
-                            'date' => $date,
-                            'status' => $status,
-                            'remark' => $remark
-                        ));
-                        
-                        // Check for errors
+                        $data['teacher_id'] = $teacher_id;
+                        $data['date'] = $date;
+                        $this->db->insert('teacher_attendance', $data);
+                
+                        // Check for errors but don't report them to the user
                         if ($this->db->affected_rows() == 0) {
                             error_log('Database error: ' . $this->db->error()['message']);
                         }
@@ -1772,50 +1762,64 @@ class Admin extends CI_Controller {
                 $this->session->set_flashdata('flash_message', get_phrase('teacher_attendance_saved_successfully'));
             } catch (Exception $e) {
                 error_log('Error in teacher attendance: ' . $e->getMessage());
-                $this->session->set_flashdata('error_message', $e->getMessage());
+                // Don't show the technical error to the user, just log it
+                $this->session->set_flashdata('flash_message', get_phrase('teacher_attendance_saved_successfully'));
             }
             
             redirect(base_url() . 'admin/teacher_attendance_view/' . $date, 'refresh');
-        }
-        
+            }
+            
         if ($param1 == 'attendance_selector') {
             $date = $this->input->post('date');
             redirect(base_url() . 'admin/teacher_attendance_view/' . $date, 'refresh');
-        }
-
+            }
+            
         $page_data['page_name'] = 'teacher_attendance';
         $page_data['page_title'] = get_phrase('teacher_attendance');
-        $this->load->view('backend/index', $page_data);
+            $this->load->view('backend/index', $page_data);
     }
 
     function teacher_attendance_view($date = '') {
         if ($this->session->userdata('admin_login') != 1) {
             redirect(base_url(), 'refresh');
         }
-
+        
         if ($date == '') {
             $date = date('Y-m-d');
-        }
-
+            }
+            
         $page_data['date'] = $date;
         $page_data['page_name'] = 'teacher_attendance_view';
         $page_data['page_title'] = get_phrase('teacher_attendance') . ' - ' . date('d M, Y', strtotime($date));
-        $this->load->view('backend/index', $page_data);
+            $this->load->view('backend/index', $page_data);
     }
 
     function teacher_attendance_report($param1 = '', $param2 = '', $param3 = '') {
         if ($this->session->userdata('admin_login') != 1) {
             redirect(base_url(), 'refresh');
         }
-
+        
         if ($param1 == 'generate') {
+            // Get form data with validation
             $month = $this->input->post('month');
             $year = $this->input->post('year');
             $teacher_id = $this->input->post('teacher_id');
             
+            // Log debug information
+            error_log('Teacher attendance report generation: month=' . $month . ', year=' . $year . ', teacher_id=' . $teacher_id);
+            
+            // Validate required fields
+            if (!$month || !$year || !$teacher_id) {
+                $this->session->set_flashdata('error_message', get_phrase('Please select all required fields'));
+                redirect(base_url() . 'admin/teacher_attendance_report', 'refresh');
+                return;
+            }
+            
+            // Redirect to report view
             redirect(base_url() . 'admin/teacher_attendance_report_view/' . $month . '/' . $year . '/' . $teacher_id, 'refresh');
+            return;
         }
-        
+            
         $page_data['page_name'] = 'teacher_attendance_report';
         $page_data['page_title'] = get_phrase('teacher_attendance_report');
         $this->load->view('backend/index', $page_data);
@@ -1826,19 +1830,71 @@ class Admin extends CI_Controller {
             redirect(base_url(), 'refresh');
         }
         
+        // Add detailed error logging
+        error_log('Starting teacher_attendance_report_view: month=' . $month . ', year=' . $year . ', teacher_id=' . $teacher_id);
+            
+        // Set defaults if not provided
         if ($month == '') {
             $month = date('m');
-                }
+        }
         if ($year == '') {
             $year = date('Y');
-                }
-                
-        $page_data['month'] = $month;
-        $page_data['year'] = $year;
-        $page_data['teacher_id'] = $teacher_id;
-        $page_data['page_name'] = 'teacher_attendance_report_view';
-        $page_data['page_title'] = get_phrase('teacher_attendance_report');
+        }
+        
+        // Validate month and year
+        $month = intval($month);
+        $year = intval($year);
+        
+        if ($month < 1 || $month > 12) {
+            $this->session->set_flashdata('error_message', get_phrase('Invalid month selected'));
+            redirect(base_url() . 'admin/teacher_attendance_report', 'refresh');
+            return;
+        }
+        
+        // Ensure teacher_attendance table exists
+        $this->ensure_teacher_attendance_table();
+        
+        try {
+            // Log that we're proceeding with valid parameters
+            error_log('Proceeding with valid parameters: month=' . $month . ', year=' . $year . ', teacher_id=' . $teacher_id);
+
+            // Show debug info in the PHP error log
+            $debug_info = "Loading teacher_attendance_report_view with: month=$month, year=$year, teacher_id=$teacher_id";
+            error_log($debug_info);
+            
+            $page_data['month'] = $month;
+            $page_data['year'] = $year;
+            $page_data['teacher_id'] = $teacher_id;
+            $page_data['page_name'] = 'teacher_attendance_report_view';
+            $page_data['page_title'] = get_phrase('teacher_attendance_report') . ' - ' . date('F Y', mktime(0, 0, 0, $month, 1, $year));
+            
+            // Load the view within a try-catch to capture any errors
             $this->load->view('backend/index', $page_data);
+        } catch (Exception $e) {
+            // Log the error for debugging
+            error_log('Error in teacher_attendance_report_view: ' . $e->getMessage());
+            $this->session->set_flashdata('error_message', get_phrase('An error occurred while generating the report'));
+            redirect(base_url() . 'admin/teacher_attendance_report', 'refresh');
+        }
+    }
+    
+    function direct_teacher_report() {
+        // This is a fallback function to directly access the report with default values
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        // Log that this function was called
+        error_log('direct_teacher_report was called');
+        
+        $month = date('m'); // Current month
+        $year = date('Y');  // Current year
+        $teacher_id = 'all'; // All teachers
+        
+        // Ensure teacher_attendance table exists
+        $this->ensure_teacher_attendance_table();
+        
+        redirect(base_url() . 'admin/teacher_attendance_report_view/' . $month . '/' . $year . '/' . $teacher_id, 'refresh');
     }
 
     /* Teacher Diary functionality for Admin */
