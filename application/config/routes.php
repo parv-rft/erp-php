@@ -98,3 +98,12 @@ $route['teacher/get_my_timetable_data'] = 'teacher/get_my_timetable_data';
 // Common routes for both
 $route['get_sections/(:num)'] = 'admin/get_sections/$1';
 $route['get_subjects/(:num)'] = 'admin/get_subjects/$1';
+
+// Teacher attendance routes
+$route['admin/teacher_attendance'] = 'admin/teacher_attendance';
+$route['admin/teacher_attendance/attendance_selector'] = 'admin/teacher_attendance/attendance_selector';
+$route['admin/teacher_attendance/take_attendance'] = 'admin/teacher_attendance/take_attendance';
+$route['admin/teacher_attendance_view/(:any)'] = 'admin/teacher_attendance_view/$1';
+$route['admin/teacher_attendance_report'] = 'admin/teacher_attendance_report';
+$route['admin/teacher_attendance_report/generate'] = 'admin/teacher_attendance_report/generate';
+$route['admin/teacher_attendance_report_view/(:num)/(:num)/(:any)'] = 'admin/teacher_attendance_report_view/$1/$2/$3';

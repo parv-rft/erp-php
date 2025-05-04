@@ -68,7 +68,7 @@ $teacher_name = $this->db->get_where('teacher', array('teacher_id' => $teacher_i
 .time-col { 
     width: 120px;
     background: #f8f9fa !important;
-    color: #333 !important;
+    color: #000 !important;
     font-weight: bold;
 }
 

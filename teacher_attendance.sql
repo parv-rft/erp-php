@@ -1,11 +1,17 @@
--- Table structure for table `teacher_attendance`
-CREATE TABLE IF NOT EXISTS `teacher_attendance` (
+-- Drop the table if it exists to avoid conflicts
+DROP TABLE IF EXISTS `teacher_attendance`;
+
+-- Create the teacher_attendance table
+CREATE TABLE `teacher_attendance` (
   `attendance_id` int(11) NOT NULL AUTO_INCREMENT,
   `teacher_id` int(11) NOT NULL,
-  `status` int(11) NOT NULL DEFAULT '0' COMMENT '0=undefined, 1=present, 2=absent',
   `date` date NOT NULL,
-  `year` varchar(10) NOT NULL,
-  `month` varchar(10) NOT NULL,
-  `day` varchar(10) NOT NULL,
-  PRIMARY KEY (`attendance_id`)
+  `status` tinyint(1) NOT NULL COMMENT '1=present, 2=absent, 3=late',
+  `remark` text,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`attendance_id`),
+  UNIQUE KEY `teacher_date` (`teacher_id`,`date`),
+  KEY `teacher_id` (`teacher_id`),
+  KEY `date` (`date`),
+  CONSTRAINT `teacher_attendance_ibfk_1` FOREIGN KEY (`teacher_id`) REFERENCES `teacher` (`teacher_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8; 
