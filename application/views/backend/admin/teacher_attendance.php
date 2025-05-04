@@ -19,7 +19,15 @@
                     <button type="submit" class="btn btn-info btn-block btn-rounded btn-sm"><i class="fa fa-search"></i>&nbsp;<?php echo get_phrase('get_teachers');?></button>
                 </div>
                 
-                </form>                
+                </form>  
+                <hr>
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <a href="<?php echo base_url();?>admin/teacher_attendance_report" class="btn btn-info btn-block btn-rounded btn-sm text-white">
+                            <i class="fa fa-bar-chart"></i>&nbsp;<?php echo get_phrase('View Attendance Report');?>
+                        </a>
+                    </div>
+                </div>              
             </div>                
         </div>
     </div>
@@ -102,14 +110,14 @@
                     </div>
                 </form>
 
-                <hr>
+                <!-- <hr>
                 <div class="row">
                     <div class="col-md-12 text-center">
-                        <a href="<?php echo base_url();?>admin/teacher_attendance_report" class="btn btn-success btn-rounded btn-sm">
+                        <a href="<?php echo base_url();?>admin/teacher_attendance_report" class="btn btn-info btn-block btn-rounded btn-sm text-white">
                             <i class="fa fa-bar-chart"></i>&nbsp;<?php echo get_phrase('View Attendance Report');?>
                         </a>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
     </div>

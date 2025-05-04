@@ -11,21 +11,7 @@
             </div>
             <div class="panel-body">
                 <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label class="control-label"><?php echo get_phrase('teacher'); ?></label>
-                            <select class="form-control selectboxit" name="teacher_id" id="teacher_id">
-                                <option value="all"><?php echo get_phrase('all_teachers'); ?></option>
-                                <?php
-                                $teachers = $this->db->get('teacher')->result_array();
-                                foreach($teachers as $row):
-                                ?>
-                                <option value="<?php echo $row['teacher_id']; ?>"><?php echo $row['name']; ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="form-group">
                             <label class="control-label"><?php echo get_phrase('month'); ?></label>
                             <select name="month" id="month" class="form-control selectboxit">
@@ -65,7 +51,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="form-group">
                             <label class="control-label"><?php echo get_phrase('year'); ?></label>
                             <select name="year" id="year" class="form-control selectboxit">
@@ -83,19 +69,20 @@
                         </div>
                     </div>
                 </div>
+                
                 <div class="row" style="margin-top: 20px;">
-                    <div class="col-md-offset-4 col-md-4 text-center">
-                        <button type="button" class="btn btn-lg btn-primary btn-block btn-rounded" onclick="get_attendance_report()">
-                            <i class="fa fa-search"></i> <?php echo get_phrase('show_report'); ?>
-                        </button>
+                    <div class="col-md-12 text-center">
+                        <div class="btn-group" role="group" style="display: inline-flex;">
+                            <button type="button" class="btn btn-primary btn-lg" style="width: 180px; height: 45px;" onclick="get_attendance_report()">
+                                <i class="fa fa-search"></i> <?php echo get_phrase('show_report'); ?>
+                            </button>
+                            <button type="button" class="btn btn-success btn-lg" id="print_report" style="width: 180px; height: 45px; margin-left: 10px;" onclick="return print_attendance_report();">
+                                <i class="fa fa-print"></i> <?php echo get_phrase('print_report');?>
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <button type="button" class="btn btn-primary" id="print_report" onclick="return print_attendance_report();" style="display:none;">
-                    <i class="fa fa-print"></i> <?php echo get_phrase('print_report');?>
-                </button>
-                <a href="<?php echo base_url();?>admin/teacher_attendance" class="btn btn-default">
-                    <i class="fa fa-list"></i> <?php echo get_phrase('manage_attendance');?>
-                </a>
+                
                 <div id="status_message" class="alert" style="display:none; margin-top: 15px;"></div>
                 <div id="ajax_loading" style="display:none; text-align:center; margin-top: 20px; margin-bottom: 20px;">
                     <i class="fa fa-spinner fa-spin fa-3x"></i>
@@ -109,7 +96,6 @@
 
 <script type="text/javascript">
 function get_attendance_report() {
-    var teacher_id = $('#teacher_id').val();
     var month = $('#month').val();
     var year = $('#year').val();
     
