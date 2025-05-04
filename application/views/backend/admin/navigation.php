@@ -187,9 +187,9 @@
                 </a>
             </li>
 
-        <li class="<?php if ($page_name == 'teacher_attendance' || $page_name == 'teacher_attendance_view' || $page_name == 'teacher_attendance_report') echo 'active'; ?>">
+        <li class="<?php if ($page_name == 'teacher_attendance' || $page_name == 'teacher_attendance_report' || $page_name == 'teacher_attendance_report_view') echo 'active'; ?>">
                 <a href="<?php echo base_url(); ?>admin/teacher_attendance">
-                <i class="fa fa-angle-double-right p-r-10"></i>
+                <i class="fa fa-calendar"></i>
                      <span class="hide-menu"><?php echo get_phrase('teacher_attendance'); ?></span>
                 </a>
         </li>
