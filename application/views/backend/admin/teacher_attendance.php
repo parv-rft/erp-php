@@ -3,100 +3,49 @@
     <div class="col-sm-12">
         <div class="panel panel-info">
             <div class="panel-heading">
-                <div class="panel-title">
-                    <h4><?php echo get_phrase('teacher_attendance'); ?></h4>
-                </div>
+                <i class="fa fa-plus"></i>&nbsp;&nbsp;<?php echo get_phrase('attendance'); ?>
             </div>
-            <div class="panel-body">
-                <?php echo form_open(base_url() . 'admin/teacher_attendance/attendance_selector', array('class' => 'form-horizontal form-groups-bordered validate')); ?>
-                <div class="row">
-                    <div class="col-md-offset-3 col-md-6">
-                        <div class="form-group">
-                            <label class="col-md-3 control-label"><?php echo get_phrase('date'); ?></label>
-                            <div class="col-md-9">
-                                <input type="date" name="date" class="form-control" value="<?php echo date('Y-m-d'); ?>" required>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <div class="col-md-offset-3 col-md-9">
-                                <button type="submit" class="btn btn-info"><?php echo get_phrase('manage_attendance'); ?></button>
-                            </div>
-                        </div>
+            <div class="panel-body table-responsive">
+                <?php echo form_open(base_url() . 'teacher/attendance_selector', array('class' => 'form-horizontal form-groups-bordered validate', 'target' => '_top', 'enctype' => 'multipart/form-data')); ?>
+                
+                <div class="form-group">
+                    <label class="col-md-12" for="example-text"><?php echo get_phrase('class'); ?></label>
+                    <div class="col-sm-12">
+                        <select name="class_id" id="class_id" class="form-control select2" onchange="return get_class_sections(this.value)">
+                            <option value=""><?php echo get_phrase('select_class'); ?></option>
+                            <?php 
+                            $class = $this->db->get('class')->result_array();
+                            foreach($class as $key => $class): ?>
+                                <option value="<?php echo $class['class_id']; ?>" <?php if(isset($class_id) && $class_id == $class['class_id']) echo 'selected="selected"'; ?>>
+                                    <?php echo $class['name']; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                 </div>
-                <?php echo form_close(); ?>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="row">
-    <div class="col-sm-12">
-        <div class="panel panel-info">
-            <div class="panel-heading">
-                <div class="panel-title">
-                    <h4><?php echo get_phrase('attendance_report'); ?></h4>
-                </div>
-            </div>
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-md-offset-3 col-md-6">
-                        <div class="form-group">
-                            <label class="col-md-3 control-label"><?php echo get_phrase('month'); ?></label>
-                            <div class="col-md-9">
-                                <select name="month" class="form-control" id="month">
-                                    <?php
-                                    for ($i = 1; $i <= 12; $i++):
-                                        $month_name = date('F', mktime(0, 0, 0, $i, 1));
-                                    ?>
-                                    <option value="<?php echo $i; ?>" <?php if(date('n') == $i) echo 'selected'; ?>><?php echo $month_name; ?></option>
-                                    <?php endfor; ?>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="col-md-3 control-label"><?php echo get_phrase('year'); ?></label>
-                            <div class="col-md-9">
-                                <select name="year" class="form-control" id="year">
-                                    <?php
-                                    $current_year = date('Y');
-                                    $start_year = $current_year - 5;
-                                    $end_year = $current_year + 2;
-                                    
-                                    for ($i = $start_year; $i <= $end_year; $i++):
-                                    ?>
-                                    <option value="<?php echo $i; ?>" <?php if($current_year == $i) echo 'selected'; ?>><?php echo $i; ?></option>
-                                    <?php endfor; ?>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="col-md-3 control-label"><?php echo get_phrase('teacher'); ?></label>
-                            <div class="col-md-9">
-                                <select name="teacher_id" class="form-control" id="teacher_id">
-                                    <option value="all"><?php echo get_phrase('all_teachers'); ?></option>
-                                    <?php
-                                    $teachers = $this->db->get('teacher')->result_array();
-                                    foreach ($teachers as $row):
-                                    ?>
-                                    <option value="<?php echo $row['teacher_id']; ?>"><?php echo $row['name']; ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <div class="col-md-offset-3 col-md-9">
-                                <button type="button" class="btn btn-info btn-block" id="generate_report">
-                                    <i class="fa fa-file-text"></i> <?php echo get_phrase('generate_report'); ?>
-                                </button>
-                            </div>
-                        </div>
+                <div class="form-group">
+                    <label class="col-md-12" for="example-text"><?php echo get_phrase('section'); ?></label>
+                    <div class="col-sm-12">
+                        <select name="section_id" class="form-control select2" id="section_selector_holder">
+                            <option value=""><?php echo get_phrase('select_class_first'); ?></option>
+                        </select>
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label class="col-md-12" for="example-text"><?php echo get_phrase('date'); ?></label>
+                    <div class="col-sm-12">
+                        <input type="date" class="form-control datepicker" name="timestamp" value="<?php echo date('Y-m-d', strtotime($date)); ?>" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-info btn-block btn-rounded btn-sm">
+                        <i class="fa fa-search"></i>&nbsp;<?php echo get_phrase('get_student'); ?>
+                    </button>
+                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -206,31 +155,5 @@ function get_class_sections(class_id) {
         }
     });
 }
-
-// Generate attendance report
-$(document).ready(function() {
-    $('#generate_report').click(function() {
-        var month = $('#month').val();
-        var year = $('#year').val();
-        var teacher_id = $('#teacher_id').val();
-        
-        if (month == "" || year == "") {
-            $.toast({
-                text: 'Please select month and year',
-                position: 'top-right',
-                loaderBg: '#f56954',
-                icon: 'warning',
-                hideAfter: 3500,
-                stack: 6
-            });
-            return false;
-        }
-        
-        console.log('Redirecting to report with month=' + month + ', year=' + year + ', teacher_id=' + teacher_id);
-        
-        // Redirect directly to the view page instead of going through the controller
-        window.location.href = '<?php echo base_url(); ?>admin/teacher_attendance_report_view/' + month + '/' + year + '/' + teacher_id;
-    });
-});
 </script>
 

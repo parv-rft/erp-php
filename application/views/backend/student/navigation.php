@@ -94,12 +94,12 @@
                     </a>
                 </li>
 
-                <li class="<?php if ($page_name == 'class_timetable') echo 'active'; ?>">
+                <!-- <li class="<?php if ($page_name == 'class_timetable') echo 'active'; ?>">
                     <a href="<?php echo base_url(); ?>student/class_timetable">
                         <i class="fa fa-clock-o p-r-10"></i>
                         <span class="hide-menu"><?php echo get_phrase('Class Timetable'); ?></span>
                     </a>
-                </li>
+                </li> -->
 
                 <li class="<?php if ($page_name == 'timetable') echo 'active'; ?>">
                     <a href="<?php echo base_url(); ?>student/timetable">

@@ -188,15 +188,13 @@ class Student extends CI_Controller {
         }
 
         function class_routine(){
-
+            if ($this->session->userdata('student_login') != 1)
+                redirect(base_url(), 'refresh');
+            
             $student_profile = $this->db->get_where('student', array('student_id' => $this->session->userdata('student_id')))->row();
-            $page_data['class_id']  = $student_profile->class_id;
-
-            $page_data['page_name']     = 'class_routine';
-            $page_data['page_title']    = get_phrase('Class Timetable');
-            $this->load->view('backend/index', $page_data);
-
-
+            
+            // Redirect to calendar timetable view
+            redirect(base_url() . 'student/calendar_timetable', 'refresh');
         }
 
         function invoice($param1 = null, $param2 = null, $param3 = null){
@@ -414,9 +412,6 @@ class Student extends CI_Controller {
             $page_data['default_class_id'] = $student->class_id;
             $page_data['default_section_id'] = $student->section_id;
             
-            // Get all classes for dropdown
-            $page_data['classes'] = $this->db->get('class')->result_array();
-            
             $page_data['page_name'] = 'calendar_timetable';
             $page_data['page_title'] = get_phrase('Class Calendar Timetable');
             $this->load->view('backend/index', $page_data);
@@ -432,38 +427,30 @@ class Student extends CI_Controller {
             try {
                 $class_id = $this->input->post('class_id');
                 $section_id = $this->input->post('section_id');
-                $month = $this->input->post('month');
-                $year = $this->input->post('year');
                 
                 // Validate inputs
                 if (!$class_id || !$section_id) {
-                    echo json_encode(['status' => 'error', 'message' => get_phrase('please_select_class_and_section')]);
+                    echo json_encode(['status' => 'error', 'message' => get_phrase('invalid_class_or_section')]);
                     return;
                 }
                 
-                if (!is_numeric($month) || $month < 1 || $month > 12) {
-                    echo json_encode(['status' => 'error', 'message' => get_phrase('invalid_month')]);
-                    return;
-                }
-                
-                if (!is_numeric($year) || $year < 2000 || $year > 2100) {
-                    echo json_encode(['status' => 'error', 'message' => get_phrase('invalid_year')]);
-                    return;
-                }
-                
-                // Get timetable entries for the specified class and section
+                // Get all timetable entries for the specified class and section
                 $this->db->select('ct.*, s.name as subject_name, t.name as teacher_name');
                 $this->db->from('calendar_timetable ct');
                 $this->db->join('subject s', 's.subject_id = ct.subject_id', 'left');
                 $this->db->join('teacher t', 't.teacher_id = ct.teacher_id', 'left');
                 $this->db->where('ct.class_id', $class_id);
                 $this->db->where('ct.section_id', $section_id);
-                $this->db->where('ct.month', $month);
-                $this->db->where('ct.year', $year);
                 $this->db->order_by('ct.day_of_week', 'ASC');
                 $this->db->order_by('ct.time_slot_start', 'ASC');
                 
                 $entries = $this->db->get()->result_array();
+                
+                // If no entries found, return empty array
+                if (empty($entries)) {
+                    echo json_encode([]);
+                    return;
+                }
                 
                 echo json_encode($entries);
             } catch (Exception $e) {

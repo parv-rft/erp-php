@@ -11,59 +11,20 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
             </div>
             <div class="panel-body">
                 <div class="row mb-3">
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="class_id"><?php echo get_phrase('class'); ?></label>
-                            <select id="class_id" class="form-control" onchange="get_sections(this.value)">
-                                <option value=""><?php echo get_phrase('select_class'); ?></option>
-                                <?php foreach ($classes as $class): ?>
-                                <option value="<?php echo $class['class_id']; ?>" <?php if ($class['class_id'] == $default_class_id) echo 'selected'; ?>>
-                                    <?php echo $class['name']; ?>
-                                </option>
-                                <?php endforeach; ?>
-                            </select>
+                    <div class="col-md-9">
+                        <div class="alert alert-info">
+                            <strong><?php echo get_phrase('class'); ?>:</strong> 
+                            <?php 
+                                $class_name = $this->db->get_where('class', array('class_id' => $default_class_id))->row()->name;
+                                $section_name = $this->db->get_where('section', array('section_id' => $default_section_id))->row()->name;
+                                echo $class_name . ' - ' . $section_name; 
+                            ?>
                         </div>
                     </div>
                     <div class="col-md-3">
                         <div class="form-group">
-                            <label for="section_id"><?php echo get_phrase('section'); ?></label>
-                            <select id="section_id" class="form-control">
-                                <option value=""><?php echo get_phrase('select_class_first'); ?></option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="month"><?php echo get_phrase('month'); ?></label>
-                            <select id="month" class="form-control">
-                                <?php for ($i = 1; $i <= 12; $i++): ?>
-                                <option value="<?php echo $i; ?>" <?php if ($i == date('n')) echo 'selected'; ?>>
-                                    <?php echo date('F', mktime(0, 0, 0, $i, 1)); ?>
-                                </option>
-                                <?php endfor; ?>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label for="year"><?php echo get_phrase('year'); ?></label>
-                            <select id="year" class="form-control">
-                                <?php 
-                                $current_year = date('Y');
-                                for ($y = $current_year - 1; $y <= $current_year + 1; $y++): 
-                                ?>
-                                <option value="<?php echo $y; ?>" <?php if ($y == $current_year) echo 'selected'; ?>>
-                                    <?php echo $y; ?>
-                                </option>
-                                <?php endfor; ?>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div class="form-group">
-                            <label>&nbsp;</label>
-                            <button id="load_timetable" class="btn btn-primary btn-block">
-                                <?php echo get_phrase('load_timetable'); ?>
+                            <button type="button" class="btn btn-success btn-block" onclick="window.print()">
+                                <i class="fa fa-print"></i> <?php echo get_phrase('print_timetable'); ?>
                             </button>
                         </div>
                     </div>
@@ -85,7 +46,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
                         </thead>
                         <tbody id="timetable_body">
                             <tr>
-                                <td colspan="8" class="text-center"><?php echo get_phrase('select_class_and_section_to_load_timetable'); ?></td>
+                                <td colspan="8" class="text-center"><i class="fa fa-spinner fa-spin"></i> <?php echo get_phrase('loading_timetable'); ?>...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -123,9 +84,10 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
     
     .timetable-cell {
         height: 100px;
-        vertical-align: top;
         padding: 5px !important;
-        background-color: #f9f9f9;
+        vertical-align: top;
+        position: relative;
+        background: #fff;
         border: 1px solid #ddd;
     }
     
@@ -140,6 +102,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
         background-color: #f5f5f5;
         padding: 5px;
         border-radius: 3px;
+        color: #000;
     }
     
     .subject-name {
@@ -164,56 +127,46 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
     .mb-3 {
         margin-bottom: 15px;
     }
+    
+    @media print {
+        .panel-heading button, 
+        .row:first-child,
+        .btn {
+            display: none !important;
+        }
+        
+        .panel {
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+        .panel-body {
+            padding: 0 !important;
+        }
+
+        .timetable-cell {
+            border: 1px solid #ddd !important;
+        }
+    }
 </style>
 
 <script type="text/javascript">
     $(document).ready(function() {
         var timetableData = [];
+        var class_id = <?php echo $default_class_id; ?>;
+        var section_id = <?php echo $default_section_id; ?>;
         
-        // Load sections for default class if set
-        <?php if (isset($default_class_id) && $default_class_id): ?>
-        get_sections(<?php echo $default_class_id; ?>);
-        <?php endif; ?>
-        
-        // Set default section if it exists
-        function setDefaultSection() {
-            <?php if (isset($default_section_id) && $default_section_id): ?>
-            $('#section_id').val('<?php echo $default_section_id; ?>');
-            <?php endif; ?>
-        }
-        
-        // Load timetable when button is clicked
-        $('#load_timetable').on('click', function() {
-            loadTimetable();
-        });
+        // Load timetable on page load
+        loadTimetable();
         
         // Function to load timetable data
         function loadTimetable() {
-            var class_id = $('#class_id').val();
-            var section_id = $('#section_id').val();
-            var month = $('#month').val();
-            var year = $('#year').val();
-            
-            if (!class_id || !section_id) {
-                $.toast({
-                    text: '<?php echo get_phrase('please_select_class_and_section'); ?>',
-                    position: 'top-right',
-                    loaderBg: '#f56954',
-                    icon: 'warning',
-                    hideAfter: 3500,
-                    stack: 6
-                });
-                return;
-            }
-            
             $.ajax({
                 url: '<?php echo site_url('student/get_class_timetable_data'); ?>',
                 type: 'POST',
                 data: {
                     class_id: class_id,
-                    section_id: section_id,
-                    month: month,
-                    year: year
+                    section_id: section_id
                 },
                 dataType: 'json',
                 beforeSend: function() {
@@ -292,18 +245,4 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
             $('#timetable_body').html(html);
         }
     });
-    
-    // Function to get sections for a class
-    function get_sections(class_id) {
-        $.ajax({
-            url: '<?php echo site_url('admin/get_sections/'); ?>' + class_id,
-            success: function(response) {
-                $('#section_id').html(response);
-                // Set default section if it exists
-                <?php if (isset($default_section_id) && $default_section_id): ?>
-                $('#section_id').val('<?php echo $default_section_id; ?>');
-                <?php endif; ?>
-            }
-        });
-    }
 </script> 
