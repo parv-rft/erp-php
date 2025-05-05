@@ -3,12 +3,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
 ?>
 <div class="row">
     <div class="col-sm-12">
-        <div class="panel panel-info">
-            <div class="panel-heading">
-                <div class="panel-title">
-                    <h4 style="color: white;"><?php echo get_phrase('class_calendar_timetable'); ?></h4>
-                </div>
-            </div>
+        <div class="panel panel-primary">
             <div class="panel-body">
                 <div class="row mb-3">
                     <div class="col-md-9">
@@ -22,11 +17,9 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="alert alert-success" style="margin-bottom: 0;">
-                            <button type="button" class="btn btn-success btn-block" onclick="printTimetable()" style="margin: -8px 0;">
-                                <i class="fa fa-print"></i> <?php echo get_phrase('print_timetable'); ?>
-                            </button>
-                        </div>
+                        <button type="button" class="btn btn-success btn-block" onclick="printTimetable()" style="margin: 5px 0; border: none; height: 46px;">
+                            <i class="fa fa-print"></i> <?php echo get_phrase('print_timetable'); ?>
+                        </button>
                     </div>
                 </div>
                 
@@ -71,24 +64,36 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
     .timetable-table thead th {
         text-align: center;
         font-weight: 600;
-        padding: 12px 8px;
+        padding: 15px 8px;
         color: #fff;
-        background-color: #337ab7;
+        background: linear-gradient(135deg, #2196F3, #1976D2);
+        border: 1px solid #1565C0;
+        text-transform: uppercase;
+        font-size: 13px;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+    }
+    
+    .timetable-table thead th:hover {
+        background: linear-gradient(135deg, #1976D2, #1565C0);
     }
     
     .time-col {
-        width: 150px;
-        background-color: #337ab7 !important;
-        color: white;
+        width: 120px;
+        background: #f8f9fa !important;
+        color: #333 !important;
+        font-weight: bold;
+        border-right: 2px solid #1565C0 !important;
     }
     
     .timetable-cell {
         height: 100px;
-        padding: 5px !important;
+        padding: 8px !important;
         vertical-align: top;
         position: relative;
         background: #fff;
-        border: 1px solid #ddd;
+        transition: all 0.3s ease;
+        border: 1px solid #e0e0e0;
     }
     
     .time-slot-row {
@@ -96,19 +101,19 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
     }
     
     .time-display {
-        font-weight: bold;
-        font-size: 13px;
         text-align: center;
-        background-color: #f5f5f5;
-        padding: 5px;
-        border-radius: 3px;
-        color: #000;
+        font-weight: bold;
+        padding: 8px;
+        color: #333 !important;
+        background: #f1f3f4;
+        border-radius: 4px;
+        margin-bottom: 5px;
     }
     
     .subject-name {
         font-weight: bold;
         font-size: 13px;
-        color: #333;
+        color: #2196F3;
         margin-bottom: 5px;
     }
     
@@ -122,6 +127,23 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
         font-size: 11px;
         color: #888;
         margin-top: 5px;
+    }
+    
+    .editable-cell {
+        min-height: 90px;
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+        border-radius: 6px;
+        border: 1px solid #90CAF9;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+    
+    .editable-cell:hover {
+        background: linear-gradient(135deg, #BBDEFB, #90CAF9);
+        box-shadow: 0 3px 8px rgba(33, 150, 243, 0.2);
+        transform: translateY(-2px);
     }
     
     .mb-3 {
