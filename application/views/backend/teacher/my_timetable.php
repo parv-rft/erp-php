@@ -269,28 +269,23 @@ $teacher_name = $this->db->get_where('teacher', array('teacher_id' => $teacher_i
     <div class="row">
         <div class="col-md-12">
             <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <div class="panel-title">
-                    <h4>
-                        <i class="fa fa-calendar"></i> My Teaching Schedule
-                        <div class="pull-right">
-                            <button class="btn btn-success btn-sm" onclick="printTimetable()">
-                                <i class="fa fa-print"></i> Print Schedule
-                        </button>
-                            <button class="btn btn-info btn-sm" onclick="showAddTimetableModal()">
-                                <i class="fa fa-plus"></i> Add New Class
-                        </button>
-                        </div>
-                    </h4>
-                    </div>
-                </div>
                 <div class="panel-body">
-                <div class="alert alert-info">
-                    <strong>Welcome, <?php echo $teacher_name; ?>!</strong> 
-                    Below is your teaching schedule for the current academic period.
+                    <div class="alert alert-info" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>Welcome, <?php echo $teacher_name; ?>!</strong> 
+                            Below is your teaching schedule for the current academic period.
                         </div>
+                        <div>
+                            <button class="btn btn-success btn-sm" onclick="printTimetable()" style="margin-right: 5px;">
+                                <i class="fa fa-print"></i> Print Schedule
+                            </button>
+                            <button class="btn btn-sm" onclick="showAddTimetableModal()" style="background: white; color: #2196F3; border: 1px solid #2196F3;">
+                                <i class="fa fa-plus"></i> Add New Class
+                            </button>
+                        </div>
+                    </div>
 
-                <div id="status_message"></div>
+                    <div id="status_message"></div>
 
                     <div class="table-responsive">
                         <table class="table table-bordered timetable-table">
