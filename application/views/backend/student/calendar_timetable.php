@@ -6,7 +6,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
         <div class="panel panel-info">
             <div class="panel-heading">
                 <div class="panel-title">
-                    <h4><?php echo get_phrase('class_calendar_timetable'); ?></h4>
+                    <h4 style="color: white;"><?php echo get_phrase('class_calendar_timetable'); ?></h4>
                 </div>
             </div>
             <div class="panel-body">
@@ -22,8 +22,8 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="form-group">
-                            <button type="button" class="btn btn-success btn-block" onclick="printTimetable()">
+                        <div class="alert alert-success" style="margin-bottom: 0;">
+                            <button type="button" class="btn btn-success btn-block" onclick="printTimetable()" style="margin: -8px 0;">
                                 <i class="fa fa-print"></i> <?php echo get_phrase('print_timetable'); ?>
                             </button>
                         </div>
