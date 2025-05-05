@@ -305,7 +305,7 @@ $breadcrumb = array(
                         <button type="button" class="btn btn-info btn-sm pull-right" onclick="showAddModal()">
                             <i class="fa fa-plus"></i> <?php echo get_phrase('add_time_slot'); ?>
                         </button>
-                        <button type="button" class="btn btn-success btn-sm pull-right" onclick="window.print()" style="margin-right: 5px;">
+                        <button type="button" class="btn btn-success btn-sm pull-right" onclick="printTimetable()" style="margin-right: 5px;">
                             <i class="fa fa-print"></i> <?php echo get_phrase('print_timetable'); ?>
                         </button>
                     </div>
@@ -702,6 +702,20 @@ $breadcrumb = array(
                 $('#timetable-body').html('<tr><td colspan="8" class="text-center text-danger"><?php echo get_phrase('error_loading_timetable'); ?></td></tr>');
             }
         });
+    }
+
+    function printTimetable() {
+        selectedClassId = $('#class_id').val();
+        selectedSectionId = $('#section_id').val();
+        
+        if (!selectedClassId || !selectedSectionId) {
+            toastr.error('<?php echo get_phrase('please_select_class_and_section'); ?>');
+            return;
+        }
+        
+        // Open print view in a new window
+        var printUrl = '<?php echo base_url(); ?>admin/print_timetable/' + selectedClassId + '?section_id=' + selectedSectionId;
+        window.open(printUrl, '_blank', 'width=1000,height=700');
     }
 
     function renderTimetable() {

@@ -1038,4 +1038,36 @@ class Teacher extends CI_Controller {
         }
     }
 
+    // Print teacher timetable
+    function print_timetable() {
+        if ($this->session->userdata('teacher_login') != 1)
+            redirect(base_url(), 'refresh');
+        
+        $teacher_id = $this->session->userdata('teacher_id');
+        $teacher_details = $this->db->get_where('teacher', array('teacher_id' => $teacher_id))->row();
+        
+        if (!$teacher_details) {
+            $this->session->set_flashdata('error_message', get_phrase('Teacher information not found'));
+            redirect(base_url() . 'teacher/my_timetable', 'refresh');
+        }
+        
+        // Get timetable data
+        $this->db->select('calendar_timetable.*, subject.name as subject_name, teacher.name as teacher_name, class.name as class_name, section.name as section_name');
+        $this->db->from('calendar_timetable');
+        $this->db->join('subject', 'subject.subject_id = calendar_timetable.subject_id', 'left');
+        $this->db->join('teacher', 'teacher.teacher_id = calendar_timetable.teacher_id', 'left');
+        $this->db->join('class', 'class.class_id = calendar_timetable.class_id', 'left');
+        $this->db->join('section', 'section.section_id = calendar_timetable.section_id', 'left');
+        $this->db->where('calendar_timetable.teacher_id', $teacher_id);
+        $this->db->order_by('calendar_timetable.day_of_week', 'ASC');
+        $this->db->order_by('calendar_timetable.time_slot_start', 'ASC');
+        
+        $data['timetable_data'] = $this->db->get()->result_array();
+        $data['teacher_name'] = $teacher_details->name;
+        $data['page_title'] = get_phrase('Teacher Timetable');
+        
+        // Load the view directly without using index.php
+        $this->load->view('backend/timetable_print_view', $data);
+    }
+
 }

@@ -311,4 +311,69 @@ class Timetable_model extends CI_Model {
             return ['status' => 'error', 'message' => 'An error occurred while saving the timetable: ' . $e->getMessage()];
         }
     }
+    
+    // Format time to 12-hour format with AM/PM
+    public function format_time($time) {
+        if (empty($time)) return '';
+        
+        $time_parts = explode(':', $time);
+        if (count($time_parts) < 2) return $time;
+        
+        $hour = intval($time_parts[0]);
+        $minutes = $time_parts[1];
+        $ampm = ($hour >= 12) ? 'PM' : 'AM';
+        $hour = ($hour % 12) ?: 12;
+        
+        return $hour . ':' . $minutes . ' ' . $ampm;
+    }
+    
+    // Get timetable data for a specific class and section
+    public function get_class_timetable_data($class_id, $section_id) {
+        $this->db->select('t.*, s.name as subject_name, tc.name as teacher_name, c.name as class_name, sc.name as section_name');
+        $this->db->from('class_timetable as t');
+        $this->db->join('subject as s', 's.subject_id = t.subject_id', 'left');
+        $this->db->join('teacher as tc', 'tc.teacher_id = t.teacher_id', 'left');
+        $this->db->join('class as c', 'c.class_id = t.class_id', 'left');
+        $this->db->join('section as sc', 'sc.section_id = t.section_id', 'left');
+        $this->db->where('t.class_id', $class_id);
+        $this->db->where('t.section_id', $section_id);
+        
+        return $this->db->get()->result_array();
+    }
+    
+    // Get timetable data for a specific teacher
+    public function get_teacher_timetable_data($teacher_id) {
+        $this->db->select('t.*, s.name as subject_name, tc.name as teacher_name, c.name as class_name, sc.name as section_name');
+        $this->db->from('class_timetable as t');
+        $this->db->join('subject as s', 's.subject_id = t.subject_id', 'left');
+        $this->db->join('teacher as tc', 'tc.teacher_id = t.teacher_id', 'left');
+        $this->db->join('class as c', 'c.class_id = t.class_id', 'left');
+        $this->db->join('section as sc', 'sc.section_id = t.section_id', 'left');
+        $this->db->where('t.teacher_id', $teacher_id);
+        
+        return $this->db->get()->result_array();
+    }
+    
+    // Print timetable
+    public function print_timetable($type, $id) {
+        $data = array();
+        $data['page_title'] = get_phrase('Timetable');
+        
+        if ($type == 'class') {
+            $class_data = $this->db->get_where('class', array('class_id' => $id))->row();
+            $section_id = $this->input->get('section_id');
+            $section_data = $this->db->get_where('section', array('section_id' => $section_id))->row();
+            
+            $data['class_name'] = $class_data->name;
+            $data['section_name'] = $section_data->name;
+            $data['timetable_data'] = $this->get_class_timetable_data($id, $section_id);
+        } 
+        else if ($type == 'teacher') {
+            $teacher_data = $this->db->get_where('teacher', array('teacher_id' => $id))->row();
+            $data['teacher_name'] = $teacher_data->name;
+            $data['timetable_data'] = $this->get_teacher_timetable_data($id);
+        }
+        
+        $this->load->view('backend/timetable_print_view', $data);
+    }
 } 

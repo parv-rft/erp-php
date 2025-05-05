@@ -274,7 +274,7 @@ $teacher_name = $this->db->get_where('teacher', array('teacher_id' => $teacher_i
                     <h4>
                         <i class="fa fa-calendar"></i> My Teaching Schedule
                         <div class="pull-right">
-                            <button class="btn btn-success btn-sm" onclick="window.print()">
+                            <button class="btn btn-success btn-sm" onclick="printTimetable()">
                                 <i class="fa fa-print"></i> Print Schedule
                         </button>
                             <button class="btn btn-info btn-sm" onclick="showAddTimetableModal()">
@@ -528,6 +528,12 @@ $teacher_name = $this->db->get_where('teacher', array('teacher_id' => $teacher_i
 
     loadMyTimetable();
 });
+
+// Print timetable in a new window
+function printTimetable() {
+    var printUrl = '<?php echo base_url(); ?>teacher/print_timetable';
+    window.open(printUrl, '_blank', 'width=1000,height=700');
+}
 
 // Helper function for showing messages when toastr is not available
 function showMessage(type, message) {

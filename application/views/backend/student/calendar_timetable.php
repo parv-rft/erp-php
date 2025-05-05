@@ -23,7 +23,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
                     </div>
                     <div class="col-md-3">
                         <div class="form-group">
-                            <button type="button" class="btn btn-success btn-block" onclick="window.print()">
+                            <button type="button" class="btn btn-success btn-block" onclick="printTimetable()">
                                 <i class="fa fa-print"></i> <?php echo get_phrase('print_timetable'); ?>
                             </button>
                         </div>
@@ -158,6 +158,13 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
         
         // Load timetable on page load
         loadTimetable();
+        
+        // Function to print timetable
+        window.printTimetable = function() {
+            // Open print view in a new window
+            var printUrl = '<?php echo base_url(); ?>student/print_timetable';
+            window.open(printUrl, '_blank', 'width=1000,height=700');
+        };
         
         // Function to load timetable data
         function loadTimetable() {
