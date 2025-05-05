@@ -183,16 +183,49 @@ class Parents extends CI_Controller {
             $this->load->view('backend/index', $page_data);
         }
 
-        function class_routine(){
+        function class_routine($param1 = null, $param2 = null, $param3 = null){
 
-            $parent_profile = $this->db->get_where('student', array('parent_id' => $this->session->userdata('parent_id')))->row();
-            $page_data['class_id']  = $parent_profile->class_id;
+            if ($this->session->userdata('parent_login') != 1) 
+                redirect(base_url(), 'refresh');
+            
+            if($param1 == 'print' && $param2 != '' && $param3 != '') {
+                // Handle print request
+                $class_id = $param2;
+                $section_id = $param3;
+                
+                // Get class and section info
+                $class_name = $this->db->get_where('class', array('class_id' => $class_id))->row()->name;
+                $section_name = $this->db->get_where('section', array('section_id' => $section_id))->row()->name;
+                
+                // Get timetable data
+                $this->db->where('class_id', $class_id);
+                $this->db->where('section_id', $section_id);
+                $timetable_data = $this->db->get('class_routine')->result_array();
+                
+                // Prepare data for print view
+                $page_data['class_name'] = $class_name;
+                $page_data['section_name'] = $section_name;
+                $page_data['timetable_data'] = $timetable_data;
+                $page_data['page_title'] = get_phrase('timetable_print') . ' - ' . $class_name . ' ' . $section_name;
+                
+                // Load the print view
+                $this->load->view('backend/timetable_print_view', $page_data);
+                return;
+            }
 
-            $page_data['page_name']     = 'class_routine';
-            $page_data['page_title']    = get_phrase('Class Timetable');
+            // Get all children of parent for dropdown
+            $parent_id = $this->session->userdata('parent_id');
+            $page_data['children'] = $this->db->get_where('student', array('parent_id' => $parent_id))->result_array();
+            
+            // Default values
+            $parent_profile = $this->db->get_where('student', array('parent_id' => $parent_id))->row();
+            $page_data['default_class_id'] = $parent_profile ? $parent_profile->class_id : 0;
+            $page_data['default_section_id'] = $parent_profile ? $parent_profile->section_id : 0;
+            $page_data['student_id'] = $parent_profile ? $parent_profile->student_id : 0;
+
+            $page_data['page_name'] = 'class_routine';
+            $page_data['page_title'] = get_phrase('Class Timetable');
             $this->load->view('backend/index', $page_data);
-
-
         }
 
         function invoice($param1 = null, $param2 = null, $param3 = null){
@@ -298,6 +331,83 @@ class Parents extends CI_Controller {
 
         function assignment() {
             // ... existing code ...
+        }
+
+        /* Get class timetable data for AJAX request */
+        function get_class_timetable_data() 
+        {
+            if ($this->session->userdata('parent_login') != 1) {
+                echo json_encode(array('status' => 'error', 'message' => 'Access denied'));
+                return;
+            }
+            
+            // Get POST data
+            $student_id = $this->input->post('student_id');
+            $class_id = $this->input->post('class_id');
+            $section_id = $this->input->post('section_id');
+            
+            // Debug to log
+            log_message('debug', 'Timetable request - student_id: ' . $student_id . ', class_id: ' . $class_id . ', section_id: ' . $section_id);
+            
+            // If section_id is 0 or empty, try to get it from the database
+            if (empty($section_id) || $section_id == '0') {
+                // Get the student's section from the database
+                $student_data = $this->db->get_where('student', array('student_id' => $student_id))->row();
+                if ($student_data && !empty($student_data->section_id)) {
+                    $section_id = $student_data->section_id;
+                    log_message('debug', 'Fixed section_id from database: ' . $section_id);
+                } else {
+                    // Try to get the first section for this class
+                    $section_data = $this->db->get_where('section', array('class_id' => $class_id))->row();
+                    if ($section_data) {
+                        $section_id = $section_data->section_id;
+                        log_message('debug', 'Using first section for class: ' . $section_id);
+                    }
+                }
+            }
+            
+            if (empty($class_id) || empty($section_id)) {
+                echo json_encode(array('status' => 'error', 'message' => 'Missing class ID or section ID'));
+                return;
+            }
+            
+            // Verify if the student belongs to the parent making the request
+            if (!empty($student_id)) {
+                $parent_id = $this->session->userdata('parent_id');
+                $student_check = $this->db->get_where('student', array(
+                    'student_id' => $student_id,
+                    'parent_id' => $parent_id
+                ))->num_rows();
+                
+                if ($student_check == 0) {
+                    echo json_encode(array('status' => 'error', 'message' => 'Student not associated with this parent'));
+                    return;
+                }
+            }
+            
+            try {
+                // Get class routine data
+                $this->db->select('cr.*, s.name as subject_name, t.name as teacher_name');
+                $this->db->from('class_routine as cr');
+                $this->db->join('subject as s', 's.subject_id = cr.subject_id', 'left');
+                $this->db->join('teacher as t', 't.teacher_id = cr.teacher_id', 'left');
+                $this->db->where('cr.class_id', $class_id);
+                $this->db->where('cr.section_id', $section_id);
+                $query = $this->db->get();
+                
+                log_message('debug', 'Timetable query executed for class_id=' . $class_id . ', section_id=' . $section_id);
+                
+                if ($query && $query->num_rows() > 0) {
+                    $result = $query->result_array();
+                    echo json_encode($result);
+                } else {
+                    log_message('debug', 'No timetable entries found');
+                    echo json_encode(array());
+                }
+            } catch (Exception $e) {
+                log_message('error', 'Error in get_class_timetable_data: ' . $e->getMessage());
+                echo json_encode(array('status' => 'error', 'message' => 'Database error'));
+            }
         }
 
 }

@@ -417,46 +417,33 @@ class Student extends CI_Controller {
             $this->load->view('backend/index', $page_data);
         }
 
-        // AJAX endpoint for getting class timetable data
+        /* Get class timetable data for AJAX request - usable by both students and parents */
         function get_class_timetable_data() {
-            if ($this->session->userdata('student_login') != 1) {
-                echo json_encode(['status' => 'error', 'message' => get_phrase('access_denied')]);
+            // Check if this is a valid AJAX request
+            if (!$this->input->is_ajax_request()) {
+                echo json_encode(array());
                 return;
             }
             
-            try {
-                $class_id = $this->input->post('class_id');
-                $section_id = $this->input->post('section_id');
-                
-                // Validate inputs
-                if (!$class_id || !$section_id) {
-                    echo json_encode(['status' => 'error', 'message' => get_phrase('invalid_class_or_section')]);
-                    return;
-                }
-                
-                // Get all timetable entries for the specified class and section
-                $this->db->select('ct.*, s.name as subject_name, t.name as teacher_name');
-                $this->db->from('calendar_timetable ct');
-                $this->db->join('subject s', 's.subject_id = ct.subject_id', 'left');
-                $this->db->join('teacher t', 't.teacher_id = ct.teacher_id', 'left');
-                $this->db->where('ct.class_id', $class_id);
-                $this->db->where('ct.section_id', $section_id);
-                $this->db->order_by('ct.day_of_week', 'ASC');
-                $this->db->order_by('ct.time_slot_start', 'ASC');
-                
-                $entries = $this->db->get()->result_array();
-                
-                // If no entries found, return empty array
-                if (empty($entries)) {
-                    echo json_encode([]);
-                    return;
-                }
-                
-                echo json_encode($entries);
-            } catch (Exception $e) {
-                log_message('error', 'Error in get_class_timetable_data: ' . $e->getMessage());
-                echo json_encode(['status' => 'error', 'message' => get_phrase('error_loading_timetable')]);
+            $class_id = $this->input->post('class_id');
+            $section_id = $this->input->post('section_id');
+            
+            if (empty($class_id) || empty($section_id)) {
+                echo json_encode(array());
+                return;
             }
+            
+            // Get class routine data
+            $this->db->select('cr.*, s.name as subject, t.name as teacher_name');
+            $this->db->from('class_routine as cr');
+            $this->db->join('subject as s', 's.subject_id = cr.subject_id', 'left');
+            $this->db->join('teacher as t', 't.teacher_id = cr.teacher_id', 'left');
+            $this->db->where('cr.class_id', $class_id);
+            $this->db->where('cr.section_id', $section_id);
+            $query = $this->db->get();
+            $result = $query->result_array();
+            
+            echo json_encode($result);
         }
 
         // Print class timetable
