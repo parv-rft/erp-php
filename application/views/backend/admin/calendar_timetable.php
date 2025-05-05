@@ -53,48 +53,80 @@ $breadcrumb = array(
         }
         
         .timetable-table thead th {
-            background: #337ab7;
+            background: linear-gradient(135deg, #2196F3, #1976D2);
             color: #fff !important;
             font-weight: 600;
             text-align: center;
-            padding: 12px 8px;
-            border: 1px solid #2e6da4;
+            padding: 15px 8px;
+            border: 1px solid #1565C0;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+        
+        .timetable-table thead th:hover {
+            background: linear-gradient(135deg, #1976D2, #1565C0);
         }
         
         .time-col { 
             width: 120px;
-            background: #f8f9fa !important;
-            color: #333 !important;
+            color: #fff !important;
             font-weight: bold;
+            border-right: 2px solid #1565C0 !important;
         }
         
         .timetable-cell { 
             height: 100px;
-            padding: 5px !important;~
+            padding: 8px !important;
             vertical-align: top;
             position: relative;
             background: #fff;
+            transition: all 0.3s ease;
+            border: 1px solid #e0e0e0;
         }
         
         .time-display { 
             text-align: center;
             font-weight: bold;
-            padding: 5px;
-            color: #333;
-        }
-        
-        .editable-cell { 
-            height: 100%;
-            padding: 10px;
-            background: #f5f5f5;
+            padding: 8px;
+            color: #333 !important;
+            background: #f1f3f4;
             border-radius: 4px;
+            margin-bottom: 5px;
+        }
+
+        .class-slot { 
+            height: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            border-radius: 6px;
             transition: all 0.3s ease;
             position: relative;
+            border: 1px solid #90CAF9;
         }
-        
-        .editable-cell:hover {
-            background: #e3f2fd;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+
+        .class-slot:hover {
+            background: linear-gradient(135deg, #BBDEFB, #90CAF9);
+            box-shadow: 0 3px 8px rgba(33, 150, 243, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .class-slot .actions {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: none;
+        }
+
+        .class-slot:hover .actions {
+            display: block;
+        }
+
+        .class-slot .actions button {
+            padding: 2px 5px;
+            margin-left: 2px;
+            font-size: 12px;
         }
         
         .subject-name { 
@@ -103,38 +135,31 @@ $breadcrumb = array(
             margin-bottom: 5px;
         }
         
-        .teacher-name { 
+        .class-info { 
             color: #666;
             font-size: 13px;
             margin-bottom: 3px;
         }
         
-        .room-number { 
+        .room-info { 
             color: #999;
             font-size: 12px;
-            margin-bottom: 20px; /* Make space for action buttons */
         }
-        
-        .actions {
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .editable-cell:hover .actions {
-            opacity: 1;
-        }
-        
-        .empty-cell { 
-            background: #fafafa;
+
+        .empty-slot { 
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            font-style: italic;
             cursor: pointer;
             transition: all 0.3s ease;
         }
         
-        .empty-cell:hover {
+        .empty-slot:hover {
             background: #e3f2fd;
+            color: #2196F3;
         }
         
         .add-slot {
@@ -147,7 +172,7 @@ $breadcrumb = array(
             font-size: 24px;
         }
         
-        .empty-cell:hover .add-slot {
+        .empty-slot:hover .add-slot {
             color: #2196F3;
         }
         
@@ -245,12 +270,35 @@ $breadcrumb = array(
             text-align: left;
             vertical-align: middle;
         }
+
+        /* Add gradient styles for buttons and panel */
+        .btn-gradient {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #1976D2, #1565C0);
+            color: white;
+        }
+
+        .panel-gradient {
+            border-color: #1976D2;
+        }
+
+        .panel-gradient > .panel-heading {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+            border-color: #1976D2;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="row">
         <div class="col-md-12">
-            <div class="panel panel-primary">
+            <div class="panel panel-gradient">
                 <div class="panel-heading">
                     <div class="panel-title">
                         <?php echo get_phrase('class_timetable'); ?>
@@ -278,7 +326,7 @@ $breadcrumb = array(
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <button type="button" class="btn btn-primary" onclick="loadTimetable()">
+                            <button type="button" class="btn btn-gradient" onclick="loadTimetable()">
                                 <?php echo get_phrase('load_timetable'); ?>
                             </button>
                         </div>
@@ -658,7 +706,16 @@ $breadcrumb = array(
 
     function renderTimetable() {
         if (!timetableData.length) {
-            $('#timetable-body').html('<tr><td colspan="8" class="text-center"><?php echo get_phrase('no_timetable_entries_found'); ?></td></tr>');
+            $('#timetable-body').html(`
+                <tr>
+                    <td colspan="8" class="text-center">
+                        <div style="padding: 40px;">
+                            <i class="fa fa-calendar-o fa-3x text-muted"></i>
+                            <p class="mt-3">No classes scheduled yet. Click the "Add New Class" button or any empty slot to add a class.</p>
+                        </div>
+                    </td>
+                </tr>
+            `);
             return;
         }
         
@@ -691,7 +748,7 @@ $breadcrumb = array(
                 <tr class="time-slot-row">
                     <td class="time-col">
                         <div class="time-display">
-                            ${slot.start}<br>to<br>${slot.end}
+                            ${formatTime(slot.start)}<br>to<br>${formatTime(slot.end)}
                         </div>
                     </td>`;
             
@@ -700,25 +757,29 @@ $breadcrumb = array(
                 if (entry) {
                     html += `
                         <td class="timetable-cell">
-                            <div class="editable-cell">
-                                <div class="subject-name">${entry.subject_name}</div>
-                                <div class="teacher-name">${entry.teacher_name}</div>
-                                <div class="room-number">Room: ${entry.room_number || 'N/A'}</div>
+                            <div class="class-slot">
                                 <div class="actions">
-                                    <button type="button" class="btn btn-info btn-xs" onclick="editEntry(${entry.id})">
+                                    <button class="btn btn-xs btn-info" onclick="editEntry(${entry.id})">
                                         <i class="fa fa-edit"></i>
                                     </button>
-                                    <button type="button" class="btn btn-danger btn-xs" onclick="deleteEntry(${entry.id})">
+                                    <button class="btn btn-xs btn-danger" onclick="deleteEntry(${entry.id})">
                                         <i class="fa fa-trash"></i>
                                     </button>
+                                </div>
+                                <div class="subject-name">${entry.subject_name}</div>
+                                <div class="class-info">Class ${entry.class_name} - ${entry.section_name}</div>
+                                <div class="room-info">
+                                    <i class="fa fa-map-marker"></i> Room: ${entry.room_number || 'N/A'}
                                 </div>
                             </div>
                         </td>`;
                 } else {
                     html += `
-                        <td class="timetable-cell empty-cell" onclick="showAddModal('${day}', '${slot.start}', '${slot.end}')">
-                            <div class="add-slot">
-                                <i class="fa fa-plus"></i>
+                        <td class="timetable-cell">
+                            <div class="empty-slot" onclick="showAddModal('${day}', '${slot.start}', '${slot.end}')">
+                                <div class="add-slot">
+                                    <i class="fa fa-plus"></i>
+                                </div>
                             </div>
                         </td>`;
                 }
@@ -727,6 +788,14 @@ $breadcrumb = array(
         });
         
         $('#timetable-body').html(html);
+    }
+
+    function formatTime(time) {
+        const [hours, minutes] = time.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const formattedHour = hour % 12 || 12;
+        return `${formattedHour}:${minutes} ${ampm}`;
     }
 
     function saveTimetable() {
