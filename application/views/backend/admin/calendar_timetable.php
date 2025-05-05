@@ -298,22 +298,11 @@ $breadcrumb = array(
 <body>
     <div class="row">
         <div class="col-md-12">
-            <div class="panel panel-gradient">
-                <div class="panel-heading">
-                    <div class="panel-title">
-                        <?php echo get_phrase('class_timetable'); ?>
-                        <button type="button" class="btn btn-info btn-sm pull-right" onclick="showAddModal()">
-                            <i class="fa fa-plus"></i> <?php echo get_phrase('add_time_slot'); ?>
-                        </button>
-                        <button type="button" class="btn btn-success btn-sm pull-right" onclick="printTimetable()" style="margin-right: 5px;">
-                            <i class="fa fa-print"></i> <?php echo get_phrase('print_timetable'); ?>
-                        </button>
-                    </div>
-                </div>
+            <div class="panel panel-primary">
                 <div class="panel-body">
-                    <div class="row">
+                    <div class="row" style="display: flex; align-items: center;">
                         <div class="col-md-3">
-                            <select name="class_id" id="class_id" class="form-control select2" onchange="loadSections(this.value)">
+                            <select name="class_id" id="class_id" class="form-control select2" onchange="loadSections(this.value)" style="height: 40px;">
                                 <option value=""><?php echo get_phrase('select_class'); ?></option>
                                 <?php foreach($classes as $row): ?>
                                 <option value="<?php echo $row['class_id']; ?>"><?php echo $row['name']; ?></option>
@@ -321,13 +310,21 @@ $breadcrumb = array(
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <select name="section_id" id="section_id" class="form-control select2">
+                            <select name="section_id" id="section_id" class="form-control select2" style="height: 40px;">
                                 <option value=""><?php echo get_phrase('select_section'); ?></option>
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <button type="button" class="btn btn-gradient" onclick="loadTimetable()">
+                            <button type="button" class="btn btn-gradient" onclick="loadTimetable()" style="height: 40px; border: none;">
                                 <?php echo get_phrase('load_timetable'); ?>
+                            </button>
+                        </div>
+                        <div class="col-md-4" style="display: flex; justify-content: flex-end;">
+                            <button type="button" class="btn btn-success" onclick="printTimetable()" style="margin-right: 10px; height: 40px; border: none;">
+                                <i class="fa fa-print"></i> <?php echo get_phrase('print_timetable'); ?>
+                            </button>
+                            <button type="button" class="btn btn-gradient" onclick="showAddModal()" style="height: 40px; border: none;">
+                                <i class="fa fa-plus"></i> <?php echo get_phrase('add_time_slot'); ?>
                             </button>
                         </div>
                     </div>
