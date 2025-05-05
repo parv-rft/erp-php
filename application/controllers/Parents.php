@@ -387,15 +387,17 @@ class Parents extends CI_Controller {
             
             try {
                 // Get class routine data
-                $this->db->select('cr.*, s.name as subject_name, t.name as teacher_name');
+                // Fix: Join subject table first to get teacher_id, then join teacher table
+                $this->db->select('cr.*, s.name as subject_name, s.teacher_id, t.name as teacher_name');
                 $this->db->from('class_routine as cr');
                 $this->db->join('subject as s', 's.subject_id = cr.subject_id', 'left');
-                $this->db->join('teacher as t', 't.teacher_id = cr.teacher_id', 'left');
+                $this->db->join('teacher as t', 't.teacher_id = s.teacher_id', 'left');
                 $this->db->where('cr.class_id', $class_id);
                 $this->db->where('cr.section_id', $section_id);
                 $query = $this->db->get();
                 
                 log_message('debug', 'Timetable query executed for class_id=' . $class_id . ', section_id=' . $section_id);
+                log_message('debug', 'SQL Query: ' . $this->db->last_query());
                 
                 if ($query && $query->num_rows() > 0) {
                     $result = $query->result_array();
