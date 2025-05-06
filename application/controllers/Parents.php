@@ -412,4 +412,46 @@ class Parents extends CI_Controller {
             }
         }
 
+        /* Fetch all classes and sections */
+        function get_all_classes_sections() 
+        {
+            if ($this->session->userdata('parent_login') != 1) {
+                echo json_encode(array('status' => 'error', 'message' => 'Access denied'));
+                return;
+            }
+            
+            try {
+                // Get all classes
+                $this->db->select('*');
+                $this->db->order_by('name', 'asc');
+                $classes = $this->db->get('class')->result_array();
+                
+                // Get all sections
+                $this->db->select('*');
+                $this->db->order_by('name', 'asc');
+                $sections = $this->db->get('section')->result_array();
+                
+                // Organize sections by class_id for easier frontend handling
+                $sections_by_class = array();
+                foreach ($sections as $section) {
+                    if (!isset($sections_by_class[$section['class_id']])) {
+                        $sections_by_class[$section['class_id']] = array();
+                    }
+                    $sections_by_class[$section['class_id']][] = $section;
+                }
+                
+                $result = array(
+                    'status' => 'success',
+                    'classes' => $classes,
+                    'sections' => $sections,
+                    'sections_by_class' => $sections_by_class
+                );
+                
+                echo json_encode($result);
+            } catch (Exception $e) {
+                log_message('error', 'Error in get_all_classes_sections: ' . $e->getMessage());
+                echo json_encode(array('status' => 'error', 'message' => 'Database error'));
+            }
+        }
+
 }
