@@ -123,6 +123,7 @@ class Student_model extends CI_Model {
     //the function below update student
     function updateNewStudent($param2){
         $page_data = array(
+            'student_id'     => html_escape($this->input->post('student_id')),
             'name'          => html_escape($this->input->post('name')),
             'birthday'      => html_escape($this->input->post('birthday')),
             'age'           => html_escape($this->input->post('age')),
