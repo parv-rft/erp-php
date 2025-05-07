@@ -70,11 +70,31 @@ class Student_model extends CI_Model {
 
 
 
+    // Function to check if student_id already exists
+    function check_student_id_exists($student_id, $current_id = null) {
+        // If editing an existing student, exclude the current student from the check
+        if ($current_id) {
+            $this->db->where('student_id !=', $current_id);
+        }
+        
+        $this->db->where('student_id', $student_id);
+        $query = $this->db->get('student');
+        
+        return $query->num_rows() > 0;
+    }
+
     //  the function below insert into student table
     function createNewStudent(){
+        $student_id = html_escape($this->input->post('student_id'));
+        
+        // Check if student_id already exists
+        if ($this->check_student_id_exists($student_id)) {
+            $this->session->set_flashdata('error_message', get_phrase('Student ID already exists. Please use a different ID.'));
+            return false;
+        }
 
         $page_data = array(
-            'student_id'     => html_escape($this->input->post('student_id')),
+            'student_id'     => $student_id,
             'name'          => html_escape($this->input->post('name')),
             'birthday'      => html_escape($this->input->post('birthday')),
             'age'           => html_escape($this->input->post('age')),
@@ -112,18 +132,26 @@ class Student_model extends CI_Model {
             'session'             => html_escape($this->input->post('session'))
         );
         
-  
-    $this->db->insert('student', $page_data);
-    $student_id = $this->db->insert_id();
-    move_uploaded_file($_FILES['userfile']['tmp_name'], 'uploads/student_image/' . $student_id . '.jpg');			// image with user ID
-
+        $this->db->insert('student', $page_data);
+        $student_id = $this->db->insert_id();
+        move_uploaded_file($_FILES['userfile']['tmp_name'], 'uploads/student_image/' . $student_id . '.jpg');
+        
+        return true;
     }
 
 
     //the function below update student
     function updateNewStudent($param2){
+        $new_student_id = html_escape($this->input->post('student_id'));
+        
+        // Check if the new student_id already exists (excluding the current student)
+        if ($this->check_student_id_exists($new_student_id, $param2)) {
+            $this->session->set_flashdata('error_message', get_phrase('Student ID already exists. Please use a different ID.'));
+            return false;
+        }
+        
         $page_data = array(
-            'student_id'     => html_escape($this->input->post('student_id')),
+            'student_id'     => $new_student_id,
             'name'          => html_escape($this->input->post('name')),
             'birthday'      => html_escape($this->input->post('birthday')),
             'age'           => html_escape($this->input->post('age')),
@@ -157,10 +185,12 @@ class Student_model extends CI_Model {
             'student_category_id' => html_escape($this->input->post('student_category_id')),
             'club_id'             => html_escape($this->input->post('club_id'))
 	    );
+        
         $this->db->where('student_id', $param2);
         $this->db->update('student', $page_data);
         move_uploaded_file($_FILES['userfile']['tmp_name'], 'uploads/student_image/' . $param2 . '.jpg');
-
+        
+        return true;
     }
 
     // the function below deletes from student table

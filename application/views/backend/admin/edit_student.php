@@ -8,6 +8,11 @@
                             <div class="panel-wrapper collapse in" aria-expanded="true">
                                 <div class="panel-body table-responsive">
 								
+                                <?php if($this->session->flashdata('error_message')): ?>
+                                <div class="alert alert-danger">
+                                    <?php echo $this->session->flashdata('error_message'); ?>
+                                </div>
+                                <?php endif; ?>
 								
 				  	<div class="row panel-body">
                     <div class="col-sm-6">
