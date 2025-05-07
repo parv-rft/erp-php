@@ -427,10 +427,22 @@
             success: function(response)
             {
                 jQuery('#section_selector_holder').html(response);
+                // If this is the initial page load, set the selected section
+                if (class_id == '<?php echo $student['class_id']; ?>') {
+                    jQuery('#section_selector_holder').val('<?php echo $student['section_id']; ?>');
+                }
             }
         });
 
     }
+
+    // Initialize sections when page loads
+    $(document).ready(function() {
+        var class_id = '<?php echo $student['class_id']; ?>';
+        if (class_id) {
+            get_class_sections(class_id);
+        }
+    });
 
 </script>
 
