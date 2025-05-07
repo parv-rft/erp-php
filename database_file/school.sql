@@ -1268,7 +1268,7 @@ INSERT INTO `social_category` (`social_category_id`, `name`, `colour`, `icon`, `
 
 DROP TABLE IF EXISTS `student`;
 CREATE TABLE IF NOT EXISTS `student` (
-  `student_id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) NOT NULL,
   `name` longtext COLLATE utf8_unicode_ci NOT NULL,
   `birthday` longtext COLLATE utf8_unicode_ci NOT NULL,
   `age` longtext COLLATE utf8_unicode_ci NOT NULL,
@@ -1312,8 +1312,9 @@ CREATE TABLE IF NOT EXISTS `student` (
   `dormitory_room_number` longtext COLLATE utf8_unicode_ci NOT NULL,
   `more_entries` longtext COLLATE utf8_unicode_ci NOT NULL,
   `login_status` longtext COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`student_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  PRIMARY KEY (`student_id`),
+  UNIQUE KEY `student_id` (`student_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- Dumping data for table `student`

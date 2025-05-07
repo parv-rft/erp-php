@@ -28,6 +28,13 @@
                     </div>
                 </div>
 				
+					<div class="form-group">
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('student_id');?></label>
+                    <div class="col-sm-12">
+							<input type="text" class="form-control" name="student_id" required>
+						</div>
+					</div>
+				
 						<div class="form-group">
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('full_name');?></label>
                     <div class="col-sm-12">

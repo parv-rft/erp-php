@@ -21,13 +21,14 @@ class Api extends CI_Controller {
     public function login() {
         $email = $this->input->post('email');
         $password = $this->input->post('password');
+        $user_type = $this->input->post('user_type');
         
         if (!$email || !$password) {
             echo json_encode(['status' => 'error', 'message' => 'Email and password required']);
             return;
         }
         
-        $login_success = $this->login_model->loginFunctionForAllUsers();
+        $login_success = $this->login_model->loginFunctionForAllUsers($user_type);
         
         if ($login_success) {
             // Create a token (simple implementation - in production use JWT)

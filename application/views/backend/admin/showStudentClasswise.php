@@ -3,6 +3,7 @@
                 	<thead>
                 		<tr>
                     		<th><div>#</div></th>
+                            <th><div><?php echo get_phrase('student_id');?></div></th>
                             <th><div><?php echo get_phrase('Image');?></div></th>
                             <th><div><?php echo get_phrase('roll_number');?></div></th>
                             <th><div><?php echo get_phrase('name');?></div></th>
@@ -20,6 +21,7 @@
                     foreach($students as $key => $student):?>         
                         <tr>
                             <td><?php echo $counter++;?></td>
+                            <td><?php echo $student['student_id'];?></td>
                             <td><img src="<?php echo $this->crud_model->get_image_url('student', $student['student_id']);?>" class="img-circle" width="30"></td>
                             <td><?php echo $student['roll'];?></td>
                             <td><?php echo $student['name'];?></td>
