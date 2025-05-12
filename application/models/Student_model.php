@@ -82,7 +82,7 @@ class Student_model extends CI_Model {
         
         return $query->num_rows() > 0;
     }
-    
+     
     //  the function below insert into student table
     function createNewStudent() {
         // Validate file upload
@@ -136,7 +136,8 @@ class Student_model extends CI_Model {
             'house_id' => html_escape($this->input->post('house_id')),
             'student_category_id' => html_escape($this->input->post('student_category_id')),
             'club_id' => html_escape($this->input->post('club_id')),
-            'session' => html_escape($this->input->post('session'))
+            'session' => html_escape($this->input->post('session')),
+            'student_code' => html_escape($this->input->post('student_code'))
         );
 
         // Begin transaction
@@ -228,7 +229,8 @@ class Student_model extends CI_Model {
             'dormitory_id'    => html_escape($this->input->post('dormitory_id')),
             'house_id'        => html_escape($this->input->post('house_id')),
             'student_category_id' => html_escape($this->input->post('student_category_id')),
-            'club_id'             => html_escape($this->input->post('club_id'))
+            'club_id'             => html_escape($this->input->post('club_id')),
+            'student_code'        => html_escape($this->input->post('student_code'))
 	    );
         
         $this->db->where('student_id', $param2);

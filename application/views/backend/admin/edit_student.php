@@ -24,8 +24,8 @@
 				<div class="form-group"> 
 					 <div class="col-sm-12">
   		  			  <input type='file' name="userfile" onChange="readURL(this);" style="color:red">
-       				 <img id="blah"  src="<?php echo base_url();?>uploads/student_image/<?php echo $student['student_id'].'.jpg';?>" alt="your image" height="150" width="150"/ style="border:1px dotted red">
-					 
+	       				 <img id="blah"  src="<?php echo base_url();?>uploads/student_image/<?php echo $student['student_id'].'.jpg';?>" alt="your image" height="200" width="150" style="border:1px dotted red; object-fit:cover;">
+					 <small class="text-muted"><?php echo get_phrase('Passport size photo only. Dimensions: 3.5cm x 4.5cm'); ?></small>
 					</div>
 					</div>	
 					
@@ -33,6 +33,13 @@
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('student_id');?></label>
                     <div class="col-sm-12">
 							<input type="text" class="form-control" value="<?php echo $student['student_id'];?>" name="student_id" required>
+						</div>
+					</div>
+					
+					<div class="form-group">
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('student_code');?></label>
+                    <div class="col-sm-12">
+							<input type="text" class="form-control" value="<?php echo isset($student['student_code']) ? $student['student_code'] : substr(md5(uniqid(rand(), true)), 0, 7); ?>" name="student_code" required>
 						</div>
 					</div>
 					

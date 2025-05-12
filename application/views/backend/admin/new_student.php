@@ -474,25 +474,29 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                     <i class="fa fa-info-circle"></i> <?php echo get_phrase('Basic Information'); ?>
                                 </div>
                                 
-                                <!-- Student Photo Upload -->
+                                <!-- Student Photo Upload - Full Width Top -->
                                 <div class="row">
-                                    <div class="col-md-12">
+                                    <div class="col-md-3">
                                         <div class="form-group required-field">
-                                            <label class="col-md-12"><?php echo get_phrase('student_photo'); ?> <span class="text-danger">*</span></label>
+                                            <label class="col-md-12"><?php echo get_phrase('student_photo'); ?></label>
                                             <div class="col-sm-12">
                                                 <input type="file" class="form-control dropify" name="userfile" 
                                                        data-allowed-file-extensions="jpg jpeg png"
                                                        data-max-file-size="5M"
                                                        data-show-errors="true"
                                                        data-errors-position="outside"
+                                                       data-height="200"
+                                                       data-width="150"
+                                                       data-default-file=""
                                                        required>
-                                                <small class="text-muted"><?php echo get_phrase('(Required) Allowed: JPG, JPEG, PNG. Max size: 5MB'); ?></small>
+                                                <small class="text-muted"><?php echo get_phrase('Allowed: JPG, JPEG, PNG. Max size: 5MB. Dimensions: 3.5cm x 4.5cm'); ?></small>
                                                 <div id="photo-upload-error" class="text-danger"></div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
+                                <!-- Other Fields in Left-Right Format -->
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group required-field">
@@ -511,11 +515,32 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="col-md-6">
-                                        <!-- Hidden student_id field -->
-                                        <input type="hidden" name="student_code" value="<?php echo substr(md5(uniqid(rand(), true)), 0, 7); ?>">
-                                        
+                                        <div class="form-group required-field">
+                                            <label class="col-md-12"><?php echo get_phrase('student_code');?> <span class="text-danger">*</span></label>
+                                            <div class="col-sm-12">
+                                                <input type="text" class="form-control" name="student_code" 
+                                                       value="<?php echo substr(md5(uniqid(rand(), true)), 0, 7); ?>"
+                                                       required>
+                                                <small class="text-muted">(Required) Unique student code</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group required-field">
+                                            <label class="col-md-12"><?php echo get_phrase('full_name'); ?> <span class="text-danger">*</span></label>
+                                            <div class="col-sm-12">
+                                                <input type="text" class="form-control" name="name" required>
+                                                <small class="text-muted">(Required) Enter student's full name</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
                                         <div class="form-group required-field">
                                             <label class="col-md-12"><?php echo get_phrase('email');?> <span class="text-danger">*</span></label>
                                             <div class="col-sm-12">
@@ -525,12 +550,11 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                                        required
                                                        id="student_email">
                                                 <small class="text-muted">(Required) Enter student's email address</small>
-                                                <div class="invalid-feedback">Please enter a valid email address</div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group required-field">
@@ -549,47 +573,34 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="col-md-6">
                                         <div class="form-group required-field">
-                                            <label class="col-md-12"><?php echo get_phrase('full_name'); ?></label>
-                                            <div class="col-sm-12">
-                                                <input type="text" class="form-control" name="name" required>
-                                                <small class="text-muted">(Required) Enter student's full name</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group required-field">
-                                            <label class="col-md-12"><?php echo get_phrase('gender'); ?></label>
+                                            <label class="col-md-12"><?php echo get_phrase('gender'); ?> <span class="text-danger">*</span></label>
                                             <div class="col-sm-12">
                                                 <select name="sex" class="form-control select2" required>
                                                     <option value=""><?php echo get_phrase('select'); ?></option>
                                                     <option value="male"><?php echo get_phrase('male'); ?></option>
                                                     <option value="female"><?php echo get_phrase('female'); ?></option>
-                                                    <option value="other"><?php echo get_phrase('other'); ?></option>
                                                 </select>
                                                 <small class="text-muted">(Required) Select student's gender</small>
                                             </div>
                                         </div>
                                     </div>
-                                    
+                                </div>
+
+                                <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group required-field">
-                                            <label class="col-md-12"><?php echo get_phrase('date_of_birth'); ?></label>
+                                            <label class="col-md-12"><?php echo get_phrase('date_of_birth'); ?> <span class="text-danger">*</span></label>
                                             <div class="col-sm-12">
                                                 <input type="date" class="form-control datepicker" name="birthday" id="birthday" required>
                                                 <small class="text-muted">(Required) Enter student's date of birth</small>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-2">
+
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('age'); ?></label>
                                             <div class="col-sm-12">
@@ -598,7 +609,9 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                             </div>
                                         </div>
                                     </div>
-                                    
+                                </div>
+
+                                <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('blood_group'); ?></label>
@@ -614,13 +627,11 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                                     <option value="O+">O+</option>
                                                     <option value="O-">O-</option>
                                                 </select>
-                                                <small class="text-muted">(Optional) Select blood group if known</small>
+                                                <small class="text-muted">(Optional) Select blood group</small>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <div class="row">
+
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('religion'); ?></label>
@@ -630,7 +641,9 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                             </div>
                                         </div>
                                     </div>
-                                    
+                                </div>
+
+                                <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('student_mobile'); ?></label>
