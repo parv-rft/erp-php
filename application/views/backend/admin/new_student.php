@@ -517,13 +517,16 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                     </div>
 
                                     <div class="col-md-6">
-                                        <div class="form-group required-field">
-                                            <label class="col-md-12"><?php echo get_phrase('student_code');?> <span class="text-danger">*</span></label>
+                                        <div class="form-group">
+                                            <label class="col-md-12"><?php echo get_phrase('student_code');?></label> 
                                             <div class="col-sm-12">
                                                 <input type="text" class="form-control" name="student_code" 
-                                                       value="<?php echo substr(md5(uniqid(rand(), true)), 0, 7); ?>"
-                                                       required>
-                                                <small class="text-muted">(Required) Unique student code</small>
+                                                       value="<?php echo substr(md5(uniqid(rand(), true)), 0, 6); ?>" 
+                                                       pattern="\d{0,6}" 
+                                                       maxlength="6" 
+                                                       title="Student code must be up to 6 digits (Optional)"
+                                                       oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                                                <small class="text-muted">(Optional) Unique student code (up to 6 digits)</small>
                                             </div>
                                         </div>
                                     </div>
@@ -654,6 +657,20 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                                        maxlength="10"
                                                        oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                                                 <small class="text-muted">(Optional) Enter 10-digit mobile number</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="col-md-12"><?php echo get_phrase('apaar_ID'); ?></label>
+                                            <div class="col-sm-12">
+                                                <input type="text" class="form-control" name="apaar_id" 
+                                                       pattern="\d{0,12}" 
+                                                       maxlength="12" 
+                                                       title="Apaar ID must be up to 12 digits (Optional)"
+                                                       oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                                                <small class="text-muted">(Optional) Enter 12-digit Apaar ID</small>
                                             </div>
                                         </div>
                                     </div>
@@ -1234,7 +1251,12 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('guardian_phone');?></label>
                                             <div class="col-sm-12">
-                                                <input type="text" class="form-control" name="guardian_phone">
+                                                <input type="tel" class="form-control" name="guardian_phone"
+                                                       pattern="[0-9]{0,10}" 
+                                                       maxlength="10"
+                                                       title="Guardian phone must be up to 10 digits (Optional)"
+                                                       oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                                                <small class="text-muted">(Optional) Enter 10-digit guardian phone number</small>
                                             </div>
                                         </div>
                                     </div>

@@ -137,7 +137,8 @@ class Student_model extends CI_Model {
             'student_category_id' => html_escape($this->input->post('student_category_id')),
             'club_id' => html_escape($this->input->post('club_id')),
             'session' => html_escape($this->input->post('session')),
-            'student_code' => html_escape($this->input->post('student_code'))
+            'student_code' => html_escape($this->input->post('student_code')),
+            'apaar_id' => html_escape($this->input->post('apaar_id'))
         );
 
         // Begin transaction
@@ -230,7 +231,8 @@ class Student_model extends CI_Model {
             'house_id'        => html_escape($this->input->post('house_id')),
             'student_category_id' => html_escape($this->input->post('student_category_id')),
             'club_id'             => html_escape($this->input->post('club_id')),
-            'student_code'        => html_escape($this->input->post('student_code'))
+            'student_code'        => html_escape($this->input->post('student_code')),
+            'apaar_id'            => html_escape($this->input->post('apaar_id'))
 	    );
         
         $this->db->where('student_id', $param2);
