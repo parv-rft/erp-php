@@ -82,61 +82,105 @@ class Student_model extends CI_Model {
         
         return $query->num_rows() > 0;
     }
-
+    
     //  the function below insert into student table
-    function createNewStudent(){
-        $student_id = html_escape($this->input->post('student_id'));
-        
-        // Check if student_id already exists
-        if ($this->check_student_id_exists($student_id)) {
-            $this->session->set_flashdata('error_message', get_phrase('Student ID already exists. Please use a different ID.'));
+    function createNewStudent() {
+        // Validate file upload
+        if (empty($_FILES['userfile']['name'])) {
+            $this->session->set_flashdata('error_message', get_phrase('Please select a student photo'));
             return false;
         }
 
+        // Get file details
+        $file = $_FILES['userfile'];
+        $file_size = $file['size'];
+        $file_type = $file['type'];
+        
+        // Validate file size (5MB)
+        if ($file_size > 5 * 1024 * 1024) {
+            $this->session->set_flashdata('error_message', get_phrase('File size exceeds 5MB limit'));
+            return false;
+        }
+
+        // Validate file type
+        $allowed_types = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!in_array($file_type, $allowed_types)) {
+            $this->session->set_flashdata('error_message', get_phrase('Invalid file type. Only JPG, JPEG, and PNG are allowed'));
+            return false;
+        }
+
+        // Create student data array
         $page_data = array(
-            'student_id'     => $student_id,
-            'name'          => html_escape($this->input->post('name')),
-            'birthday'      => html_escape($this->input->post('birthday')),
-            'age'           => html_escape($this->input->post('age')),
-            'place_birth'   => html_escape($this->input->post('place_birth')),
-            'sex'           => html_escape($this->input->post('sex')),
-            'm_tongue'      => html_escape($this->input->post('m_tongue')),
-            'religion'      => html_escape($this->input->post('religion')),
-            'blood_group'   => html_escape($this->input->post('blood_group')),
-            'address'       => html_escape($this->input->post('address')),
-            'city'          => html_escape($this->input->post('city')),
-            'state'         => html_escape($this->input->post('state')),
-            'nationality'   => html_escape($this->input->post('nationality')),
-            'phone'         => html_escape($this->input->post('phone')),
-            'email'         => html_escape($this->input->post('email')),
-            'ps_attended'   => html_escape($this->input->post('ps_attended')),
-            'ps_address'    => html_escape($this->input->post('ps_address')),
-            'ps_purpose'    => html_escape($this->input->post('ps_purpose')),
-            'class_study'   => html_escape($this->input->post('class_study')),
-            'date_of_leaving' => html_escape($this->input->post('date_of_leaving')),
-            'am_date'         => html_escape($this->input->post('am_date')),
-            'tran_cert'       => html_escape($this->input->post('tran_cert')),
-            'dob_cert'        => html_escape($this->input->post('dob_cert')),
-            'mark_join'        => html_escape($this->input->post('mark_join')),
-            'physical_h'      => html_escape($this->input->post('physical_h')),
-            'password'        => sha1($this->input->post('password')),
-            'class_id'        => html_escape($this->input->post('class_id')),
-            'section_id'      => html_escape($this->input->post('section_id')),
-            'parent_id'       => html_escape($this->input->post('parent_id')),
-            'roll'            => html_escape($this->input->post('roll')),
-            'transport_id'    => html_escape($this->input->post('transport_id')),
-            'dormitory_id'    => html_escape($this->input->post('dormitory_id')),
-            'house_id'        => html_escape($this->input->post('house_id')),
+            'admission_number' => html_escape($this->input->post('admission_no')),
+            'name' => html_escape($this->input->post('name')),
+            'birthday' => html_escape($this->input->post('birthday')),
+            'age' => html_escape($this->input->post('age')),
+            // 'place_birth' => html_escape($this->input->post('place_birth')),
+            'sex' => html_escape($this->input->post('sex')),
+            // 'm_tongue' => html_escape($this->input->post('m_tongue')),
+            'religion' => html_escape($this->input->post('religion')),
+            'blood_group' => html_escape($this->input->post('blood_group')),
+            'address' => html_escape($this->input->post('address')),
+            'city' => html_escape($this->input->post('city')),
+            'state' => html_escape($this->input->post('state')),
+            // 'nationality' => html_escape($this->input->post('nationality')),
+            'phone' => html_escape($this->input->post('phone')),
+            'email' => html_escape($this->input->post('student_email')),
+            'password' => sha1($this->input->post('password')),
+            'class_id' => html_escape($this->input->post('class_id')),
+            'section_id' => html_escape($this->input->post('section_id')),
+            'father_id' => html_escape($this->input->post('father_id')),
+            'roll' => html_escape($this->input->post('roll')),
+            'transport_id' => html_escape($this->input->post('transport_id')),
+            'dormitory_id' => html_escape($this->input->post('dormitory_id')),
+            'house_id' => html_escape($this->input->post('house_id')),
             'student_category_id' => html_escape($this->input->post('student_category_id')),
-            'club_id'             => html_escape($this->input->post('club_id')),
-            'session'             => html_escape($this->input->post('session'))
+            'club_id' => html_escape($this->input->post('club_id')),
+            'session' => html_escape($this->input->post('session'))
         );
-        
-        $this->db->insert('student', $page_data);
-        $student_id = $this->db->insert_id();
-        move_uploaded_file($_FILES['userfile']['tmp_name'], 'uploads/student_image/' . $student_id . '.jpg');
-        
-        return true;
+
+        // Begin transaction
+        $this->db->trans_start();
+
+        try {
+            // Insert student data
+            $this->db->insert('student', $page_data);
+            $student_id = $this->db->insert_id();
+
+            // Create upload directory if it doesn't exist
+            $upload_path = 'uploads/student_image/';
+            if (!is_dir($upload_path)) {
+                mkdir($upload_path, 0777, true);
+            }
+
+            // Upload file
+            $file_path = $upload_path . $student_id . '.jpg';
+            if (!move_uploaded_file($file['tmp_name'], $file_path)) {
+                throw new Exception('Failed to upload file');
+            }
+
+            // Commit transaction
+            $this->db->trans_complete();
+
+            if ($this->db->trans_status() === FALSE) {
+                throw new Exception('Database transaction failed');
+            }
+
+            $this->session->set_flashdata('flash_message', get_phrase('Student added successfully'));
+            return true;
+
+        } catch (Exception $e) {
+            // Rollback transaction
+            $this->db->trans_rollback();
+            
+            // Delete uploaded file if exists
+            if (file_exists($file_path)) {
+                unlink($file_path);
+            }
+
+            $this->session->set_flashdata('error_message', get_phrase('Error creating student: ') . $e->getMessage());
+            return false;
+        }
     }
 
 
@@ -152,6 +196,7 @@ class Student_model extends CI_Model {
         
         $page_data = array(
             'student_id'     => $new_student_id,
+            'admission_number' => html_escape($this->input->post('admission_no')),
             'name'          => html_escape($this->input->post('name')),
             'birthday'      => html_escape($this->input->post('birthday')),
             'age'           => html_escape($this->input->post('age')),
@@ -165,7 +210,7 @@ class Student_model extends CI_Model {
             'state'         => html_escape($this->input->post('state')),
             'nationality'   => html_escape($this->input->post('nationality')),
             'phone'         => html_escape($this->input->post('phone')),
-            'email'         => html_escape($this->input->post('email')),
+            'email'         => html_escape($this->input->post('student_email')),
             'ps_attended'   => html_escape($this->input->post('ps_attended')),
             'ps_address'    => html_escape($this->input->post('ps_address')),
             'ps_purpose'    => html_escape($this->input->post('ps_purpose')),
@@ -178,7 +223,7 @@ class Student_model extends CI_Model {
             'physical_h'      => html_escape($this->input->post('physical_h')),
             'class_id'        => html_escape($this->input->post('class_id')),
             'section_id'      => html_escape($this->input->post('section_id')),
-            'parent_id'       => html_escape($this->input->post('parent_id')),
+            'father_id'       => html_escape($this->input->post('father_id')),
             'transport_id'    => html_escape($this->input->post('transport_id')),
             'dormitory_id'    => html_escape($this->input->post('dormitory_id')),
             'house_id'        => html_escape($this->input->post('house_id')),
