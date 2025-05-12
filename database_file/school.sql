@@ -1271,7 +1271,7 @@ CREATE TABLE IF NOT EXISTS `student` (
   `student_id` int(11) NOT NULL AUTO_INCREMENT,
   `admission_number` int(11) NOT NULL,
   `student_code` int(11) DEFAULT NULL,
-  `apaar_id` int(11) DEFAULT NULL,
+  `apaar_id` int(12) DEFAULT NULL,
   `name` longtext COLLATE utf8_unicode_ci NOT NULL,
   `birthday` date DEFAULT NULL,
   `age` varchar(5) COLLATE utf8_unicode_ci DEFAULT NULL,

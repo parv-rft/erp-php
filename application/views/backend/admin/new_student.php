@@ -521,12 +521,12 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                             <label class="col-md-12"><?php echo get_phrase('student_code');?></label> 
                                             <div class="col-sm-12">
                                                 <input type="text" class="form-control" name="student_code" 
-                                                       value="<?php echo substr(md5(uniqid(rand(), true)), 0, 6); ?>" 
+                                                       value="<?php echo isset($next_student_code) ? $next_student_code : ''; ?>" 
                                                        pattern="\d{0,6}" 
                                                        maxlength="6" 
                                                        title="Student code must be up to 6 digits (Optional)"
                                                        oninput="this.value = this.value.replace(/[^0-9]/g, '');">
-                                                <small class="text-muted">(Optional) Unique student code (up to 6 digits)</small>
+                                                <small class="text-muted">(Optional) Unique student code (up to 6 digits). Auto-suggested if calculated in controller.</small>
                                             </div>
                                         </div>
                                     </div>

@@ -1050,6 +1050,13 @@ class Admin extends CI_Controller {
             redirect(base_url(). 'admin/student_information', 'refresh');
         }
 
+        // Calculate the next student code for the view
+        $query = $this->db->query("SELECT MAX(CAST(student_code AS UNSIGNED)) as max_code FROM student WHERE student_code REGEXP '^[0-9]+$'");
+        $result = $query->row_array();
+        $next_code = isset($result['max_code']) ? intval($result['max_code']) + 1 : 1;
+        $next_code = min($next_code, 999999); // Optional: Ensure it fits within 6 digits
+        $page_data['next_student_code'] = $next_code;
+
         $page_data['page_name']     = 'new_student';
         $page_data['page_title']    = get_phrase('Manage Student');
         $this->load->view('backend/index', $page_data);

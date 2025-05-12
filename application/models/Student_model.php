@@ -232,7 +232,7 @@ class Student_model extends CI_Model {
             'student_category_id' => html_escape($this->input->post('student_category_id')),
             'club_id'             => html_escape($this->input->post('club_id')),
             'student_code'        => html_escape($this->input->post('student_code')),
-            'apaar_id'            => html_escape($this->input->post('apaar_id'))
+            'apaar_id'            => html_escape($this->input->post('apaar_id'))    
 	    );
         
         $this->db->where('student_id', $param2);
