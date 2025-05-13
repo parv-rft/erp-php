@@ -41,7 +41,7 @@
                                             <button type="button" class="btn btn-info btn-sm" onclick="showCertificateView(<?php echo $row['tc_id']; ?>)">
                                                 <i class="fa fa-eye"></i> <?php echo get_phrase('View'); ?>
                                             </button>
-                                            <a href="<?php echo base_url(); ?>admin/transfer_certificate/edit/<?php echo $row['tc_id']; ?>" class="btn btn-primary btn-sm">
+                                            <a href="<?php echo base_url(); ?>admin/transfer_certificate/edit/<?php echo $row['tc_id']; ?>" class="btn btn-primary btn-sm text-white">
                                                 <i class="fa fa-edit"></i> <?php echo get_phrase('Edit'); ?>
                                             </a>
                                             <button type="button" class="btn btn-danger btn-sm" onclick="confirm_modal('<?php echo base_url(); ?>admin/transfer_certificate/delete/<?php echo $row['tc_id']; ?>');">
