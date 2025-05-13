@@ -47,6 +47,43 @@ foreach ($invoices as $key => $row):
         
         <br>
 
+        <!-- Fee Items -->
+        <h4><?php echo get_phrase('fee_items'); ?></h4>
+        <table class="table table-bordered" width="100%" border="1" style="border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th><?php echo get_phrase('fee_type'); ?></th>
+                    <th><?php echo get_phrase('amount'); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $fee_items = $this->db->get_where('fee_items', array('invoice_id' => $row['invoice_id']))->result_array();
+                
+                if (empty($fee_items)) {
+                    // If no fee items in the new table, display the invoice's fee_type
+                    ?>
+                    <tr>
+                        <td><?php echo $row['fee_type']; ?></td>
+                        <td><?php echo $this->db->get_where('settings', array('type' => 'currency'))->row()->description; ?><?php echo number_format($row['amount'],2,".",",");?></td>
+                    </tr>
+                <?php
+                } else {
+                    foreach ($fee_items as $fee_item):
+                    ?>
+                    <tr>
+                        <td><?php echo $fee_item['fee_type']; ?></td>
+                        <td><?php echo $this->db->get_where('settings', array('type' => 'currency'))->row()->description; ?><?php echo number_format($fee_item['amount'],2,".",",");?></td>
+                    </tr>
+                    <?php 
+                    endforeach; 
+                }
+                ?>
+            </tbody>
+        </table>
+        
+        <br>
+
         <!-- payment history -->
         <h4><?php echo get_phrase('payment_history'); ?></h4>
         <table class="table table-bordered" width="100%" border="1" style="border-collapse:collapse;">

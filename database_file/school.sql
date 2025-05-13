@@ -867,7 +867,24 @@ CREATE TABLE IF NOT EXISTS `invoice` (
 --
 
 INSERT INTO `invoice` (`invoice_id`, `invoice_number`, `receipt_number`, `student_id`, `admission_number`, `student_name`, `class`, `title`, `description`, `fee_type`, `amount`, `discount`, `amount_paid`, `due`, `creation_timestamp`, `payment_method`, `status`, `year`) VALUES
-(2, '742593INV2019', '', 45, 'Another Part payment for eLibrary', 'Another Part payment for eLibrary.', 'expense', 7000, 0, 6200, 800, '2019-11-12', '1', 2, '2019-2020');
+(2, '742593INV2019', '', 102, NULL, 'Student Name', 'Class Name', 'Another Part payment for eLibrary', 'Another Part payment for eLibrary.', 'expense', 7000, 0, 6200, 800, '2019-11-12', '1', 2, '2019-2020');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `fee_items`
+--
+
+DROP TABLE IF EXISTS `fee_items`;
+CREATE TABLE IF NOT EXISTS `fee_items` (
+  `fee_item_id` int(11) NOT NULL AUTO_INCREMENT,
+  `invoice_id` int(11) NOT NULL,
+  `fee_type` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `amount` int(11) NOT NULL,
+  `discount` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`fee_item_id`),
+  KEY `invoice_id` (`invoice_id`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -1385,14 +1402,65 @@ VALUES
 (11, 101, 1001, 123456, 'John Smith', '2005-05-15', '18', 'male', 'Christianity', 'O+', '123 Main Street', 'New Delhi', 'Delhi', 'Indian', '9876543210', 'john.smith@student.com', SHA1('password123'), 2, 1, 'Robert Smith', '9876543211', 'robert.smith@parent.com', 'Engineer', 'Senior Engineer', 'B.Tech', '1200000', 'Mary Smith', '9876543212', 'mary.smith@parent.com', 'Teacher', 'Assistant Teacher', 'M.A.', '101', 1, 0, 2, 2, 0, '2023-2024', '2022-06-05', '2024-05-31'),
 (12, 102, 1002, 654321, 'Sarah Johnson', '2006-08-20', '17', 'female', 'Hinduism', 'B+', '456 Park Avenue', 'Mumbai', 'Maharashtra', 'Indian', '8765432109', 'sarah.johnson@student.com', SHA1('password456'), 2, 1, 'James Johnson', '8765432108', 'james.johnson@parent.com', 'Doctor', 'Surgeon', 'MBBS, MD', '2500000', 'Emily Johnson', '8765432107', 'emily.johnson@parent.com', 'Lawyer', 'Senior Advocate', 'LLB', '102', 2, 0, 1, 2, 0, '2023-2024', '2021-06-10', '2024-05-31');
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `transfer_certificate`
+--
+
+DROP TABLE IF EXISTS `transfer_certificate`;
+CREATE TABLE IF NOT EXISTS `transfer_certificate` (
+  `tc_id` int(11) NOT NULL AUTO_INCREMENT,
+  `tc_no` varchar(50) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `student_name` varchar(100) NOT NULL,
+  `admission_number` varchar(50) NOT NULL,
+  `father_name` varchar(100) NOT NULL,
+  `mother_name` varchar(100) NOT NULL,
+  `nationality` varchar(50) DEFAULT NULL,
+  `category` varchar(50) DEFAULT NULL,
+  `date_of_birth` date NOT NULL,
+  `qualified` varchar(50) DEFAULT NULL,
+  `date_of_admission` date NOT NULL,
+  `date_of_leaving` date NOT NULL,
+  `student_class` varchar(50) NOT NULL,
+  `to_class` varchar(50) DEFAULT NULL,
+  `class_in_words` varchar(100) DEFAULT NULL,
+  `admit_class` varchar(50) DEFAULT NULL,
+  `fees_paid_up_to` date DEFAULT NULL,
+  `fees_concession_availed` varchar(50) DEFAULT NULL,
+  `max_attendance` varchar(20) DEFAULT NULL,
+  `obtained_attendance` varchar(20) DEFAULT NULL,
+  `last_attendance_date` date DEFAULT NULL,
+  `tc_charge` varchar(20) DEFAULT NULL,
+  `exam_in` varchar(100) DEFAULT NULL,
+  `whether_failed`   varchar(50) DEFAULT NULL,
+  `subject` text DEFAULT NULL,
+  `games_played` text DEFAULT NULL,
+  `extra_activity` text DEFAULT NULL,
+  `general_conduct` varchar(50) DEFAULT NULL,
+  `behavior_remarks` text DEFAULT NULL,
+  `reason` varchar(255) DEFAULT NULL,
+  `remarks` text DEFAULT NULL,
+  `date_of_issue` date NOT NULL,
+  `roll_no` varchar(50) DEFAULT NULL,
+  `issue_status` varchar(20) DEFAULT 'issued',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`tc_id`),
+  UNIQUE KEY `tc_no` (`tc_no`),
+  KEY `student_id` (`student_id`),
+  KEY `admission_number` (`admission_number`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
 --
 -- Dumping data for table `transfer_certificate`
 --
 
-INSERT INTO `transfer_certificate` (`tc_id`, `tc_no`, `student_id`, `student_name`, `admission_number`, `father_name`, `mother_name`, `nationality`, `category`, `date_of_birth`, `qualified`, `date_of_admission`, `date_of_leaving`, `student_class`, `to_class`, `class_in_words`, `admit_class`, `fees_paid_up_to`, `fees_concession_availed`, `max_attendance`, `obtained_attendance`, `last_attendance_date`, `tc_charge`, `exam_in`, `whether_failed`, `subject`, `games_played`, `extra_activity`, `general_conduct`, `behavior_remarks`, `reason`, `remarks`, `date_of_issue`, `roll_no`, `issue_status`) 
+INSERT IGNORE INTO `transfer_certificate` (`tc_no`, `student_id`, `student_name`, `admission_number`, `father_name`, `mother_name`, `nationality`, `category`, `date_of_birth`, `qualified`, `date_of_admission`, `date_of_leaving`, `student_class`, `to_class`, `class_in_words`, `admit_class`, `fees_paid_up_to`, `fees_concession_availed`, `max_attendance`, `obtained_attendance`, `last_attendance_date`, `tc_charge`, `exam_in`, `whether_failed`, `subject`, `games_played`, `extra_activity`, `general_conduct`, `behavior_remarks`, `reason`, `remarks`, `date_of_issue`, `roll_no`, `issue_status`) 
 VALUES 
-(1, 'TC/2024/1', 11, 'John Smith', 101, 'Robert Smith', 'Mary Smith', 'Indian', 'General', '2005-05-15', 'Yes', '2022-06-05', '2024-05-31', 'Class X', 'Class XI', 'Tenth', 'Class VI', '2024-05-31', 'No', '220', '210', '2024-05-31', 'Yes', 'Annual Examination 2024', 'No', 'English, Mathematics, Science, Social Studies, Hindi', 'Cricket, Football', 'Debate Club, Science Club', 'Excellent', 'Well-mannered student with leadership qualities', 'Completed education at this institution', 'Recommended for higher studies', '2024-06-05', '101', 'issued'),
-(2, 'TC/2024/2', 12, 'Sarah Johnson', 102, 'James Johnson', 'Emily Johnson', 'Indian', 'General', '2006-08-20', 'Yes', '2021-06-10', '2024-05-31', 'Class X', 'Class XI', 'Tenth', 'Class V', '2024-05-31', 'No', '220', '195', '2024-05-31', 'Yes', 'Annual Examination 2024', 'No', 'English, Mathematics, Science, Social Studies, Hindi', 'Basketball, Badminton', 'Art Club, Dance Club', 'Good', 'Sincere and hardworking student', 'Parental relocation', 'Wishes well for future academic endeavors', '2024-06-05', '102', 'issued');
+('TC/2024/1', 11, 'John Smith', '101', 'Robert Smith', 'Mary Smith', 'Indian', 'General', '2005-05-15', 'Yes', '2022-06-05', '2024-05-31', 'Class X', 'Class XI', 'Tenth', 'Class VI', '2024-05-31', 'No', '220', '210', '2024-05-31', 'Yes', 'Annual Examination 2024', 'No', 'English, Mathematics, Science, Social Studies, Hindi', 'Cricket, Football', 'Debate Club, Science Club', 'Excellent', 'Well-mannered student with leadership qualities', 'Completed education at this institution', 'Recommended for higher studies', '2024-06-05', '101', 'issued'),
+('TC/2024/2', 12, 'Sarah Johnson', '102', 'James Johnson', 'Emily Johnson', 'Indian', 'General', '2006-08-20', 'Yes', '2021-06-10', '2024-05-31', 'Class X', 'Class XI', 'Tenth', 'Class V', '2024-05-31', 'No', '220', '195', '2024-05-31', 'Yes', 'Annual Examination 2024', 'No', 'English, Mathematics, Science, Social Studies, Hindi', 'Basketball, Badminton', 'Art Club, Dance Club', 'Good', 'Sincere and hardworking student', 'Parental relocation', 'Wishes well for future academic endeavors', '2024-06-05', '102', 'issued');
 
 -- --------------------------------------------------------
 
@@ -1572,56 +1640,6 @@ CREATE TABLE IF NOT EXISTS `vehicle` (
 
 INSERT INTO `vehicle` (`vehicle_id`, `name`, `vehicle_number`, `vehicle_model`, `vehicle_quantity`, `year_made`, `driver_name`, `driver_license`, `driver_contact`, `description`, `status`) VALUES
 (2, 'Toyota', '423', 'Camry', '2', '2019', 'Udemy Sheg', 'License', 'Contact address here', 'description here', 'available');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `transfer_certificate`
---
-
-CREATE TABLE IF NOT EXISTS `transfer_certificate` (
-  `tc_id` int(11) NOT NULL AUTO_INCREMENT,
-  `tc_no` varchar(50) NOT NULL,
-  `student_id` int(11) NOT NULL,
-  `student_name` varchar(100) NOT NULL,
-  `admission_number` varchar(50) NOT NULL,
-  `father_name` varchar(100) NOT NULL,
-  `mother_name` varchar(100) NOT NULL,
-  `nationality` varchar(50) DEFAULT NULL,
-  `category` varchar(50) DEFAULT NULL,
-  `date_of_birth` date NOT NULL,
-  `qualified` varchar(50) DEFAULT NULL,
-  `date_of_admission` date NOT NULL,
-  `date_of_leaving` date NOT NULL,
-  `student_class` varchar(50) NOT NULL,
-  `to_class` varchar(50) DEFAULT NULL,
-  `class_in_words` varchar(100) DEFAULT NULL,
-  `admit_class` varchar(50) DEFAULT NULL,
-  `fees_paid_up_to` date DEFAULT NULL,
-  `fees_concession_availed` varchar(50) DEFAULT NULL,
-  `max_attendance` varchar(20) DEFAULT NULL,
-  `obtained_attendance` varchar(20) DEFAULT NULL,
-  `last_attendance_date` date DEFAULT NULL,
-  `tc_charge` varchar(20) DEFAULT NULL,
-  `exam_in` varchar(100) DEFAULT NULL,
-  `whether_failed`   varchar(50) DEFAULT NULL,
-  `subject` text DEFAULT NULL,
-  `games_played` text DEFAULT NULL,
-  `extra_activity` text DEFAULT NULL,
-  `general_conduct` varchar(50) DEFAULT NULL,
-  `behavior_remarks` text DEFAULT NULL,
-  `reason` varchar(255) DEFAULT NULL,
-  `remarks` text DEFAULT NULL,
-  `date_of_issue` date NOT NULL,
-  `roll_no` varchar(50) DEFAULT NULL,
-  `issue_status` varchar(20) DEFAULT 'issued',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`tc_id`),
-  UNIQUE KEY `tc_no` (`tc_no`),
-  KEY `student_id` (`student_id`),
-  KEY `admission_number` (`admission_number`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 COMMIT;
 

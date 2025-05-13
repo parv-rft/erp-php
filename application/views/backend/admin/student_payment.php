@@ -29,58 +29,73 @@
                 </div>
             </div>
 
-
-
             <div class="form-group">
-                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('class');?></label>
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Admission Number');?></label>
                 <div class="col-sm-12">
-                    <select name="class_id" id="class_id" class="form-control select2" onchange="return get_class_student(this.value)">
-                    <option value=""><?php echo get_phrase('select_class');?></option>
-
-                    <?php $class =  $this->db->get('class')->result_array();
-                    foreach($class as $key => $class):?>
-                    <option value="<?php echo $class['class_id'];?>"><?php echo $class['name'];?></option>
-                    <?php endforeach;?>
-                   </select>
-
-                </div>
-            </div>
-
-								
-			<div class="form-group">
-                    <label class="col-md-12" for="example-text"><?php echo get_phrase('Student');?></label>
-                <div class="col-sm-12">
-                    <select name="student_id" class="form-control" id="student_selector_holder">
-                    <option value=""><?php echo get_phrase('select_student');?></option>
-                    </select>
+                    <input type="text" class="form-control" name="admission_number" id="admission_number" onchange="get_student_details_by_admission(this.value)" required>
                 </div>
             </div>
 
             <div class="form-group">
-                <label class="col-md-12" for="example-text"><?php echo get_phrase('Fee Type');?></label>
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Student Name');?></label>
                 <div class="col-sm-12">
-                    <select name="fee_type" class="form-control select2" required>
-                        <option value=""><?php echo get_phrase('select_fee_type');?></option>
-                        <option value="REGISTRATION FEE">REGISTRATION FEE</option>
-                        <option value="MONTHLY FEE">MONTHLY FEE</option>
-                        <option value="ADMISSION FEE">ADMISSION FEE</option>
-                        <option value="EXAMINATION FEES">EXAMINATION FEES</option>
-                        <option value="ANNUAL CHARGE">ANNUAL CHARGE</option>
-                        <option value="DEVLOPMENT FUND">DEVELOPMENT FUND</option>
-                        <option value="A.C. CHARGES">A.C. CHARGES</option>
-                        <option value="TUITION FEE">TUITION FEE</option>
-                        <option value="COMPUTER-CUM-SMART CLASS">COMPUTER-CUM-SMART CLASS</option>
-                        <option value="READMIT CHARGE">READMIT CHARGE</option>
-                        <option value="LATE FEE">LATE FEE</option>
-                        <option value="TRANSPORT FEE">TRANSPORT FEE</option>
-                        <option value="PTA">PTA</option>
-                        <option value="SMART CLASS">SMART CLASS</option>
-                        <option value="COMPUTER CLASS">COMPUTER CLASS</option>
-                        <option value="CHEQUE BOUNCE CHARGES">CHEQUE BOUNCE CHARGES</option>
-                        <option value="SECURITY AND SAFETY">SECURITY AND SAFETY</option>
-                        <option value="PUPILS FUND">PUPILS FUND</option>
-                        <option value="ACTIVITIES">ACTIVITIES</option>
-                    </select>
+                    <input type="text" class="form-control" name="student_name" id="student_name" readonly>
+                </div>
+            </div>
+
+            <div class="form-group">
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Class');?></label>
+                <div class="col-sm-12">
+                    <input type="text" class="form-control" name="class_name" id="class_name" readonly>
+                </div>
+            </div>
+
+            <input type="hidden" name="student_id" id="student_id" value="">
+            <input type="hidden" name="class_id" id="class_id" value="">
+
+            <div class="form-group">
+                <label class="col-md-12" for="example-text"><?php echo get_phrase('Fee Items');?></label>
+                <div class="col-sm-12">
+                    <div id="fee_items_container">
+                        <!-- Fee items will be added here dynamically -->
+                        <div class="fee-item-row">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <select name="fee_items[0][fee_type]" class="form-control select2" required>
+                                        <option value=""><?php echo get_phrase('select_fee_type');?></option>
+                                        <option value="REGISTRATION FEE">REGISTRATION FEE</option>
+                                        <option value="MONTHLY FEE">MONTHLY FEE</option>
+                                        <option value="ADMISSION FEE">ADMISSION FEE</option>
+                                        <option value="EXAMINATION FEES">EXAMINATION FEES</option>
+                                        <option value="ANNUAL CHARGE">ANNUAL CHARGE</option>
+                                        <option value="DEVLOPMENT FUND">DEVELOPMENT FUND</option>
+                                        <option value="A.C. CHARGES">A.C. CHARGES</option>
+                                        <option value="TUITION FEE">TUITION FEE</option>
+                                        <option value="COMPUTER-CUM-SMART CLASS">COMPUTER-CUM-SMART CLASS</option>
+                                        <option value="READMIT CHARGE">READMIT CHARGE</option>
+                                        <option value="LATE FEE">LATE FEE</option>
+                                        <option value="TRANSPORT FEE">TRANSPORT FEE</option>
+                                        <option value="PTA">PTA</option>
+                                        <option value="SMART CLASS">SMART CLASS</option>
+                                        <option value="COMPUTER CLASS">COMPUTER CLASS</option>
+                                        <option value="CHEQUE BOUNCE CHARGES">CHEQUE BOUNCE CHARGES</option>
+                                        <option value="SECURITY AND SAFETY">SECURITY AND SAFETY</option>
+                                        <option value="PUPILS FUND">PUPILS FUND</option>
+                                        <option value="ACTIVITIES">ACTIVITIES</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <input type="number" name="fee_items[0][amount]" class="form-control fee-amount" placeholder="Amount" required onchange="calculateTotalAmount()">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-danger btn-circle btn-xs" onclick="removeFeeItem(this)" style="display:none;"><i class="fa fa-times"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-info btn-sm btn-rounded" onclick="addFeeItem()">
+                        <i class="fa fa-plus"></i> <?php echo get_phrase('Add Fee Item');?>
+                    </button>
                 </div>
             </div>
 
@@ -92,9 +107,9 @@
             </div>
 
             <div class="form-group">
-                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Amount');?></label>
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Total Amount');?></label>
                 <div class="col-sm-12">
-                    <input type="text" class="form-control" name="amount" / required>
+                    <input type="text" class="form-control" id="total_amount" name="amount" readonly>
                 </div>
             </div>
 
@@ -211,30 +226,48 @@
             </div>
 
             <div class="form-group">
-                <label class="col-md-12" for="example-text"><?php echo get_phrase('Fee Type');?></label>
+                <label class="col-md-12" for="example-text"><?php echo get_phrase('Fee Items');?></label>
                 <div class="col-sm-12">
-                    <select name="fee_type" class="form-control select2" required>
-                        <option value=""><?php echo get_phrase('select_fee_type');?></option>
-                        <option value="REGISTRATION FEE">REGISTRATION FEE</option>
-                        <option value="MONTHLY FEE">MONTHLY FEE</option>
-                        <option value="ADMISSION FEE">ADMISSION FEE</option>
-                        <option value="EXAMINATION FEES">EXAMINATION FEES</option>
-                        <option value="ANNUAL CHARGE">ANNUAL CHARGE</option>
-                        <option value="DEVLOPMENT FUND">DEVELOPMENT FUND</option>
-                        <option value="A.C. CHARGES">A.C. CHARGES</option>
-                        <option value="TUITION FEE">TUITION FEE</option>
-                        <option value="COMPUTER-CUM-SMART CLASS">COMPUTER-CUM-SMART CLASS</option>
-                        <option value="READMIT CHARGE">READMIT CHARGE</option>
-                        <option value="LATE FEE">LATE FEE</option>
-                        <option value="TRANSPORT FEE">TRANSPORT FEE</option>
-                        <option value="PTA">PTA</option>
-                        <option value="SMART CLASS">SMART CLASS</option>
-                        <option value="COMPUTER CLASS">COMPUTER CLASS</option>
-                        <option value="CHEQUE BOUNCE CHARGES">CHEQUE BOUNCE CHARGES</option>
-                        <option value="SECURITY AND SAFETY">SECURITY AND SAFETY</option>
-                        <option value="PUPILS FUND">PUPILS FUND</option>
-                        <option value="ACTIVITIES">ACTIVITIES</option>
-                    </select>
+                    <div id="mass_fee_items_container">
+                        <!-- Fee items will be added here dynamically -->
+                        <div class="fee-item-row">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <select name="fee_items[0][fee_type]" class="form-control select2" required>
+                                        <option value=""><?php echo get_phrase('select_fee_type');?></option>
+                                        <option value="REGISTRATION FEE">REGISTRATION FEE</option>
+                                        <option value="MONTHLY FEE">MONTHLY FEE</option>
+                                        <option value="ADMISSION FEE">ADMISSION FEE</option>
+                                        <option value="EXAMINATION FEES">EXAMINATION FEES</option>
+                                        <option value="ANNUAL CHARGE">ANNUAL CHARGE</option>
+                                        <option value="DEVLOPMENT FUND">DEVELOPMENT FUND</option>
+                                        <option value="A.C. CHARGES">A.C. CHARGES</option>
+                                        <option value="TUITION FEE">TUITION FEE</option>
+                                        <option value="COMPUTER-CUM-SMART CLASS">COMPUTER-CUM-SMART CLASS</option>
+                                        <option value="READMIT CHARGE">READMIT CHARGE</option>
+                                        <option value="LATE FEE">LATE FEE</option>
+                                        <option value="TRANSPORT FEE">TRANSPORT FEE</option>
+                                        <option value="PTA">PTA</option>
+                                        <option value="SMART CLASS">SMART CLASS</option>
+                                        <option value="COMPUTER CLASS">COMPUTER CLASS</option>
+                                        <option value="CHEQUE BOUNCE CHARGES">CHEQUE BOUNCE CHARGES</option>
+                                        <option value="SECURITY AND SAFETY">SECURITY AND SAFETY</option>
+                                        <option value="PUPILS FUND">PUPILS FUND</option>
+                                        <option value="ACTIVITIES">ACTIVITIES</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <input type="number" name="fee_items[0][amount]" class="form-control mass-fee-amount" placeholder="Amount" required onchange="calculateMassTotalAmount()">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-danger btn-circle btn-xs" onclick="removeMassFeeItem(this)" style="display:none;"><i class="fa fa-times"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-info btn-sm btn-rounded" onclick="addMassFeeItem()">
+                        <i class="fa fa-plus"></i> <?php echo get_phrase('Add Fee Item');?>
+                    </button>
                 </div>
             </div>
 
@@ -246,9 +279,9 @@
             </div>
 
             <div class="form-group">
-                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Amount');?></label>
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Total Amount');?></label>
                 <div class="col-sm-12">
-                    <input type="text" class="form-control" name="amount" / required>
+                    <input type="text" class="form-control" id="mass_total_amount" name="amount" readonly>
                 </div>
             </div>
 
@@ -328,6 +361,165 @@ function unselect(){
     }
 }
 
+// Counter for fee items
+var feeItemCounter = 1;
+var massFeeItemCounter = 1;
+
+// Function to add a new fee item row
+function addFeeItem() {
+    var container = document.getElementById('fee_items_container');
+    var newRow = document.createElement('div');
+    newRow.className = 'fee-item-row';
+    newRow.innerHTML = `
+        <div class="row" style="margin-top: 10px;">
+            <div class="col-md-5">
+                <select name="fee_items[${feeItemCounter}][fee_type]" class="form-control select2" required>
+                    <option value=""><?php echo get_phrase('select_fee_type');?></option>
+                    <option value="REGISTRATION FEE">REGISTRATION FEE</option>
+                    <option value="MONTHLY FEE">MONTHLY FEE</option>
+                    <option value="ADMISSION FEE">ADMISSION FEE</option>
+                    <option value="EXAMINATION FEES">EXAMINATION FEES</option>
+                    <option value="ANNUAL CHARGE">ANNUAL CHARGE</option>
+                    <option value="DEVLOPMENT FUND">DEVELOPMENT FUND</option>
+                    <option value="A.C. CHARGES">A.C. CHARGES</option>
+                    <option value="TUITION FEE">TUITION FEE</option>
+                    <option value="COMPUTER-CUM-SMART CLASS">COMPUTER-CUM-SMART CLASS</option>
+                    <option value="READMIT CHARGE">READMIT CHARGE</option>
+                    <option value="LATE FEE">LATE FEE</option>
+                    <option value="TRANSPORT FEE">TRANSPORT FEE</option>
+                    <option value="PTA">PTA</option>
+                    <option value="SMART CLASS">SMART CLASS</option>
+                    <option value="COMPUTER CLASS">COMPUTER CLASS</option>
+                    <option value="CHEQUE BOUNCE CHARGES">CHEQUE BOUNCE CHARGES</option>
+                    <option value="SECURITY AND SAFETY">SECURITY AND SAFETY</option>
+                    <option value="PUPILS FUND">PUPILS FUND</option>
+                    <option value="ACTIVITIES">ACTIVITIES</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <input type="number" name="fee_items[${feeItemCounter}][amount]" class="form-control fee-amount" placeholder="Amount" required onchange="calculateTotalAmount()">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger btn-circle btn-xs" onclick="removeFeeItem(this)"><i class="fa fa-times"></i></button>
+            </div>
+        </div>
+    `;
+    container.appendChild(newRow);
+    feeItemCounter++;
+    
+    // Show delete buttons since we have more than one item
+    var deleteButtons = document.querySelectorAll('#fee_items_container .btn-danger');
+    if (deleteButtons.length > 1) {
+        deleteButtons.forEach(function(button) {
+            button.style.display = 'block';
+        });
+    }
+    
+    // Initialize select2 for the new row
+    $(container).find('.select2').select2();
+}
+
+// Function to remove a fee item row
+function removeFeeItem(button) {
+    var row = button.closest('.fee-item-row');
+    row.parentNode.removeChild(row);
+    calculateTotalAmount();
+    
+    // Hide delete buttons if only one row remains
+    var deleteButtons = document.querySelectorAll('#fee_items_container .btn-danger');
+    if (deleteButtons.length <= 1) {
+        deleteButtons[0].style.display = 'none';
+    }
+}
+
+// Function to calculate total amount
+function calculateTotalAmount() {
+    var total = 0;
+    var amountInputs = document.querySelectorAll('.fee-amount');
+    amountInputs.forEach(function(input) {
+        if (input.value) {
+            total += parseFloat(input.value);
+        }
+    });
+    document.getElementById('total_amount').value = total.toFixed(2);
+}
+
+// Mass invoice fee items functions
+function addMassFeeItem() {
+    var container = document.getElementById('mass_fee_items_container');
+    var newRow = document.createElement('div');
+    newRow.className = 'fee-item-row';
+    newRow.innerHTML = `
+        <div class="row" style="margin-top: 10px;">
+            <div class="col-md-5">
+                <select name="fee_items[${massFeeItemCounter}][fee_type]" class="form-control select2" required>
+                    <option value=""><?php echo get_phrase('select_fee_type');?></option>
+                    <option value="REGISTRATION FEE">REGISTRATION FEE</option>
+                    <option value="MONTHLY FEE">MONTHLY FEE</option>
+                    <option value="ADMISSION FEE">ADMISSION FEE</option>
+                    <option value="EXAMINATION FEES">EXAMINATION FEES</option>
+                    <option value="ANNUAL CHARGE">ANNUAL CHARGE</option>
+                    <option value="DEVLOPMENT FUND">DEVELOPMENT FUND</option>
+                    <option value="A.C. CHARGES">A.C. CHARGES</option>
+                    <option value="TUITION FEE">TUITION FEE</option>
+                    <option value="COMPUTER-CUM-SMART CLASS">COMPUTER-CUM-SMART CLASS</option>
+                    <option value="READMIT CHARGE">READMIT CHARGE</option>
+                    <option value="LATE FEE">LATE FEE</option>
+                    <option value="TRANSPORT FEE">TRANSPORT FEE</option>
+                    <option value="PTA">PTA</option>
+                    <option value="SMART CLASS">SMART CLASS</option>
+                    <option value="COMPUTER CLASS">COMPUTER CLASS</option>
+                    <option value="CHEQUE BOUNCE CHARGES">CHEQUE BOUNCE CHARGES</option>
+                    <option value="SECURITY AND SAFETY">SECURITY AND SAFETY</option>
+                    <option value="PUPILS FUND">PUPILS FUND</option>
+                    <option value="ACTIVITIES">ACTIVITIES</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <input type="number" name="fee_items[${massFeeItemCounter}][amount]" class="form-control mass-fee-amount" placeholder="Amount" required onchange="calculateMassTotalAmount()">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger btn-circle btn-xs" onclick="removeMassFeeItem(this)"><i class="fa fa-times"></i></button>
+            </div>
+        </div>
+    `;
+    container.appendChild(newRow);
+    massFeeItemCounter++;
+    
+    // Show delete buttons since we have more than one item
+    var deleteButtons = document.querySelectorAll('#mass_fee_items_container .btn-danger');
+    if (deleteButtons.length > 1) {
+        deleteButtons.forEach(function(button) {
+            button.style.display = 'block';
+        });
+    }
+    
+    // Initialize select2 for the new row
+    $(container).find('.select2').select2();
+}
+
+function removeMassFeeItem(button) {
+    var row = button.closest('.fee-item-row');
+    row.parentNode.removeChild(row);
+    calculateMassTotalAmount();
+    
+    // Hide delete buttons if only one row remains
+    var deleteButtons = document.querySelectorAll('#mass_fee_items_container .btn-danger');
+    if (deleteButtons.length <= 1) {
+        deleteButtons[0].style.display = 'none';
+    }
+}
+
+function calculateMassTotalAmount() {
+    var total = 0;
+    var amountInputs = document.querySelectorAll('.mass-fee-amount');
+    amountInputs.forEach(function(input) {
+        if (input.value) {
+            total += parseFloat(input.value);
+        }
+    });
+    document.getElementById('mass_total_amount').value = total.toFixed(2);
+}
 
 function get_class_student(class_id){
     $.ajax({
@@ -337,6 +529,42 @@ function get_class_student(class_id){
         } 
 
     });
+}
+
+function get_student_details_by_admission(admission_number){
+    if(admission_number != '') {
+        $.ajax({
+            url: '<?php echo base_url();?>admin/get_student_by_admission/' + admission_number,
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if(response.status === 'success') {
+                    jQuery('#student_id').val(response.student_id);
+                    jQuery('#student_name').val(response.student_name);
+                    jQuery('#class_id').val(response.class_id);
+                    jQuery('#class_name').val(response.class_name);
+                } else {
+                    alert('Student not found with this admission number.');
+                    jQuery('#student_id').val('');
+                    jQuery('#student_name').val('');
+                    jQuery('#class_id').val('');
+                    jQuery('#class_name').val('');
+                }
+            },
+            error: function() {
+                alert('Error occurred while fetching student details.');
+                jQuery('#student_id').val('');
+                jQuery('#student_name').val('');
+                jQuery('#class_id').val('');
+                jQuery('#class_name').val('');
+            }
+        });
+    } else {
+        jQuery('#student_id').val('');
+        jQuery('#student_name').val('');
+        jQuery('#class_id').val('');
+        jQuery('#class_name').val('');
+    }
 }
 </script>
 
@@ -350,4 +578,10 @@ function get_class_mass_student(class_id){
 
     });
 }
+
+// Initialize calculations
+document.addEventListener('DOMContentLoaded', function() {
+    calculateTotalAmount();
+    calculateMassTotalAmount();
+});
 </script>

@@ -1312,11 +1312,28 @@ class Admin extends CI_Controller {
             redirect(base_url(). 'admin/student_invoice', 'refresh');
         }
 
-
         if($param1 == 'delete_invoice'){
             $this->student_payment_model->deleteStudentPaymentFunction($param2);
             $this->session->set_flashdata('flash_message', get_phrase('Data deleted successfully'));
             redirect(base_url(). 'admin/student_invoice', 'refresh');
+        }
+        
+        if($param1 == 'add_fee_item'){
+            $invoice_id = $this->student_payment_model->addFeeItem($param2);
+            $this->session->set_flashdata('flash_message', get_phrase('Fee item added successfully'));
+            redirect(base_url(). 'admin/student_invoice/edit/' . $param2, 'refresh');
+        }
+        
+        if($param1 == 'delete_fee_item'){
+            $invoice_id = $this->student_payment_model->deleteFeeItem($param2);
+            $this->session->set_flashdata('flash_message', get_phrase('Fee item deleted successfully'));
+            redirect(base_url(). 'admin/student_invoice/edit/' . $invoice_id, 'refresh');
+        }
+        
+        if($param1 == 'get_fee_items'){
+            $fee_items = $this->student_payment_model->getFeeItems($param2);
+            echo json_encode($fee_items);
+            return;
         }
 
         $page_data['page_name']     = 'student_payment';
@@ -3040,6 +3057,36 @@ class Admin extends CI_Controller {
         // Load the view
         $data['certificate'] = $certificate;
         $this->load->view('backend/admin/certificate_view_details', $data);
+    }
+
+    /**
+     * Get student details by admission number (AJAX)
+     * 
+     * @param int $admission_number Student's admission number
+     * @return JSON response with student data
+     */
+    function get_student_by_admission($admission_number) {
+        // Verify student exists with this admission number
+        $student = $this->db->get_where('student', array('admission_number' => $admission_number))->row_array();
+        
+        if (empty($student)) {
+            echo json_encode(array('status' => 'error', 'message' => 'Student not found'));
+            return;
+        }
+        
+        // Get class information
+        $class = $this->db->get_where('class', array('class_id' => $student['class_id']))->row_array();
+        
+        // Prepare response data
+        $response = array(
+            'status' => 'success',
+            'student_id' => $student['student_id'],
+            'student_name' => $student['name'],
+            'class_id' => $student['class_id'],
+            'class_name' => $class['name']
+        );
+        
+        echo json_encode($response);
     }
 
 }

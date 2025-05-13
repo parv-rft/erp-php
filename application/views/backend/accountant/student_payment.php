@@ -29,32 +29,29 @@
                 </div>
             </div>
 
-
+            <div class="form-group">
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Admission Number');?></label>
+                <div class="col-sm-12">
+                    <input type="text" class="form-control" name="admission_number" id="admission_number" onchange="get_student_details_by_admission(this.value)" required>
+                </div>
+            </div>
 
             <div class="form-group">
-                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('class');?></label>
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Student Name');?></label>
                 <div class="col-sm-12">
-                    <select name="class_id" id="class_id" class="form-control select2" onchange="return get_class_student(this.value)">
-                    <option value=""><?php echo get_phrase('select_class');?></option>
-
-                    <?php $class =  $this->db->get('class')->result_array();
-                    foreach($class as $key => $class):?>
-                    <option value="<?php echo $class['class_id'];?>"><?php echo $class['name'];?></option>
-                    <?php endforeach;?>
-                   </select>
-
+                    <input type="text" class="form-control" name="student_name" id="student_name" readonly>
                 </div>
             </div>
 
-								
-			<div class="form-group">
-                    <label class="col-md-12" for="example-text"><?php echo get_phrase('Student');?></label>
+            <div class="form-group">
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Class');?></label>
                 <div class="col-sm-12">
-                    <select name="student_id" class="form-control" id="student_selector_holder">
-                    <option value=""><?php echo get_phrase('select_student');?></option>
-                    </select>
+                    <input type="text" class="form-control" name="class_name" id="class_name" readonly>
                 </div>
             </div>
+
+            <input type="hidden" name="student_id" id="student_id" value="">
+            <input type="hidden" name="class_id" id="class_id" value="">
 
             <div class="form-group">
                 <label class="col-md-12" for="example-text"><?php echo get_phrase('Fee Type');?></label>
@@ -336,6 +333,42 @@ function get_class_student(class_id){
         } 
 
     });
+}
+
+function get_student_details_by_admission(admission_number){
+    if(admission_number != '') {
+        $.ajax({
+            url: '<?php echo base_url();?>accountant/get_student_by_admission/' + admission_number,
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if(response.status === 'success') {
+                    jQuery('#student_id').val(response.student_id);
+                    jQuery('#student_name').val(response.student_name);
+                    jQuery('#class_id').val(response.class_id);
+                    jQuery('#class_name').val(response.class_name);
+                } else {
+                    alert('Student not found with this admission number.');
+                    jQuery('#student_id').val('');
+                    jQuery('#student_name').val('');
+                    jQuery('#class_id').val('');
+                    jQuery('#class_name').val('');
+                }
+            },
+            error: function() {
+                alert('Error occurred while fetching student details.');
+                jQuery('#student_id').val('');
+                jQuery('#student_name').val('');
+                jQuery('#class_id').val('');
+                jQuery('#class_name').val('');
+            }
+        });
+    } else {
+        jQuery('#student_id').val('');
+        jQuery('#student_name').val('');
+        jQuery('#class_id').val('');
+        jQuery('#class_name').val('');
+    }
 }
 </script>
 

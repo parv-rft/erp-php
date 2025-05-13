@@ -132,6 +132,34 @@ class Accountant extends CI_Controller {
 
     }
 
-
+    /**
+     * Get student details by admission number (AJAX)
+     * 
+     * @param int $admission_number Student's admission number
+     * @return JSON response with student data
+     */
+    function get_student_by_admission($admission_number) {
+        // Verify student exists with this admission number
+        $student = $this->db->get_where('student', array('admission_number' => $admission_number))->row_array();
+        
+        if (empty($student)) {
+            echo json_encode(array('status' => 'error', 'message' => 'Student not found'));
+            return;
+        }
+        
+        // Get class information
+        $class = $this->db->get_where('class', array('class_id' => $student['class_id']))->row_array();
+        
+        // Prepare response data
+        $response = array(
+            'status' => 'success',
+            'student_id' => $student['student_id'],
+            'student_name' => $student['name'],
+            'class_id' => $student['class_id'],
+            'class_name' => $class['name']
+        );
+        
+        echo json_encode($response);
+    }
 
 }
