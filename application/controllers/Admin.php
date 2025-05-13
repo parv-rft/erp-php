@@ -1087,7 +1087,7 @@ class Admin extends CI_Controller {
         if (!$tab) {
             $tab = 'student'; // Default tab
         }
-        
+
         $page_data['student_id'] = $student_id;
         $page_data['activeTab'] = $tab;
         $page_data['page_name'] = 'edit_student';

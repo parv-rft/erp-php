@@ -778,6 +778,16 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                             </div>
                                         </div>
                                     </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="col-md-12"><?php echo get_phrase('session'); ?></label>
+                                            <div class="col-sm-12">
+                                                <input type="text" class="form-control" name="session">
+                                                <small class="text-muted"><?php echo get_phrase('Enter academic session (e.g. 2023-2024)'); ?></small>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 <div class="row">

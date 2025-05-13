@@ -77,6 +77,15 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
         width: 100%;
     }
 
+    /* Tab Content Styling */
+    .tab-content > .tab-pane {
+        display: none;
+    }
+    
+    .tab-content > .active {
+        display: block;
+    }
+
     /* Progress indicator */
     .progress-indicator {
         display: flex;
@@ -358,7 +367,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                         </div>
                     <?php endif; ?>
 
-                    <?php echo form_open(base_url() . 'admin/new_student/update/' . $student_id, array('class' => 'form-horizontal form-groups-bordered validate', 'enctype' => 'multipart/form-data')); ?>
+                    <?php echo form_open(base_url() . 'admin/student/update/' . $student_id, array('class' => 'form-horizontal form-groups-bordered validate', 'enctype' => 'multipart/form-data')); ?>
 
                     <!-- Progress Indicator -->
                     <div class="progress-indicator">
@@ -413,25 +422,24 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                             </div>
                             
                             <div class="row">
-                                <div class="col-md-4">
-				<div class="form-group"> 
+                                <div class="col-md-3">
+                                    <div class="form-group required-field"> 
                                         <label class="col-md-12"><?php echo get_phrase('student_photo'); ?></label>
-					 <div class="col-sm-12">
-                                            <input type="file" name="userfile" onChange="readURL(this);" class="form-control dropify" 
+                                        <div class="col-sm-12">
+                                            <input type="file" class="form-control dropify" name="userfile" 
                                                   data-allowed-file-extensions="jpg jpeg png" 
                                                   data-max-file-size="5M" 
                                                   data-show-errors="true" 
                                                   data-errors-position="outside" 
                                                   data-height="200" 
-                                                  data-width="150">
-                                            <img id="blah" src="<?php echo base_url();?>uploads/student_image/<?php echo $student['student_id'].'.jpg';?>" 
-                                                 alt="Student Photo" height="200" width="150" 
-                                                 style="border:1px dotted #ccc; object-fit:cover; margin-top:10px;">
-					 <small class="text-muted"><?php echo get_phrase('Passport size photo only. Dimensions: 3.5cm x 4.5cm'); ?></small>
+                                                  data-width="150"
+                                                  data-default-file="<?php echo base_url();?>uploads/student_image/<?php echo $student['student_id'].'.jpg';?>">
+                                            <small class="text-muted"><?php echo get_phrase('Allowed: JPG, JPEG, PNG. Max size: 5MB. Dimensions: 3.5cm x 4.5cm'); ?></small>
+                                            <div id="photo-upload-error" class="text-danger"></div>
                                         </div>
                                     </div>
-					</div>
-					</div>	
+                                </div>
+                            </div>
 					
                             <!-- Basic Information -->
                             <div class="form-section-title">
@@ -526,7 +534,6 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                             </option>
                                                 <?php endforeach; ?>
                           </select>
-		<a href="<?php echo base_url();?>admin/classes/"><button type="button" class="btn btn-info btn-circle btn-xs"><i class="fa fa-plus"></i></button></a>
                                         </div>
 						</div> 
 					</div>
@@ -538,23 +545,25 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 		                        <select name="section_id" class="form-control select2" style="width:100%" id="section_selector_holder">
 		                            <option value=""><?php echo get_phrase('select_class_first');?></option>
 			                    </select>
-	                            <a href="<?php echo base_url();?>admin/section/"><button type="button" class="btn btn-info btn-circle btn-xs"><i class="fa fa-plus"></i></button></a>
                                         </div>
 			                </div>
 					</div>						
 					
                                 <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('roll');?></label>
-                                        <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="roll" value="<?php echo $student['roll'];?>">
-                                            <small class="text-muted"><?php echo get_phrase('Enter roll number'); ?></small>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+					<div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('session');?></label>
+                    <div class="col-sm-12">
+                                            <input type="text" class="form-control" name="session" value="<?php echo $student['session'];?>">
+                                            <small class="text-muted"><?php echo get_phrase('Enter academic session (e.g. 2023-2024)'); ?></small>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <div class="row">
+
                                 <div class="col-md-4">
 					<div class="form-group">
                                         <label class="col-md-12"><?php echo get_phrase('admission_date');?></label>
@@ -604,15 +613,6 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 					
                                 <div class="col-md-4">
 					<div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('place_birth');?></label>
-                    <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="place_birth" value="<?php echo $student['place_birth'];?>">
-                                        </div>
-						</div> 
-					</div>
-					
-                                <div class="col-md-4">
-					<div class="form-group">
                                         <label class="col-md-12"><?php echo get_phrase('blood_group');?></label>
                     <div class="col-sm-12">
                                             <select name="blood_group" class="form-control select2" style="width:100%">
@@ -628,13 +628,37 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                     </div>
 						</div> 
 					</div>
+				
 					
                             <div class="row">
                                 <div class="col-md-4">
 					<div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('nationality');?></label>
+                                        <label class="col-md-12"><?php echo get_phrase('Admission Category');?></label>
                     <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="nationality" value="<?php echo $student['nationality'];?>">
+                                            <select name="admission_category" class="form-control select2" style="width:100%">
+                                                <option value=""><?php echo get_phrase('select');?></option>
+                                                <option value="general" <?php if(isset($student['admission_category']) && $student['admission_category'] == 'general') echo 'selected';?>><?php echo get_phrase('general');?></option>
+                                                <option value="disadvantaged" <?php if(isset($student['admission_category']) && $student['admission_category'] == 'disadvantaged') echo 'selected';?>><?php echo get_phrase('disadvantaged_group');?></option>
+                                                <option value="ews" <?php if(isset($student['admission_category']) && $student['admission_category'] == 'ews') echo 'selected';?>><?php echo get_phrase('ews');?></option>
+                                            </select>
+                                            <small class="text-muted"><?php echo get_phrase('Select admission category'); ?></small>
+                                        </div>
+						</div> 
+					</div>
+					
+                                <div class="col-md-4">
+					<div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('Caste');?></label>
+                    <div class="col-sm-12">
+                                            <select name="caste" class="form-control select2" style="width:100%">
+                                                <option value=""><?php echo get_phrase('select');?></option>
+                                                <option value="general" <?php if(isset($student['caste']) && $student['caste'] == 'general') echo 'selected';?>><?php echo get_phrase('general');?></option>
+                                                <option value="sc" <?php if(isset($student['caste']) && $student['caste'] == 'sc') echo 'selected';?>><?php echo get_phrase('sc');?></option>
+                                                <option value="st" <?php if(isset($student['caste']) && $student['caste'] == 'st') echo 'selected';?>><?php echo get_phrase('st');?></option>
+                                                <option value="obc" <?php if(isset($student['caste']) && $student['caste'] == 'obc') echo 'selected';?>><?php echo get_phrase('obc');?></option>
+                                                <option value="other" <?php if(isset($student['caste']) && $student['caste'] == 'other') echo 'selected';?>><?php echo get_phrase('other');?></option>
+                                            </select>
+                                            <small class="text-muted"><?php echo get_phrase('Select caste'); ?></small>
                                         </div>
 						</div> 
 					</div>
@@ -642,20 +666,11 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                 <div class="col-md-4">
 					<div class="form-group">
                                         <label class="col-md-12"><?php echo get_phrase('religion');?></label>
-                    <div class="col-sm-12">
+                                        <div class="col-sm-12">
                                             <input type="text" class="form-control" name="religion" value="<?php echo $student['religion'];?>">
                                         </div>
-						</div> 
-					</div>
-					
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('mother_tongue');?></label>
-                                        <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="m_tongue" value="<?php echo $student['m_tongue'];?>">
-                                        </div>
-                                    </div>
-                                </div>
+					</div> 
+				</div>
                             </div>
                             
                             <div class="row">
@@ -849,7 +864,28 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 					<div class="form-group">
                                         <label class="col-md-12"><?php echo get_phrase('father_designation');?></label>
                     <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="father_designation" value="<?php echo $student['father_designation'];?>">
+                                            <select name="father_designation" class="form-control select2" style="width:100%">
+                                                <option value=""><?php echo get_phrase('select');?></option>
+                                                <option value="Administrator" <?php if($student['father_designation'] == 'Administrator') echo 'selected';?>><?php echo get_phrase('Administrator');?></option>
+                                                <option value="Art & Craft Teacher" <?php if($student['father_designation'] == 'Art & Craft Teacher') echo 'selected';?>><?php echo get_phrase('Art & Craft Teacher');?></option>
+                                                <option value="Assistant Teacher" <?php if($student['father_designation'] == 'Assistant Teacher') echo 'selected';?>><?php echo get_phrase('Assistant Teacher');?></option>
+                                                <option value="Computer Teacher" <?php if($student['father_designation'] == 'Computer Teacher') echo 'selected';?>><?php echo get_phrase('Computer Teacher');?></option>
+                                                <option value="Dance Teacher" <?php if($student['father_designation'] == 'Dance Teacher') echo 'selected';?>><?php echo get_phrase('Dance Teacher');?></option>
+                                                <option value="Driver" <?php if($student['father_designation'] == 'Driver') echo 'selected';?>><?php echo get_phrase('Driver');?></option>
+                                                <option value="Librarian" <?php if($student['father_designation'] == 'Librarian') echo 'selected';?>><?php echo get_phrase('Librarian');?></option>
+                                                <option value="Music Teacher" <?php if($student['father_designation'] == 'Music Teacher') echo 'selected';?>><?php echo get_phrase('Music Teacher');?></option>
+                                                <option value="Nursery Teacher" <?php if($student['father_designation'] == 'Nursery Teacher') echo 'selected';?>><?php echo get_phrase('Nursery Teacher');?></option>
+                                                <option value="Peon" <?php if($student['father_designation'] == 'Peon') echo 'selected';?>><?php echo get_phrase('Peon');?></option>
+                                                <option value="PGT" <?php if($student['father_designation'] == 'PGT') echo 'selected';?>><?php echo get_phrase('PGT');?></option>
+                                                <option value="Physical Education Teacher" <?php if($student['father_designation'] == 'Physical Education Teacher') echo 'selected';?>><?php echo get_phrase('Physical Education Teacher');?></option>
+                                                <option value="Physical Training Instructor" <?php if($student['father_designation'] == 'Physical Training Instructor') echo 'selected';?>><?php echo get_phrase('Physical Training Instructor');?></option>
+                                                <option value="Primary Teacher" <?php if($student['father_designation'] == 'Primary Teacher') echo 'selected';?>><?php echo get_phrase('Primary Teacher');?></option>
+                                                <option value="Receptionist" <?php if($student['father_designation'] == 'Receptionist') echo 'selected';?>><?php echo get_phrase('Receptionist');?></option>
+                                                <option value="Sweeper" <?php if($student['father_designation'] == 'Sweeper') echo 'selected';?>><?php echo get_phrase('Sweeper');?></option>
+                                                <option value="Trained Graduate Teacher" <?php if($student['father_designation'] == 'Trained Graduate Teacher') echo 'selected';?>><?php echo get_phrase('Trained Graduate Teacher');?></option>
+                                                <option value="Transport Incharge" <?php if($student['father_designation'] == 'Transport Incharge') echo 'selected';?>><?php echo get_phrase('Transport Incharge');?></option>
+                                                <option value="Other" <?php if($student['father_designation'] == 'Other') echo 'selected';?>><?php echo get_phrase('Other');?></option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -946,7 +982,28 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                     <div class="form-group">
                                         <label class="col-md-12"><?php echo get_phrase('mother_designation');?></label>
                                         <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="mother_designation" value="<?php echo $student['mother_designation'];?>">
+                                            <select name="mother_designation" class="form-control select2" style="width:100%">
+                                                <option value=""><?php echo get_phrase('select');?></option>
+                                                <option value="Administrator" <?php if($student['mother_designation'] == 'Administrator') echo 'selected';?>><?php echo get_phrase('Administrator');?></option>
+                                                <option value="Art & Craft Teacher" <?php if($student['mother_designation'] == 'Art & Craft Teacher') echo 'selected';?>><?php echo get_phrase('Art & Craft Teacher');?></option>
+                                                <option value="Assistant Teacher" <?php if($student['mother_designation'] == 'Assistant Teacher') echo 'selected';?>><?php echo get_phrase('Assistant Teacher');?></option>
+                                                <option value="Computer Teacher" <?php if($student['mother_designation'] == 'Computer Teacher') echo 'selected';?>><?php echo get_phrase('Computer Teacher');?></option>
+                                                <option value="Dance Teacher" <?php if($student['mother_designation'] == 'Dance Teacher') echo 'selected';?>><?php echo get_phrase('Dance Teacher');?></option>
+                                                <option value="Driver" <?php if($student['mother_designation'] == 'Driver') echo 'selected';?>><?php echo get_phrase('Driver');?></option>
+                                                <option value="Librarian" <?php if($student['mother_designation'] == 'Librarian') echo 'selected';?>><?php echo get_phrase('Librarian');?></option>
+                                                <option value="Music Teacher" <?php if($student['mother_designation'] == 'Music Teacher') echo 'selected';?>><?php echo get_phrase('Music Teacher');?></option>
+                                                <option value="Nursery Teacher" <?php if($student['mother_designation'] == 'Nursery Teacher') echo 'selected';?>><?php echo get_phrase('Nursery Teacher');?></option>
+                                                <option value="Peon" <?php if($student['mother_designation'] == 'Peon') echo 'selected';?>><?php echo get_phrase('Peon');?></option>
+                                                <option value="PGT" <?php if($student['mother_designation'] == 'PGT') echo 'selected';?>><?php echo get_phrase('PGT');?></option>
+                                                <option value="Physical Education Teacher" <?php if($student['mother_designation'] == 'Physical Education Teacher') echo 'selected';?>><?php echo get_phrase('Physical Education Teacher');?></option>
+                                                <option value="Physical Training Instructor" <?php if($student['mother_designation'] == 'Physical Training Instructor') echo 'selected';?>><?php echo get_phrase('Physical Training Instructor');?></option>
+                                                <option value="Primary Teacher" <?php if($student['mother_designation'] == 'Primary Teacher') echo 'selected';?>><?php echo get_phrase('Primary Teacher');?></option>
+                                                <option value="Receptionist" <?php if($student['mother_designation'] == 'Receptionist') echo 'selected';?>><?php echo get_phrase('Receptionist');?></option>
+                                                <option value="Sweeper" <?php if($student['mother_designation'] == 'Sweeper') echo 'selected';?>><?php echo get_phrase('Sweeper');?></option>
+                                                <option value="Trained Graduate Teacher" <?php if($student['mother_designation'] == 'Trained Graduate Teacher') echo 'selected';?>><?php echo get_phrase('Trained Graduate Teacher');?></option>
+                                                <option value="Transport Incharge" <?php if($student['mother_designation'] == 'Transport Incharge') echo 'selected';?>><?php echo get_phrase('Transport Incharge');?></option>
+                                                <option value="Other" <?php if($student['mother_designation'] == 'Other') echo 'selected';?>><?php echo get_phrase('Other');?></option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -1062,190 +1119,231 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 
                         <!-- Transport & Facilities Tab -->
                         <div class="tab-pane <?php echo $activeTab == 'transport' ? 'active' : ''; ?>" id="transport">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="alert alert-info">
-                                        <i class="fa fa-info-circle"></i> 
-                                        <strong>Transport & Facilities:</strong> Assign transport route, dormitory, club, and other facilities to the student.
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Transport Information -->
                             <div class="form-section-title">
-                                <i class="fa fa-bus"></i> <?php echo get_phrase('Transport Information'); ?>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6">
-	<div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('transport_route');?></label>
-                    <div class="col-sm-12">
-							<select name="transport_id" class="form-control select2" style="width:100%">
-                              <option value=""><?php echo get_phrase('select');?></option>
-	                              <?php 
-	                              	$transports = $this->db->get('transport')->result_array();
-	                              	foreach($transports as $transport):
-	                              ?>
-                                                <option value="<?php echo $transport['transport_id'];?>" <?php if($student['transport_id'] == $transport['transport_id']) echo 'selected';?>>
-                                                    <?php echo $transport['name'];?>
-                                                </option>
-                                                <?php endforeach; ?>
-                          </select>
-	<a href="<?php echo base_url();?>admin/transport/"><button type="button" class="btn btn-info btn-circle btn-xs"><i class="fa fa-plus"></i></button></a>
-                                            <small class="text-muted"><?php echo get_phrase('Select transport route if applicable'); ?></small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Dormitory Information -->
-                            <div class="form-section-title">
-                                <i class="fa fa-building"></i> <?php echo get_phrase('Dormitory Information'); ?>
+                                <i class="fa fa-bus"></i> <?php echo get_phrase('Transport Details'); ?>
                             </div>
                             
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('dormitory');?></label>
+                                        <label class="col-md-12"><?php echo get_phrase('transport_mode');?></label>
                                         <div class="col-sm-12">
-                                            <select name="dormitory_id" class="form-control select2" style="width:100%">
+                                            <select name="transport_mode" class="form-control select2">
+                                                <option value=""><?php echo get_phrase('select');?></option>
+                                                <option value="self" <?php if(isset($student['transport_mode']) && $student['transport_mode'] == 'self') echo 'selected';?>><?php echo get_phrase('self');?></option>
+                                                <option value="parents" <?php if(isset($student['transport_mode']) && $student['transport_mode'] == 'parents') echo 'selected';?>><?php echo get_phrase('parents');?></option>
+                                                <option value="bus" <?php if(isset($student['transport_mode']) && $student['transport_mode'] == 'bus') echo 'selected';?>><?php echo get_phrase('bus');?></option>
+                          </select>
+                                        </div>
+						</div> 
+					</div>
+
+                                <div class="col-md-6 bus-option" <?php if(isset($student['transport_mode']) && $student['transport_mode'] != 'bus') echo 'style="display:none;"';?>>
+						<div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('transport_route');?></label>
+                    <div class="col-sm-12">
+                                            <select name="transport_id" class="form-control select2">
+                              <option value=""><?php echo get_phrase('select');?></option>
+	                              <?php 
+                                                $transports = $this->db->get('transport')->result_array();
+                                                foreach($transports as $row):
+	                              ?>
+                                                <option value="<?php echo $row['transport_id'];?>" <?php if($student['transport_id'] == $row['transport_id']) echo 'selected';?>>
+                                                    <?php echo $row['name'];?> - <?php echo $row['route'];?>
+                                                </option>
+                          		<?php endforeach;?>
+                          </select>
+                                        </div>
+                                    </div>
+						</div> 
+					</div>
+
+                            <!-- Pickup Information Section -->
+                            <div class="form-section-title">
+                                <i class="fa fa-map-marker"></i> <?php echo get_phrase('Pickup Information'); ?>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+	<div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('pick_area');?></label>
+                    <div class="col-sm-12">
+                                            <input type="text" class="form-control" name="pick_area" value="<?php echo isset($student['pick_area']) ? $student['pick_area'] : ''; ?>">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('pick_stand');?></label>
+                                        <div class="col-sm-12">
+                                            <input type="text" class="form-control" name="pick_stand" value="<?php echo isset($student['pick_stand']) ? $student['pick_stand'] : ''; ?>">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('pick_route');?></label>
+                                        <div class="col-sm-12">
+                                            <select name="pick_route_id" class="form-control select2">
+                              <option value=""><?php echo get_phrase('select');?></option>
+	                              <?php 
+                                                $routes = $this->db->get('transport_route')->result_array();
+                                                foreach($routes as $row):
+	                              ?>
+                                                <option value="<?php echo $row['transport_route_id'];?>" <?php if(isset($student['pick_route_id']) && $student['pick_route_id'] == $row['transport_route_id']) echo 'selected';?>>
+                                                    <?php echo $row['name'];?> (<?php echo $row['description'];?>)
+                                                </option>
+                          		<?php endforeach;?>
+                          </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('pick_driver');?></label>
+                                        <div class="col-sm-12">
+                                            <select name="pick_driver_id" class="form-control select2">
                                                 <option value=""><?php echo get_phrase('select');?></option>
                                                 <?php 
-                                                $dormitories = $this->db->get('dormitory')->result_array();
-                                                foreach($dormitories as $dormitory):
+                                                $drivers = $this->db->get('vehicle')->result_array();
+                                                foreach($drivers as $row):
                                                 ?>
-                                                <option value="<?php echo $dormitory['dormitory_id'];?>" <?php if($student['dormitory_id'] == $dormitory['dormitory_id']) echo 'selected';?>>
-                                                    <?php echo $dormitory['name'];?>
+                                                <option value="<?php echo $row['vehicle_id'];?>" <?php if(isset($student['pick_driver_id']) && $student['pick_driver_id'] == $row['vehicle_id']) echo 'selected';?>>
+                                                    <?php echo $row['driver_name'];?> (<?php echo $row['vehicle_number'];?>)
                                                 </option>
-                                                <?php endforeach; ?>
+                                                <?php endforeach;?>
                                             </select>
-                                            <a href="<?php echo base_url();?>admin/dormitory/"><button type="button" class="btn btn-info btn-circle btn-xs"><i class="fa fa-plus"></i></button></a>
-                                            <small class="text-muted"><?php echo get_phrase('Select dormitory if applicable'); ?></small>
                                         </div>
                                     </div>
 						</div> 
 					</div>
 					
-                            <!-- Clubs and Activities -->
+                            <!-- Drop Information Section -->
                             <div class="form-section-title">
-                                <i class="fa fa-users"></i> <?php echo get_phrase('Clubs and Activities'); ?>
+                                <i class="fa fa-map-marker"></i> <?php echo get_phrase('Drop Information'); ?>
                             </div>
 					
                             <div class="row">
                                 <div class="col-md-6">
 					<div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('Student Club');?></label>
+                                        <label class="col-md-12"><?php echo get_phrase('drop_area');?></label>
                     <div class="col-sm-12">
-                                            <select name="club_id" class="form-control select2" style="width:100%">
-                              <option value=""><?php echo get_phrase('select');?></option>
-                              <?php 
-                                                $clubs = $this->db->get('club')->result_array();
-                                                foreach($clubs as $club):
-									?>
-                                                <option value="<?php echo $club['club_id'];?>" <?php if($student['club_id'] == $club['club_id']) echo 'selected';?>>
-                                                    <?php echo $club['club_name'];?>
-                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                            <a href="<?php echo base_url();?>admin/club/"><button type="button" class="btn btn-info btn-circle btn-xs"><i class="fa fa-plus"></i></button></a>
-                                            <small class="text-muted"><?php echo get_phrase('Select club if applicable'); ?></small>
+                                            <input type="text" class="form-control" name="drop_area" value="<?php echo isset($student['drop_area']) ? $student['drop_area'] : ''; ?>">
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('Student House');?></label>
+                                        <label class="col-md-12"><?php echo get_phrase('drop_stand');?></label>
                                         <div class="col-sm-12">
-                                            <select name="house_id" class="form-control select2" style="width:100%">
-                                                <option value=""><?php echo get_phrase('select');?></option>
-                                <?php
-                                                $houses = $this->db->get('house')->result_array();
-                                                foreach($houses as $house):
-                                                ?>
-                                                <option value="<?php echo $house['house_id'];?>" <?php if($student['house_id'] == $house['house_id']) echo 'selected';?>>
-                                                    <?php echo $house['name'];?>
-                                                </option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                            <a href="<?php echo base_url();?>studenthouse/studentHouse/"><button type="button" class="btn btn-info btn-circle btn-xs"><i class="fa fa-plus"></i></button></a>
-                                            <small class="text-muted"><?php echo get_phrase('Select house if applicable'); ?></small>
+                                            <input type="text" class="form-control" name="drop_stand" value="<?php echo isset($student['drop_stand']) ? $student['drop_stand'] : ''; ?>">
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <!-- Category Information -->
-                            <div class="form-section-title">
-                                <i class="fa fa-tag"></i> <?php echo get_phrase('Category Information'); ?>
-                            </div>
-                            
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('Student Category');?></label>
+                                        <label class="col-md-12"><?php echo get_phrase('drop_route');?></label>
                                         <div class="col-sm-12">
-                                            <select name="student_category_id" class="form-control select2" style="width:100%">
-                                                <option value=""><?php echo get_phrase('select');?></option>
-                                                <?php 
-                                                $student_categories = $this->db->get('student_category')->result_array();
-                                                foreach($student_categories as $category):
-                                                ?>
-                                                <option value="<?php echo $category['student_category_id'];?>" <?php if($student['student_category_id'] == $category['student_category_id']) echo 'selected';?>>
-                                                    <?php echo $category['name'];?>
-                                                </option>
-                                                <?php endforeach; ?>
-                          </select>
-						 	<a href="<?php echo base_url();?>studentcategory/studentCategory/"><button type="button" class="btn btn-info btn-circle btn-xs"><i class="fa fa-plus"></i></button></a>
-                                            <small class="text-muted"><?php echo get_phrase('Select student category'); ?></small>
+                                            <select name="drop_route_id" class="form-control select2">
+                              <option value=""><?php echo get_phrase('select');?></option>
+                              <?php 
+                                                $routes = $this->db->get('transport_route')->result_array();
+                                                foreach($routes as $row):
+									?>
+                                                <option value="<?php echo $row['transport_route_id'];?>" <?php if(isset($student['drop_route_id']) && $student['drop_route_id'] == $row['transport_route_id']) echo 'selected';?>>
+                                                    <?php echo $row['name'];?> (<?php echo $row['description'];?>)
+                                    </option>
+                                                <?php endforeach;?>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('Admission Category');?></label>
+                                        <label class="col-md-12"><?php echo get_phrase('drop_driver');?></label>
                                         <div class="col-sm-12">
-                                            <select name="admission_category" class="form-control select2" style="width:100%">
+                                            <select name="drop_driver_id" class="form-control select2">
                                                 <option value=""><?php echo get_phrase('select');?></option>
-                                                <option value="general" <?php if(isset($student['admission_category']) && $student['admission_category'] == 'general') echo 'selected';?>><?php echo get_phrase('general');?></option>
-                                                <option value="disadvantaged" <?php if(isset($student['admission_category']) && $student['admission_category'] == 'disadvantaged') echo 'selected';?>><?php echo get_phrase('disadvantaged_group');?></option>
-                                                <option value="ews" <?php if(isset($student['admission_category']) && $student['admission_category'] == 'ews') echo 'selected';?>><?php echo get_phrase('ews');?></option>
-                                            </select>
-                                            <small class="text-muted"><?php echo get_phrase('Select admission category'); ?></small>
+                                <?php
+                                                $drivers = $this->db->get('vehicle')->result_array();
+                                                foreach($drivers as $row):
+							  ?>
+                                                <option value="<?php echo $row['vehicle_id'];?>" <?php if(isset($student['drop_driver_id']) && $student['drop_driver_id'] == $row['vehicle_id']) echo 'selected';?>>
+                                                    <?php echo $row['driver_name'];?> (<?php echo $row['vehicle_number'];?>)
+                                                </option>
+                                                <?php endforeach;?>
+                          </select>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Transport Months Section -->
+                            <div class="form-section-title">
+                                <div class="month-selector-title-row">
+                                    <div>
+                                        <i class="fa fa-calendar"></i> <?php echo get_phrase('Transport Months'); ?>
+                                    </div>
+                                    <div class="month-selector-controls">
+                                        <button type="button" class="btn btn-info btn-sm" id="select-all-months">
+                                            <i class="fa fa-check-square-o"></i> <?php echo get_phrase('Select All'); ?>
+                                        </button>
+                                        <button type="button" class="btn btn-warning btn-sm" id="deselect-all-months">
+                                            <i class="fa fa-square-o"></i> <?php echo get_phrase('Deselect All'); ?>
+                                        </button>
                                     </div>
 						</div> 
 						</div>
 
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('Caste');?></label>
+                                        <label class="col-md-12"><?php echo get_phrase('select_months');?></label>
                                         <div class="col-sm-12">
-                                            <select name="caste" class="form-control select2" style="width:100%">
-                                                <option value=""><?php echo get_phrase('select');?></option>
-                                                <option value="general" <?php if(isset($student['caste']) && $student['caste'] == 'general') echo 'selected';?>><?php echo get_phrase('general');?></option>
-                                                <option value="sc" <?php if(isset($student['caste']) && $student['caste'] == 'sc') echo 'selected';?>><?php echo get_phrase('sc');?></option>
-                                                <option value="st" <?php if(isset($student['caste']) && $student['caste'] == 'st') echo 'selected';?>><?php echo get_phrase('st');?></option>
-                                                <option value="obc" <?php if(isset($student['caste']) && $student['caste'] == 'obc') echo 'selected';?>><?php echo get_phrase('obc');?></option>
-                                                <option value="other" <?php if(isset($student['caste']) && $student['caste'] == 'other') echo 'selected';?>><?php echo get_phrase('other');?></option>
-                                            </select>
-                                            <small class="text-muted"><?php echo get_phrase('Select caste'); ?></small>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('physical_handicap');?></label>
-                                        <div class="col-sm-12">
-                                            <select name="physical_h" class="form-control select2" style="width:100%">
-                                                <option value=""><?php echo get_phrase('select');?></option>
-                                                <option value="Yes" <?php if($student['physical_h'] == 'Yes') echo 'selected';?>>Yes</option>
-                                                <option value="No" <?php if($student['physical_h'] == 'No') echo 'selected';?>>No</option>
-                                            </select>
+                                            <div class="months-container" style="display: flex; flex-wrap: wrap; gap: 10px; padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px solid #e0e0e0;">
+                                                <?php 
+                                                $months = array(
+                                                    'january' => get_phrase('January'),
+                                                    'february' => get_phrase('February'),
+                                                    'march' => get_phrase('March'),
+                                                    'april' => get_phrase('April'),
+                                                    'may' => get_phrase('May'),
+                                                    'june' => get_phrase('June'),
+                                                    'july' => get_phrase('July'),
+                                                    'august' => get_phrase('August'),
+                                                    'september' => get_phrase('September'),
+                                                    'october' => get_phrase('October'),
+                                                    'november' => get_phrase('November'),
+                                                    'december' => get_phrase('December')
+                                                );
+                                                
+                                                // Get selected months if any
+                                                $selected_months = array();
+                                                if(isset($student['transport_months'])) {
+                                                    $selected_months = json_decode($student['transport_months'], true);
+                                                    if(!is_array($selected_months)) {
+                                                        $selected_months = array();
+                                                    }
+                                                }
+                                                
+                                                foreach($months as $key => $month):
+                                                ?>
+                                                <div style="width: 170px; margin-bottom: 10px; display: flex; align-items: center;">
+                                                    <input id="month_<?php echo $key; ?>" type="checkbox" name="transport_months[]" value="<?php echo $key; ?>" <?php if(in_array($key, $selected_months)) echo 'checked'; ?> style="margin-right: 8px; width: 18px; height: 18px;">
+                                                    <label for="month_<?php echo $key; ?>" style="display: inline-block; padding-left: 5px; font-weight: normal; cursor: pointer;"><?php echo $month; ?></label>
+                                                </div>
+                                                <?php endforeach; ?>
+                                            </div>
                                         </div>
                                     </div>
 					</div>
@@ -1260,27 +1358,98 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                     <i class="fa fa-arrow-right"></i> <?php echo get_phrase('Next: Documents'); ?>
                                 </button>
                             </div>
+
+                            <script type="text/javascript">
+                            $(document).ready(function() {
+                                // Show/hide bus-related fields based on transport mode
+                                $('select[name="transport_mode"]').on('change', function() {
+                                    var mode = $(this).val();
+                                    if (mode === 'bus') {
+                                        $('.bus-option').show();
+                                    } else {
+                                        $('.bus-option').hide();
+                                        // Reset transport_id when not using bus
+                                        $('select[name="transport_id"]').val('').trigger('change');
+                                    }
+                                });
+
+                                // Select all months
+                                $('#select-all-months').click(function() {
+                                    $('input[name="transport_months[]"]').prop('checked', true);
+                                });
+                                
+                                // Deselect all months
+                                $('#deselect-all-months').click(function() {
+                                    $('input[name="transport_months[]"]').prop('checked', false);
+                                });
+                            });
+                            </script>
                         </div>
 
                         <!-- Documents Tab -->
                         <div class="tab-pane <?php echo $activeTab == 'documents' ? 'active' : ''; ?>" id="documents">
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="alert alert-info">
-                                        <i class="fa fa-info-circle"></i> 
-                                        <strong>Documents Information:</strong> Update information about student's documents and previous school details.
-                                    </div>
-                                </div>
+                            <div class="form-section-title">
+                                <i class="fa fa-file-text"></i> <?php echo get_phrase('Documents'); ?>
                             </div>
                             
-                            <!-- Previous School Information -->
-                            <div class="form-section-title">
-                                <i class="fa fa-university"></i> <?php echo get_phrase('Previous School Information'); ?>
+                            <div class="alert alert-info">
+                                <i class="fa fa-info-circle"></i> All document uploads are optional. You can upload documents later.
                             </div>
                             
                             <div class="row">
                                 <div class="col-md-6">
  <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('transfer_certificate');?></label>
+                                        <div class="col-sm-12">
+                                            <select name="tran_cert" class="form-control select2">
+                                                <option value=""><?php echo get_phrase('select');?></option>
+                                                <option value="Yes" <?php if(isset($student['tran_cert']) && $student['tran_cert'] == 'Yes') echo 'selected';?>><?php echo get_phrase('yes');?></option>
+                                                <option value="No" <?php if(isset($student['tran_cert']) && $student['tran_cert'] == 'No') echo 'selected';?>><?php echo get_phrase('no');?></option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('upload_transfer_certificate');?></label>
+                                        <div class="col-sm-12">
+                                            <input type="file" class="form-control" name="transfer_certificate">
+                                            <small class="text-muted">Upload transfer certificate document (PDF/JPG/PNG)</small>
+                                            <?php if(isset($student['transfer_certificate']) && !empty($student['transfer_certificate'])): ?>
+                                                <p class="text-success mt-2">
+                                                    <i class="fa fa-check-circle"></i> Transfer certificate uploaded
+                                                </p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('student_signature');?></label>
+                                        <div class="col-sm-12">
+                                            <input type="file" class="form-control" name="signature">
+                                            <?php if(isset($student['signature']) && !empty($student['signature'])): ?>
+                                                <p class="text-success mt-2">
+                                                    <i class="fa fa-check-circle"></i> Signature uploaded
+                                                </p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+					</div>
+					
+                            <!-- Previous School Information -->
+                            <!-- <div class="form-section-title">
+                                <i class="fa fa-university"></i> <?php echo get_phrase('Previous School Information'); ?>
+                            </div> -->
+                            
+                            <!-- <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
                                         <label class="col-md-12"><?php echo get_phrase('previous_school_name');?></label>
                                         <div class="col-sm-12">
                                             <input type="text" class="form-control" name="ps_attended" value="<?php echo $student['ps_attended'];?>">
@@ -1293,8 +1462,8 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                         <label class="col-md-12"><?php echo get_phrase('the_address');?></label>
                                         <div class="col-sm-12">
                                             <textarea name="ps_address" class="form-control" rows="4"><?php echo $student['ps_address'];?></textarea>
-                                        </div>
-                                    </div>
+				</div>
+			</div>		
                                 </div>
                             </div>
                             
@@ -1304,10 +1473,10 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                         <label class="col-md-12"><?php echo get_phrase('purpose_of_leaving');?></label>
                                         <div class="col-sm-12">
                                             <input type="text" class="form-control" name="ps_purpose" value="<?php echo $student['ps_purpose'];?>">
-                                        </div>
-                                    </div>
-					</div>
-					
+		</div>	
+    </div> 
+</div>
+
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label class="col-md-12"><?php echo get_phrase('class_in_which_was_studying');?></label>
@@ -1325,12 +1494,137 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                         </div>
                                     </div>
                                 </div>
+                            </div> -->
+                            
+                            <!-- Identity Documents -->
+                            <div class="form-section-title">
+                                <i class="fa fa-id-card"></i> <?php echo get_phrase('Identity Documents'); ?>
                             </div>
                             
-                            <!-- Admission Information -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('father_adharcard');?></label>
+                                        <div class="col-sm-12">
+                                            <input type="file" class="form-control" name="father_adharcard">
+                                            <?php if(isset($student['father_adharcard']) && !empty($student['father_adharcard'])): ?>
+                                                <p class="text-success mt-2">
+                                                    <i class="fa fa-check-circle"></i> Father's Adhar card uploaded
+                                                </p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('mother_adharcard');?></label>
+                                        <div class="col-sm-12">
+                                            <input type="file" class="form-control" name="mother_adharcard">
+                                            <?php if(isset($student['mother_adharcard']) && !empty($student['mother_adharcard'])): ?>
+                                                <p class="text-success mt-2">
+                                                    <i class="fa fa-check-circle"></i> Mother's Adhar card uploaded
+                                                </p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('income_certificate');?></label>
+                                        <div class="col-sm-12">
+                                            <input type="file" class="form-control" name="income_certificate">
+                                            <?php if(isset($student['income_certificate']) && !empty($student['income_certificate'])): ?>
+                                                <p class="text-success mt-2">
+                                                    <i class="fa fa-check-circle"></i> Income certificate uploaded
+                                                </p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('date_of_birth_proof');?></label>
+                                        <div class="col-sm-12">
+                                            <input type="file" class="form-control" name="dob_proof">
+                                            <?php if(isset($student['dob_proof']) && !empty($student['dob_proof'])): ?>
+                                                <p class="text-success mt-2">
+                                                    <i class="fa fa-check-circle"></i> DOB proof uploaded
+                                                </p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('migration_certificate');?></label>
+                                        <div class="col-sm-12">
+                                            <input type="file" class="form-control" name="migration_certificate">
+                                            <?php if(isset($student['migration_certificate']) && !empty($student['migration_certificate'])): ?>
+                                                <p class="text-success mt-2">
+                                                    <i class="fa fa-check-circle"></i> Migration certificate uploaded
+                                                </p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('caste_certificate');?></label>
+                                        <div class="col-sm-12">
+                                            <input type="file" class="form-control" name="caste_certificate">
+                                            <?php if(isset($student['caste_certificate']) && !empty($student['caste_certificate'])): ?>
+                                                <p class="text-success mt-2">
+                                                    <i class="fa fa-check-circle"></i> Caste certificate uploaded
+                                                </p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('aadhar_card');?></label>
+                                        <div class="col-sm-12">
+                                            <input type="file" class="form-control" name="aadhar_card">
+                                            <?php if(isset($student['aadhar_card']) && !empty($student['aadhar_card'])): ?>
+                                                <p class="text-success mt-2">
+                                                    <i class="fa fa-check-circle"></i> Aadhar card uploaded
+                                                </p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('address_proof');?></label>
+                                        <div class="col-sm-12">
+                                            <input type="file" class="form-control" name="address_proof">
+                                            <?php if(isset($student['address_proof']) && !empty($student['address_proof'])): ?>
+                                                <p class="text-success mt-2">
+                                                    <i class="fa fa-check-circle"></i> Address proof uploaded
+                                                </p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Admission Information
                             <div class="form-section-title">
                                 <i class="fa fa-calendar"></i> <?php echo get_phrase('Admission Information'); ?>
-				</div>
+                            </div>
                             
                             <div class="row">
                                 <div class="col-md-6">
@@ -1347,26 +1641,17 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                         <label class="col-md-12"><?php echo get_phrase('date_of_joining');?></label>
                                         <div class="col-sm-12">
                                             <input type="date" class="form-control datepicker" name="date_of_joining" value="<?php echo isset($student['date_of_joining']) ? $student['date_of_joining'] : $student['am_date']; ?>">
-			</div>		
-		</div>	
-    </div> 
-</div>
-
-                            <!-- Document Verification -->
-                            <div class="form-section-title">
-                                <i class="fa fa-file-text"></i> <?php echo get_phrase('Document Verification'); ?>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
                             <div class="row">
                                 <div class="col-md-3">
                                     <div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('transfer_certificate');?></label>
+                                        <label class="col-md-12"><?php echo get_phrase('session');?></label>
                                         <div class="col-sm-12">
-                                            <select name="tran_cert" class="form-control select2" style="width:100%">
-                                                <option value=""><?php echo get_phrase('select');?></option>
-                                                <option value="Yes" <?php if($student['tran_cert'] == 'Yes') echo 'selected';?>>Yes</option>
-                                                <option value="No" <?php if($student['tran_cert'] == 'No') echo 'selected';?>>No</option>
-                                            </select>
+                                            <input type="text" class="form-control" name="session" value="<?php echo $student['session'];?>">
                                         </div>
                                     </div>
                                 </div>
@@ -1375,7 +1660,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                     <div class="form-group">
                                         <label class="col-md-12"><?php echo get_phrase('birth_certificate');?></label>
                                         <div class="col-sm-12">
-                                            <select name="dob_cert" class="form-control select2" style="width:100%">
+                                            <select name="dob_cert" class="form-control select2">
                                                 <option value=""><?php echo get_phrase('select');?></option>
                                                 <option value="Yes" <?php if($student['dob_cert'] == 'Yes') echo 'selected';?>>Yes</option>
                                                 <option value="No" <?php if($student['dob_cert'] == 'No') echo 'selected';?>>No</option>
@@ -1388,7 +1673,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                     <div class="form-group">
                                         <label class="col-md-12"><?php echo get_phrase('any_given_marksheet');?></label>
                                         <div class="col-sm-12">
-                                            <select name="mark_join" class="form-control select2" style="width:100%">
+                                            <select name="mark_join" class="form-control select2">
                                                 <option value=""><?php echo get_phrase('select');?></option>
                                                 <option value="Yes" <?php if($student['mark_join'] == 'Yes') echo 'selected';?>>Yes</option>
                                                 <option value="No" <?php if($student['mark_join'] == 'No') echo 'selected';?>>No</option>
@@ -1397,30 +1682,9 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                     </div>
                                 </div>
                                 
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('session');?></label>
-                                        <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="session" value="<?php echo $student['session'];?>">
-                                        </div>
-                                    </div>
+                                <div class="col-md-6">
                                 </div>
-                            </div>
-                            
-                            <!-- Additional Documents and Files -->
-                            <div class="form-section-title">
-                                <i class="fa fa-paperclip"></i> <?php echo get_phrase('Additional Documents'); ?>
-                                <small class="text-muted">(Upload in student details section)</small>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="alert alert-warning">
-                                        <i class="fa fa-info-circle"></i> 
-                                        <strong>Note:</strong> Additional documents like ID cards, certificates, etc. can be uploaded in the student details section after saving this form.
-                                    </div>
-                                </div>
-                            </div>
+                            </div> -->
                             
                             <!-- Navigation Buttons -->
                             <div class="nav-buttons">
@@ -1429,9 +1693,6 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                 </button>
                                 <button type="submit" class="btn btn-save">
                                     <i class="fa fa-save"></i> <?php echo get_phrase('Update Student'); ?>
-                                </button>
-                                <button type="button" class="btn btn-print" onclick="printStudentForm()">
-                                    <i class="fa fa-print"></i> <?php echo get_phrase('Print'); ?>
                                 </button>
                             </div>
                         </div>
@@ -1458,6 +1719,9 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
             
             // Update progress steps
             updateProgressSteps(nextTab);
+            
+            // Scroll to top of form for better UX
+            scrollToFormTop();
         });
         
         // Previous tab button click
@@ -1471,10 +1735,16 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
             
             // Update progress steps
             updateProgressSteps(prevTab);
+            
+            // Scroll to top of form for better UX
+            scrollToFormTop();
         });
         
         // Tab click handler
-        $('.nav-tabs a').click(function() {
+        $('.nav-tabs a').click(function(e) {
+            e.preventDefault();
+            $(this).tab('show');
+            
             var tab = $(this).attr('href').replace('#', '');
             
             // Update URL to maintain tab on refresh
@@ -1484,6 +1754,13 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
             // Update progress steps
             updateProgressSteps(tab);
         });
+        
+        // Function to scroll to top of form
+        function scrollToFormTop() {
+            $('html, body').animate({
+                scrollTop: $(".admission-nav").offset().top - 20
+            }, 300);
+        }
         
         function updateProgressSteps(activeTab) {
             // Reset all steps
@@ -1505,6 +1782,57 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                 $('.progress-step:eq(3)').addClass('active');
             }
         }
+        
+        // Initialize tab system
+        function initializeTabs() {
+            // Get active tab from URL or default to 'student'
+            var initialTab = '<?php echo $activeTab; ?>';
+            
+            // Activate the correct tab
+            $('.nav-tabs a[href="#' + initialTab + '"]').tab('show');
+            
+            // Update progress steps
+            updateProgressSteps(initialTab);
+        }
+        
+        // Run initialization
+        initializeTabs();
+        
+        // Form validation handling for tab navigation
+        $('form').on('submit', function(e) {
+            var isValid = true;
+            
+            // Check for validation errors in all tabs
+            $('.tab-pane').each(function() {
+                var tabPane = $(this);
+                
+                // Find all required inputs in this tab
+                var requiredFields = tabPane.find(':input[required]');
+                
+                // Check each required field
+                requiredFields.each(function() {
+                    if (!this.checkValidity()) {
+                        // If we found an invalid field, activate this tab
+                        $('.nav-tabs a[href="#' + tabPane.attr('id') + '"]').tab('show');
+                        
+                        // Focus on the first invalid element
+                        $(this).focus();
+                        isValid = false;
+                        return false; // break the each loop
+                    }
+                });
+                
+                if (!isValid) {
+                    return false; // break the tab-pane each loop
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        });
 
         // Initialize sections when page loads for class_id
         var class_id = '<?php echo $student['class_id']; ?>';
@@ -1596,8 +1924,8 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
     });
 
     // Check password strength
-	function CheckPasswordStrength(password) {
-	var password_strength = document.getElementById("password_strength");
+    function CheckPasswordStrength(password) {
+        var password_strength = document.getElementById("password_strength");
 
         //TextBox left blank.
         if (password.length == 0) {
@@ -1656,6 +1984,46 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
             reader.readAsDataURL(input.files[0]);
         }
     }
+    
+    // Initialize dropify
+    $('.dropify').dropify({
+        messages: {
+            default: '<?php echo get_phrase("Drag and drop a file here or click"); ?>',
+            replace: '<?php echo get_phrase("Drag and drop or click to replace"); ?>',
+            remove: '<?php echo get_phrase("Remove"); ?>',
+            error: '<?php echo get_phrase("Error occurred"); ?>'
+        },
+        error: {
+            fileSize: '<?php echo get_phrase("The file size is too big (5MB max)"); ?>',
+            imageFormat: '<?php echo get_phrase("The image format is not allowed (Allowed: jpg, jpeg, png)"); ?>'
+        }
+    });
+
+    // Add custom validation for photo upload
+    $('form').on('submit', function(e) {
+        var fileInput = $('input[name="userfile"]')[0];
+        var errorDiv = $('#photo-upload-error');
+        errorDiv.html('');
+
+        if (fileInput.files.length > 0) {
+            var file = fileInput.files[0];
+            
+            // Check file size
+            if (file.size > 5 * 1024 * 1024) { // 5MB in bytes
+                errorDiv.html('<?php echo get_phrase("File size exceeds 5MB limit"); ?>');
+                e.preventDefault();
+                return false;
+            }
+
+            // Check file type
+            var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedTypes.includes(file.type)) {
+                errorDiv.html('<?php echo get_phrase("Invalid file type. Only JPG, JPEG, and PNG are allowed"); ?>');
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
 </script>
 
 <?php endforeach; ?>

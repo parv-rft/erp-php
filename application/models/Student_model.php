@@ -123,7 +123,7 @@ class Student_model extends CI_Model {
             'address' => html_escape($this->input->post('address')),
             'city' => html_escape($this->input->post('city')),
             'state' => html_escape($this->input->post('state')),
-            'nationality' => html_escape($this->input->post('nationality')),
+                // 'nationality' => html_escape($this->input->post('nationality')),
             'phone' => html_escape($this->input->post('phone')),
             'email' => html_escape($this->input->post('student_email')),
             'password' => sha1($this->input->post('password')),
@@ -152,7 +152,19 @@ class Student_model extends CI_Model {
             'mother_qualification' => html_escape($this->input->post('mother_qualification')),
             
             'roll' => html_escape($this->input->post('roll')),
+            
+            // Transport Information
+            'transport_mode' => html_escape($this->input->post('transport_mode')),
             'transport_id' => html_escape($this->input->post('transport_id')),
+            'pick_area' => html_escape($this->input->post('pick_area')),
+            'pick_stand' => html_escape($this->input->post('pick_stand')),
+            'pick_route_id' => html_escape($this->input->post('pick_route_id')),
+            'pick_driver_id' => html_escape($this->input->post('pick_driver_id')),
+            'drop_area' => html_escape($this->input->post('drop_area')),
+            'drop_stand' => html_escape($this->input->post('drop_stand')),
+            'drop_route_id' => html_escape($this->input->post('drop_route_id')),
+            'drop_driver_id' => html_escape($this->input->post('drop_driver_id')),
+            
             'dormitory_id' => html_escape($this->input->post('dormitory_id')),
             'house_id' => html_escape($this->input->post('house_id')),
             'student_category_id' => html_escape($this->input->post('student_category_id')),
@@ -162,6 +174,13 @@ class Student_model extends CI_Model {
             'apaar_id' => html_escape($this->input->post('apaar_id')),
             'admission_date' => html_escape($this->input->post('admission_date'))
         );
+        
+        // Handle transport months array
+        if ($this->input->post('transport_months')) {
+            $page_data['transport_months'] = json_encode($this->input->post('transport_months'));
+        } else {
+            $page_data['transport_months'] = json_encode(array());
+        }
 
         // Begin transaction
         $this->db->trans_start();
@@ -256,14 +275,14 @@ class Student_model extends CI_Model {
         $this->db->trans_start();
         
         try {
-            $page_data = array(
-                'admission_number' => html_escape($this->input->post('admission_no')),
+        $page_data = array(
+            'admission_number' => html_escape($this->input->post('admission_no')),
                 'name'           => html_escape($this->input->post('name')),
                 'birthday'       => html_escape($this->input->post('birthday')),
                 'age'            => html_escape($this->input->post('age')),
-                'place_birth'    => html_escape($this->input->post('place_birth')),
+                // 'place_birth'    => html_escape($this->input->post('place_birth')),
                 'sex'            => html_escape($this->input->post('sex')),
-                'm_tongue'       => html_escape($this->input->post('m_tongue')),
+                // 'm_tongue'       => html_escape($this->input->post('m_tongue')),
                 'religion'       => html_escape($this->input->post('religion')),
                 'blood_group'    => html_escape($this->input->post('blood_group')),
                 
@@ -278,16 +297,16 @@ class Student_model extends CI_Model {
                 'permanent_state' => html_escape($this->input->post('permanent_state')),
                 'permanent_pincode' => html_escape($this->input->post('permanent_pincode')),
                 
-                'nationality'    => html_escape($this->input->post('nationality')),
+                // 'nationality'    => html_escape($this->input->post('nationality')),
                 'phone'          => html_escape($this->input->post('phone')),
                 'email'          => html_escape($this->input->post('email')),
                 
                 // Previous School Information
-                'ps_attended'    => html_escape($this->input->post('ps_attended')),
-                'ps_address'     => html_escape($this->input->post('ps_address')),
-                'ps_purpose'     => html_escape($this->input->post('ps_purpose')),
-                'class_study'    => html_escape($this->input->post('class_study')),
-                'date_of_leaving' => html_escape($this->input->post('date_of_leaving')),
+                // 'ps_attended'    => html_escape($this->input->post('ps_attended')),
+                // 'ps_address'     => html_escape($this->input->post('ps_address')),
+                // 'ps_purpose'     => html_escape($this->input->post('ps_purpose')),
+                // 'class_study'    => html_escape($this->input->post('class_study')),
+                // 'date_of_leaving' => html_escape($this->input->post('date_of_leaving')),
                 'am_date'        => html_escape($this->input->post('am_date')),
                 
                 // Category Information
@@ -299,17 +318,31 @@ class Student_model extends CI_Model {
                 'tran_cert'      => html_escape($this->input->post('tran_cert')),
                 'dob_cert'       => html_escape($this->input->post('dob_cert')),
                 'mark_join'      => html_escape($this->input->post('mark_join')),
-                'physical_h'     => html_escape($this->input->post('physical_h')),
+                // 'physical_h'     => html_escape($this->input->post('physical_h')),
                 
                 // Academic Information
                 'class_id'       => html_escape($this->input->post('class_id')),
                 'section_id'     => html_escape($this->input->post('section_id')),
-                'parent_id'      => html_escape($this->input->post('parent_id')),
+                'father_id'      => html_escape($this->input->post('father_id')),
+                
+                // Transport Information
+                'transport_mode' => html_escape($this->input->post('transport_mode')),
                 'transport_id'   => html_escape($this->input->post('transport_id')),
+                'pick_area'      => html_escape($this->input->post('pick_area')),
+                'pick_stand'     => html_escape($this->input->post('pick_stand')),
+                'pick_route_id'  => html_escape($this->input->post('pick_route_id')),
+                'pick_driver_id' => html_escape($this->input->post('pick_driver_id')),
+                'drop_area'      => html_escape($this->input->post('drop_area')),
+                'drop_stand'     => html_escape($this->input->post('drop_stand')),
+                'drop_route_id'  => html_escape($this->input->post('drop_route_id')),
+                'drop_driver_id' => html_escape($this->input->post('drop_driver_id')),
+                
+                // Other information
                 'dormitory_id'   => html_escape($this->input->post('dormitory_id')),
                 'house_id'       => html_escape($this->input->post('house_id')),
                 'club_id'        => html_escape($this->input->post('club_id')),
                 'student_code'   => html_escape($this->input->post('student_code')),
+                'session'        => html_escape($this->input->post('session')),
                 
                 // Additional IDs
                 'apaar_id'       => html_escape($this->input->post('apaar_id')),
@@ -318,25 +351,158 @@ class Student_model extends CI_Model {
                 'date_of_joining' => html_escape($this->input->post('date_of_joining'))
             );
             
+            // Handle transport months array
+            if ($this->input->post('transport_months')) {
+                $page_data['transport_months'] = json_encode($this->input->post('transport_months'));
+            } else {
+                $page_data['transport_months'] = json_encode(array());
+            }
+            
             // Update password only if provided
             if ($this->input->post('password') != '') {
                 $page_data['password'] = sha1($this->input->post('password'));
             }
+        
+        $this->db->where('student_id', $param2);
+        $this->db->update('student', $page_data);
+        
+        // Upload document files directory
+        $upload_path = 'uploads/student_documents/';
+        if (!is_dir($upload_path)) {
+            mkdir($upload_path, 0777, true);
+        }
+        
+        // Upload student photo if provided
+        if (!empty($_FILES['userfile']['name'])) {
+            $file = $_FILES['userfile'];
+            $file_type = $file['type'];
             
-            $this->db->where('student_id', $param2);
-            $this->db->update('student', $page_data);
-            
-            // Upload student photo if provided
-            if (!empty($_FILES['userfile']['name'])) {
-                $file = $_FILES['userfile'];
-                $file_type = $file['type'];
-                
-                // Validate file type
-                $allowed_types = ['image/jpeg', 'image/jpg', 'image/png'];
-                if (in_array($file_type, $allowed_types)) {
-                    move_uploaded_file($file['tmp_name'], 'uploads/student_image/' . $param2 . '.jpg');
-                }
+            // Validate file type
+            $allowed_types = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (in_array($file_type, $allowed_types)) {
+                move_uploaded_file($file['tmp_name'], 'uploads/student_image/' . $param2 . '.jpg');
             }
+        }
+            
+        // Upload transfer certificate if provided
+        if (!empty($_FILES['transfer_certificate']['name'])) {
+            $file = $_FILES['transfer_certificate'];
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $file_path = $upload_path . $param2 . '_transfer_certificate.' . $ext;
+            
+            if (move_uploaded_file($file['tmp_name'], $file_path)) {
+                $this->db->where('student_id', $param2);
+                $this->db->update('student', array('transfer_certificate' => $param2 . '_transfer_certificate.' . $ext));
+            }
+        }
+        
+        // Upload student signature if provided
+        if (!empty($_FILES['signature']['name'])) {
+            $file = $_FILES['signature'];
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $file_path = $upload_path . $param2 . '_signature.' . $ext;
+            
+            if (move_uploaded_file($file['tmp_name'], $file_path)) {
+                $this->db->where('student_id', $param2);
+                $this->db->update('student', array('signature' => $param2 . '_signature.' . $ext));
+            }
+        }
+        
+        // Upload father's adhaar card if provided
+        if (!empty($_FILES['father_adharcard']['name'])) {
+            $file = $_FILES['father_adharcard'];
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $file_path = $upload_path . $param2 . '_father_adharcard.' . $ext;
+            
+            if (move_uploaded_file($file['tmp_name'], $file_path)) {
+                $this->db->where('student_id', $param2);
+                $this->db->update('student', array('father_adharcard' => $param2 . '_father_adharcard.' . $ext));
+            }
+        }
+        
+        // Upload mother's adhaar card if provided
+        if (!empty($_FILES['mother_adharcard']['name'])) {
+            $file = $_FILES['mother_adharcard'];
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $file_path = $upload_path . $param2 . '_mother_adharcard.' . $ext;
+            
+            if (move_uploaded_file($file['tmp_name'], $file_path)) {
+                $this->db->where('student_id', $param2);
+                $this->db->update('student', array('mother_adharcard' => $param2 . '_mother_adharcard.' . $ext));
+            }
+        }
+        
+        // Upload income certificate if provided
+        if (!empty($_FILES['income_certificate']['name'])) {
+            $file = $_FILES['income_certificate'];
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $file_path = $upload_path . $param2 . '_income_certificate.' . $ext;
+            
+            if (move_uploaded_file($file['tmp_name'], $file_path)) {
+                $this->db->where('student_id', $param2);
+                $this->db->update('student', array('income_certificate' => $param2 . '_income_certificate.' . $ext));
+            }
+        }
+        
+        // Upload DOB proof if provided
+        if (!empty($_FILES['dob_proof']['name'])) {
+            $file = $_FILES['dob_proof'];
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $file_path = $upload_path . $param2 . '_dob_proof.' . $ext;
+            
+            if (move_uploaded_file($file['tmp_name'], $file_path)) {
+                $this->db->where('student_id', $param2);
+                $this->db->update('student', array('dob_proof' => $param2 . '_dob_proof.' . $ext));
+            }
+        }
+        
+        // Upload migration certificate if provided
+        if (!empty($_FILES['migration_certificate']['name'])) {
+            $file = $_FILES['migration_certificate'];
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $file_path = $upload_path . $param2 . '_migration_certificate.' . $ext;
+            
+            if (move_uploaded_file($file['tmp_name'], $file_path)) {
+                $this->db->where('student_id', $param2);
+                $this->db->update('student', array('migration_certificate' => $param2 . '_migration_certificate.' . $ext));
+            }
+        }
+        
+        // Upload caste certificate if provided
+        if (!empty($_FILES['caste_certificate']['name'])) {
+            $file = $_FILES['caste_certificate'];
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $file_path = $upload_path . $param2 . '_caste_certificate.' . $ext;
+            
+            if (move_uploaded_file($file['tmp_name'], $file_path)) {
+                $this->db->where('student_id', $param2);
+                $this->db->update('student', array('caste_certificate' => $param2 . '_caste_certificate.' . $ext));
+            }
+        }
+        
+        // Upload aadhar card if provided
+        if (!empty($_FILES['aadhar_card']['name'])) {
+            $file = $_FILES['aadhar_card'];
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $file_path = $upload_path . $param2 . '_aadhar_card.' . $ext;
+            
+            if (move_uploaded_file($file['tmp_name'], $file_path)) {
+                $this->db->where('student_id', $param2);
+                $this->db->update('student', array('aadhar_card' => $param2 . '_aadhar_card.' . $ext));
+            }
+        }
+        
+        // Upload address proof if provided
+        if (!empty($_FILES['address_proof']['name'])) {
+            $file = $_FILES['address_proof'];
+            $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $file_path = $upload_path . $param2 . '_address_proof.' . $ext;
+            
+            if (move_uploaded_file($file['tmp_name'], $file_path)) {
+                $this->db->where('student_id', $param2);
+                $this->db->update('student', array('address_proof' => $param2 . '_address_proof.' . $ext));
+            }
+        }
             
             // Commit transaction
             $this->db->trans_complete();

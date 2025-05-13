@@ -10,7 +10,7 @@
                 <div class="panel-body">
                     <div class="row">
                         <div class="col-md-12 text-right" style="margin-bottom: 20px;">
-                            <a href="<?php echo base_url(); ?>admin/transfer_certificate/add" class="btn btn-info btn-rounded btn-sm">
+                            <a href="<?php echo base_url(); ?>admin/transfer_certificate/add" class="btn btn-info btn-rounded btn-sm text-white">
                                 <i class="fa fa-plus"></i> <?php echo get_phrase('Add Transfer Certificate'); ?>
                             </a>
                         </div>
