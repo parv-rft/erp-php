@@ -3016,4 +3016,30 @@ class Admin extends CI_Controller {
         }
     }
 
+    // Add this function after the get_student_for_certificate function
+    /**
+     * Get certificate details for popup view
+     */
+    function get_certificate_details($tc_id) {
+        if ($this->session->userdata('admin_login') != 1) {
+            echo '<div class="alert alert-danger">Access denied</div>';
+            return;
+        }
+        
+        // Load the transfer certificate model
+        $this->load->model('transfer_certificate_model');
+        
+        // Get certificate data
+        $certificate = $this->transfer_certificate_model->get_certificate($tc_id);
+        
+        if (empty($certificate)) {
+            echo '<div class="alert alert-danger">Certificate not found</div>';
+            return;
+        }
+        
+        // Load the view
+        $data['certificate'] = $certificate;
+        $this->load->view('backend/admin/certificate_view_details', $data);
+    }
+
 }
