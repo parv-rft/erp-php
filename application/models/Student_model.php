@@ -252,116 +252,109 @@ class Student_model extends CI_Model {
 
     //the function below update student
     function updateNewStudent($param2){
-        $new_student_id = html_escape($this->input->post('student_id'));
+        // Begin transaction
+        $this->db->trans_start();
         
-        // Check if the new student_id already exists (excluding the current student)
-        if ($this->check_student_id_exists($new_student_id, $param2)) {
-            $this->session->set_flashdata('error_message', get_phrase('Student ID already exists. Please use a different ID.'));
+        try {
+            $page_data = array(
+                'admission_number' => html_escape($this->input->post('admission_no')),
+                'name'           => html_escape($this->input->post('name')),
+                'birthday'       => html_escape($this->input->post('birthday')),
+                'age'            => html_escape($this->input->post('age')),
+                'place_birth'    => html_escape($this->input->post('place_birth')),
+                'sex'            => html_escape($this->input->post('sex')),
+                'm_tongue'       => html_escape($this->input->post('m_tongue')),
+                'religion'       => html_escape($this->input->post('religion')),
+                'blood_group'    => html_escape($this->input->post('blood_group')),
+                
+                // Address Information
+                'address'        => html_escape($this->input->post('address')),
+                'city'           => html_escape($this->input->post('city')),
+                'state'          => html_escape($this->input->post('state')),
+                'pincode'        => html_escape($this->input->post('pincode')),
+                'same_as_present' => $this->input->post('same_as_present') ? 1 : 0,
+                'permanent_address' => html_escape($this->input->post('permanent_address')),
+                'permanent_city' => html_escape($this->input->post('permanent_city')),
+                'permanent_state' => html_escape($this->input->post('permanent_state')),
+                'permanent_pincode' => html_escape($this->input->post('permanent_pincode')),
+                
+                'nationality'    => html_escape($this->input->post('nationality')),
+                'phone'          => html_escape($this->input->post('phone')),
+                'email'          => html_escape($this->input->post('email')),
+                
+                // Previous School Information
+                'ps_attended'    => html_escape($this->input->post('ps_attended')),
+                'ps_address'     => html_escape($this->input->post('ps_address')),
+                'ps_purpose'     => html_escape($this->input->post('ps_purpose')),
+                'class_study'    => html_escape($this->input->post('class_study')),
+                'date_of_leaving' => html_escape($this->input->post('date_of_leaving')),
+                'am_date'        => html_escape($this->input->post('am_date')),
+                
+                // Category Information
+                'caste'          => html_escape($this->input->post('caste')),
+                'admission_category' => html_escape($this->input->post('admission_category')),
+                'student_category_id' => html_escape($this->input->post('student_category_id')),
+                
+                // Documents Information
+                'tran_cert'      => html_escape($this->input->post('tran_cert')),
+                'dob_cert'       => html_escape($this->input->post('dob_cert')),
+                'mark_join'      => html_escape($this->input->post('mark_join')),
+                'physical_h'     => html_escape($this->input->post('physical_h')),
+                
+                // Academic Information
+                'class_id'       => html_escape($this->input->post('class_id')),
+                'section_id'     => html_escape($this->input->post('section_id')),
+                'parent_id'      => html_escape($this->input->post('parent_id')),
+                'transport_id'   => html_escape($this->input->post('transport_id')),
+                'dormitory_id'   => html_escape($this->input->post('dormitory_id')),
+                'house_id'       => html_escape($this->input->post('house_id')),
+                'club_id'        => html_escape($this->input->post('club_id')),
+                'student_code'   => html_escape($this->input->post('student_code')),
+                
+                // Additional IDs
+                'apaar_id'       => html_escape($this->input->post('apaar_id')),
+                'adhar_no'       => html_escape($this->input->post('adhar_no')),
+                'admission_date' => html_escape($this->input->post('admission_date')),
+                'date_of_joining' => html_escape($this->input->post('date_of_joining'))
+            );
+            
+            // Update password only if provided
+            if ($this->input->post('password') != '') {
+                $page_data['password'] = sha1($this->input->post('password'));
+            }
+            
+            $this->db->where('student_id', $param2);
+            $this->db->update('student', $page_data);
+            
+            // Upload student photo if provided
+            if (!empty($_FILES['userfile']['name'])) {
+                $file = $_FILES['userfile'];
+                $file_type = $file['type'];
+                
+                // Validate file type
+                $allowed_types = ['image/jpeg', 'image/jpg', 'image/png'];
+                if (in_array($file_type, $allowed_types)) {
+                    move_uploaded_file($file['tmp_name'], 'uploads/student_image/' . $param2 . '.jpg');
+                }
+            }
+            
+            // Commit transaction
+            $this->db->trans_complete();
+            
+            if ($this->db->trans_status() === FALSE) {
+                throw new Exception('Database transaction failed');
+            }
+            
+            $this->session->set_flashdata('flash_message', get_phrase('Student information updated successfully'));
+            return true;
+            
+        } catch (Exception $e) {
+            // Rollback transaction
+            $this->db->trans_rollback();
+            
+            $this->session->set_flashdata('error_message', get_phrase('Error updating student: ') . $e->getMessage());
             return false;
         }
-        
-        $page_data = array(
-            'student_id'     => $new_student_id,
-            'admission_number' => html_escape($this->input->post('admission_no')),
-            'name'          => html_escape($this->input->post('name')),
-            'birthday'      => html_escape($this->input->post('birthday')),
-            'age'           => html_escape($this->input->post('age')),
-            'place_birth'   => html_escape($this->input->post('place_birth')),
-            'sex'           => html_escape($this->input->post('sex')),
-            'm_tongue'      => html_escape($this->input->post('m_tongue')),
-            'religion'      => html_escape($this->input->post('religion')),
-            'blood_group'   => html_escape($this->input->post('blood_group')),
-            'address'       => html_escape($this->input->post('address')),
-            'city'          => html_escape($this->input->post('city')),
-            'state'         => html_escape($this->input->post('state')),
-            'nationality'   => html_escape($this->input->post('nationality')),
-            'phone'         => html_escape($this->input->post('phone')),
-            'email'         => html_escape($this->input->post('student_email')),
-            
-            // Father details
-            'father_name'   => html_escape($this->input->post('father_name')),
-            'father_phone'  => html_escape($this->input->post('father_phone')),
-            'father_email'  => html_escape($this->input->post('father_email')),
-            'father_occupation' => html_escape($this->input->post('father_occupation')),
-            'father_adhar'  => html_escape($this->input->post('father_adhar')),
-            'father_annual_income' => html_escape($this->input->post('father_annual_income')),
-            'father_designation' => html_escape($this->input->post('father_designation')),
-            'father_qualification' => html_escape($this->input->post('father_qualification')),
-            
-            // Mother details
-            'mother_name'   => html_escape($this->input->post('mother_name')),
-            'mother_phone'  => html_escape($this->input->post('mother_phone')),
-            'mother_email'  => html_escape($this->input->post('mother_email')),
-            'mother_occupation' => html_escape($this->input->post('mother_occupation')),
-            'mother_adhar'  => html_escape($this->input->post('mother_adhar')),
-            'mother_annual_income' => html_escape($this->input->post('mother_annual_income')),
-            'mother_designation' => html_escape($this->input->post('mother_designation')),
-            'mother_qualification' => html_escape($this->input->post('mother_qualification')),
-            
-            'ps_attended'   => html_escape($this->input->post('ps_attended')),
-            'ps_address'    => html_escape($this->input->post('ps_address')),
-            'ps_purpose'    => html_escape($this->input->post('ps_purpose')),
-            'class_study'   => html_escape($this->input->post('class_study')),
-            'date_of_leaving' => html_escape($this->input->post('date_of_leaving')),
-            'am_date'         => html_escape($this->input->post('am_date')),
-            'tran_cert'       => html_escape($this->input->post('tran_cert')),
-            'dob_cert'        => html_escape($this->input->post('dob_cert')),
-            'mark_join'        => html_escape($this->input->post('mark_join')),
-            'physical_h'      => html_escape($this->input->post('physical_h')),
-            'class_id'        => html_escape($this->input->post('class_id')),
-            'section_id'      => html_escape($this->input->post('section_id')),
-            'father_id'       => html_escape($this->input->post('father_id')),
-            'transport_id'    => html_escape($this->input->post('transport_id')),
-            'dormitory_id'    => html_escape($this->input->post('dormitory_id')),
-            'house_id'        => html_escape($this->input->post('house_id')),
-            'student_category_id' => html_escape($this->input->post('student_category_id')),
-            'club_id'             => html_escape($this->input->post('club_id')),
-            'student_code'        => html_escape($this->input->post('student_code')),
-            'apaar_id'            => html_escape($this->input->post('apaar_id')),
-            'admission_date'      => html_escape($this->input->post('admission_date'))
-	    );
-        
-        $this->db->where('student_id', $param2);
-        $this->db->update('student', $page_data);
-        
-        // Upload student photo if provided
-        if (!empty($_FILES['userfile']['name'])) {
-            move_uploaded_file($_FILES['userfile']['tmp_name'], 'uploads/student_image/' . $param2 . '.jpg');
-        }
-        
-        // Upload father's photo if provided
-        if (!empty($_FILES['father_image']['name'])) {
-            $father_file_path = 'uploads/parent_image/' . $param2 . '_father.jpg';
-            
-            // Create directory if it doesn't exist
-            if (!is_dir('uploads/parent_image/')) {
-                mkdir('uploads/parent_image/', 0777, true);
-            }
-            
-            move_uploaded_file($_FILES['father_image']['tmp_name'], $father_file_path);
-            
-            // Update the database with the father's photo path
-            $this->db->where('student_id', $param2);
-            $this->db->update('student', array('father_photo' => $param2 . '_father.jpg'));
-        }
-        
-        // Upload mother's photo if provided
-        if (!empty($_FILES['mother_image']['name'])) {
-            $mother_file_path = 'uploads/parent_image/' . $param2 . '_mother.jpg';
-            
-            // Create directory if it doesn't exist
-            if (!is_dir('uploads/parent_image/')) {
-                mkdir('uploads/parent_image/', 0777, true);
-            }
-            
-            move_uploaded_file($_FILES['mother_image']['tmp_name'], $mother_file_path);
-            
-            // Update the database with the mother's photo path
-            $this->db->where('student_id', $param2);
-            $this->db->update('student', array('mother_photo' => $param2 . '_mother.jpg'));
-        }
-        
-        return true;
     }
 
     // the function below deletes from student table

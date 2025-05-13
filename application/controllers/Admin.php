@@ -1082,10 +1082,16 @@ class Admin extends CI_Controller {
 
 
     function edit_student($student_id){
-
-        $page_data['student_id']      = $student_id;
-        $page_data['page_name']     = 'edit_student';
-        $page_data['page_title']    = get_phrase('Edit Student');
+        // Get tab parameter if available
+        $tab = $this->input->get('tab');
+        if (!$tab) {
+            $tab = 'student'; // Default tab
+        }
+        
+        $page_data['student_id'] = $student_id;
+        $page_data['activeTab'] = $tab;
+        $page_data['page_name'] = 'edit_student';
+        $page_data['page_title'] = get_phrase('Edit Student');
         $this->load->view('backend/index', $page_data);
     }
 
