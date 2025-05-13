@@ -123,13 +123,34 @@ class Student_model extends CI_Model {
             'address' => html_escape($this->input->post('address')),
             'city' => html_escape($this->input->post('city')),
             'state' => html_escape($this->input->post('state')),
-            // 'nationality' => html_escape($this->input->post('nationality')),
+            'nationality' => html_escape($this->input->post('nationality')),
             'phone' => html_escape($this->input->post('phone')),
             'email' => html_escape($this->input->post('student_email')),
             'password' => sha1($this->input->post('password')),
             'class_id' => html_escape($this->input->post('class_id')),
             'section_id' => html_escape($this->input->post('section_id')),
             'father_id' => html_escape($this->input->post('father_id')),
+            
+            // Father details
+            'father_name' => html_escape($this->input->post('father_name')),
+            'father_phone' => html_escape($this->input->post('father_phone')),
+            'father_email' => html_escape($this->input->post('father_email')),
+            'father_occupation' => html_escape($this->input->post('father_occupation')),
+            'father_adhar' => html_escape($this->input->post('father_adhar')),
+            'father_annual_income' => html_escape($this->input->post('father_annual_income')),
+            'father_designation' => html_escape($this->input->post('father_designation')),
+            'father_qualification' => html_escape($this->input->post('father_qualification')),
+            
+            // Mother details
+            'mother_name' => html_escape($this->input->post('mother_name')),
+            'mother_phone' => html_escape($this->input->post('mother_phone')),
+            'mother_email' => html_escape($this->input->post('mother_email')),
+            'mother_occupation' => html_escape($this->input->post('mother_occupation')),
+            'mother_adhar' => html_escape($this->input->post('mother_adhar')),
+            'mother_annual_income' => html_escape($this->input->post('mother_annual_income')),
+            'mother_designation' => html_escape($this->input->post('mother_designation')),
+            'mother_qualification' => html_escape($this->input->post('mother_qualification')),
+            
             'roll' => html_escape($this->input->post('roll')),
             'transport_id' => html_escape($this->input->post('transport_id')),
             'dormitory_id' => html_escape($this->input->post('dormitory_id')),
@@ -138,7 +159,8 @@ class Student_model extends CI_Model {
             'club_id' => html_escape($this->input->post('club_id')),
             'session' => html_escape($this->input->post('session')),
             'student_code' => html_escape($this->input->post('student_code')),
-            'apaar_id' => html_escape($this->input->post('apaar_id'))
+            'apaar_id' => html_escape($this->input->post('apaar_id')),
+            'admission_date' => html_escape($this->input->post('admission_date'))
         );
 
         // Begin transaction
@@ -155,10 +177,44 @@ class Student_model extends CI_Model {
                 mkdir($upload_path, 0777, true);
             }
 
-            // Upload file
+            // Upload student photo
             $file_path = $upload_path . $student_id . '.jpg';
             if (!move_uploaded_file($file['tmp_name'], $file_path)) {
-                throw new Exception('Failed to upload file');
+                throw new Exception('Failed to upload student photo');
+            }
+            
+            // Upload father's photo if provided
+            if (!empty($_FILES['father_image']['name'])) {
+                $father_file = $_FILES['father_image'];
+                $father_file_path = 'uploads/parent_image/' . $student_id . '_father.jpg';
+                
+                // Create directory if it doesn't exist
+                if (!is_dir('uploads/parent_image/')) {
+                    mkdir('uploads/parent_image/', 0777, true);
+                }
+                
+                if (move_uploaded_file($father_file['tmp_name'], $father_file_path)) {
+                    // Update the database with the father's photo path
+                    $this->db->where('student_id', $student_id);
+                    $this->db->update('student', array('father_photo' => $student_id . '_father.jpg'));
+                }
+            }
+            
+            // Upload mother's photo if provided
+            if (!empty($_FILES['mother_image']['name'])) {
+                $mother_file = $_FILES['mother_image'];
+                $mother_file_path = 'uploads/parent_image/' . $student_id . '_mother.jpg';
+                
+                // Create directory if it doesn't exist
+                if (!is_dir('uploads/parent_image/')) {
+                    mkdir('uploads/parent_image/', 0777, true);
+                }
+                
+                if (move_uploaded_file($mother_file['tmp_name'], $mother_file_path)) {
+                    // Update the database with the mother's photo path
+                    $this->db->where('student_id', $student_id);
+                    $this->db->update('student', array('mother_photo' => $student_id . '_mother.jpg'));
+                }
             }
 
             // Commit transaction
@@ -175,9 +231,17 @@ class Student_model extends CI_Model {
             // Rollback transaction
             $this->db->trans_rollback();
             
-            // Delete uploaded file if exists
+            // Delete uploaded files if they exist
             if (file_exists($file_path)) {
                 unlink($file_path);
+            }
+            
+            if (isset($father_file_path) && file_exists($father_file_path)) {
+                unlink($father_file_path);
+            }
+            
+            if (isset($mother_file_path) && file_exists($mother_file_path)) {
+                unlink($mother_file_path);
             }
 
             $this->session->set_flashdata('error_message', get_phrase('Error creating student: ') . $e->getMessage());
@@ -213,6 +277,27 @@ class Student_model extends CI_Model {
             'nationality'   => html_escape($this->input->post('nationality')),
             'phone'         => html_escape($this->input->post('phone')),
             'email'         => html_escape($this->input->post('student_email')),
+            
+            // Father details
+            'father_name'   => html_escape($this->input->post('father_name')),
+            'father_phone'  => html_escape($this->input->post('father_phone')),
+            'father_email'  => html_escape($this->input->post('father_email')),
+            'father_occupation' => html_escape($this->input->post('father_occupation')),
+            'father_adhar'  => html_escape($this->input->post('father_adhar')),
+            'father_annual_income' => html_escape($this->input->post('father_annual_income')),
+            'father_designation' => html_escape($this->input->post('father_designation')),
+            'father_qualification' => html_escape($this->input->post('father_qualification')),
+            
+            // Mother details
+            'mother_name'   => html_escape($this->input->post('mother_name')),
+            'mother_phone'  => html_escape($this->input->post('mother_phone')),
+            'mother_email'  => html_escape($this->input->post('mother_email')),
+            'mother_occupation' => html_escape($this->input->post('mother_occupation')),
+            'mother_adhar'  => html_escape($this->input->post('mother_adhar')),
+            'mother_annual_income' => html_escape($this->input->post('mother_annual_income')),
+            'mother_designation' => html_escape($this->input->post('mother_designation')),
+            'mother_qualification' => html_escape($this->input->post('mother_qualification')),
+            
             'ps_attended'   => html_escape($this->input->post('ps_attended')),
             'ps_address'    => html_escape($this->input->post('ps_address')),
             'ps_purpose'    => html_escape($this->input->post('ps_purpose')),
@@ -232,12 +317,49 @@ class Student_model extends CI_Model {
             'student_category_id' => html_escape($this->input->post('student_category_id')),
             'club_id'             => html_escape($this->input->post('club_id')),
             'student_code'        => html_escape($this->input->post('student_code')),
-            'apaar_id'            => html_escape($this->input->post('apaar_id'))    
+            'apaar_id'            => html_escape($this->input->post('apaar_id')),
+            'admission_date'      => html_escape($this->input->post('admission_date'))
 	    );
         
         $this->db->where('student_id', $param2);
         $this->db->update('student', $page_data);
-        move_uploaded_file($_FILES['userfile']['tmp_name'], 'uploads/student_image/' . $param2 . '.jpg');
+        
+        // Upload student photo if provided
+        if (!empty($_FILES['userfile']['name'])) {
+            move_uploaded_file($_FILES['userfile']['tmp_name'], 'uploads/student_image/' . $param2 . '.jpg');
+        }
+        
+        // Upload father's photo if provided
+        if (!empty($_FILES['father_image']['name'])) {
+            $father_file_path = 'uploads/parent_image/' . $param2 . '_father.jpg';
+            
+            // Create directory if it doesn't exist
+            if (!is_dir('uploads/parent_image/')) {
+                mkdir('uploads/parent_image/', 0777, true);
+            }
+            
+            move_uploaded_file($_FILES['father_image']['tmp_name'], $father_file_path);
+            
+            // Update the database with the father's photo path
+            $this->db->where('student_id', $param2);
+            $this->db->update('student', array('father_photo' => $param2 . '_father.jpg'));
+        }
+        
+        // Upload mother's photo if provided
+        if (!empty($_FILES['mother_image']['name'])) {
+            $mother_file_path = 'uploads/parent_image/' . $param2 . '_mother.jpg';
+            
+            // Create directory if it doesn't exist
+            if (!is_dir('uploads/parent_image/')) {
+                mkdir('uploads/parent_image/', 0777, true);
+            }
+            
+            move_uploaded_file($_FILES['mother_image']['tmp_name'], $mother_file_path);
+            
+            // Update the database with the mother's photo path
+            $this->db->where('student_id', $param2);
+            $this->db->update('student', array('mother_photo' => $param2 . '_mother.jpg'));
+        }
         
         return true;
     }

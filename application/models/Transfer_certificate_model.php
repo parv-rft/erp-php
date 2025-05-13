@@ -51,6 +51,9 @@ class Transfer_certificate_model extends CI_Model {
             return false;
         }
         
+        // Log all student data for debugging
+        error_log('Student data: ' . print_r($student, true));
+        
         // Get class information
         $class = $this->db->get_where('class', array('class_id' => $student['class_id']))->row_array();
         
@@ -67,19 +70,54 @@ class Transfer_certificate_model extends CI_Model {
         $response = array(
             'student_id' => $student['student_id'],
             'student_name' => $student['name'],
-            'father_name' => $student['father_name'],
-            'mother_name' => $student['mother_name'],
-            'date_of_birth' => $student['birthday'],
-            'date_of_admission' => $student['date_of_joining'],
+            
+            // Handle father information with fallbacks
+            'father_name' => isset($student['father_name']) && !empty($student['father_name']) 
+                ? $student['father_name'] : 'Not Available',
+            'father_phone' => isset($student['father_phone']) && !empty($student['father_phone']) 
+                ? $student['father_phone'] : '',
+            'father_email' => isset($student['father_email']) && !empty($student['father_email']) 
+                ? $student['father_email'] : '',
+            'father_occupation' => isset($student['father_occupation']) && !empty($student['father_occupation']) 
+                ? $student['father_occupation'] : '',
+                
+            // Handle mother information with fallbacks
+            'mother_name' => isset($student['mother_name']) && !empty($student['mother_name']) 
+                ? $student['mother_name'] : 'Not Available',
+            'mother_phone' => isset($student['mother_phone']) && !empty($student['mother_phone']) 
+                ? $student['mother_phone'] : '',
+            'mother_email' => isset($student['mother_email']) && !empty($student['mother_email']) 
+                ? $student['mother_email'] : '',
+            'mother_occupation' => isset($student['mother_occupation']) && !empty($student['mother_occupation']) 
+                ? $student['mother_occupation'] : '',
+                
+            'date_of_birth' => isset($student['birthday']) ? $student['birthday'] : '',
             'admission_number' => $student['admission_number'],
             'student_class' => $class ? $class['name'] : '',
-            'roll_no' => $student['roll'],
+            'roll_no' => isset($student['roll']) ? $student['roll'] : '',
             'obtained_attendance' => $total_attendance,
             'subjects' => $subjects,
-            'nationality' => $student['nationality'],
-            'admit_class' => $student['class_study'] ?? '',
-            'date_of_leaving' => $student['date_of_leaving'] ?? date('Y-m-d')
+            'nationality' => isset($student['nationality']) ? $student['nationality'] : '',
+            'admit_class' => isset($student['class_study']) ? $student['class_study'] : ''
         );
+        
+        // Handle date fields with proper fallbacks
+        if (isset($student['date_of_admission']) && !empty($student['date_of_admission'])) {
+            $response['date_of_admission'] = $student['date_of_admission'];
+        } else if (isset($student['admission_date']) && !empty($student['admission_date'])) {
+            $response['date_of_admission'] = $student['admission_date'];
+        } else if (isset($student['date_of_joining']) && !empty($student['date_of_joining'])) {
+            $response['date_of_admission'] = $student['date_of_joining'];
+        } else {
+            $response['date_of_admission'] = date('Y-m-d');
+        }
+        
+        // Handle leaving date
+        if (isset($student['date_of_leaving']) && !empty($student['date_of_leaving'])) {
+            $response['date_of_leaving'] = $student['date_of_leaving'];
+        } else {
+            $response['date_of_leaving'] = date('Y-m-d');
+        }
         
         return $response;
     }

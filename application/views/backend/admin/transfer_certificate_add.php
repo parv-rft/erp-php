@@ -306,19 +306,53 @@
                     // Show success message
                     $('#search_status').removeClass('alert-danger').addClass('alert-success').html('<i class="fa fa-check-circle"></i> <?php echo get_phrase("Student found"); ?>').show();
                     
+                    // Log the data we're receiving for debugging
+                    console.log('Student data received:', response.data);
+                    console.log('Father name:', response.data.father_name);
+                    console.log('Mother name:', response.data.mother_name);
+                    console.log('Date of admission:', response.data.date_of_admission);
+                    
                     // Populate form fields with student data
-                    $('#student_id').val(response.data.student_id);
-                    $('#student_name').val(response.data.student_name);
-                    $('#father_name').val(response.data.father_name);
-                    $('#mother_name').val(response.data.mother_name);
-                    $('#date_of_birth').val(response.data.date_of_birth);
-                    $('#date_of_admission').val(response.data.date_of_admission);
-                    $('#student_class').val(response.data.student_class);
-                    $('#roll_no').val(response.data.roll_no);
-                    $('#obtained_attendance').val(response.data.obtained_attendance);
-                    $('#subject').val(response.data.subjects);
-                    $('#nationality').val(response.data.nationality);
-                    $('#admit_class').val(response.data.admit_class);
+                    $('#student_id').val(response.data.student_id || '');
+                    $('#student_name').val(response.data.student_name || '');
+                    
+                    // Father details
+                    $('#father_name').val(response.data.father_name || '');
+                    if (response.data.father_phone) {
+                        // If you have these fields in your form, uncomment them
+                        // $('#father_phone').val(response.data.father_phone);
+                        // $('#father_email').val(response.data.father_email);
+                        // $('#father_occupation').val(response.data.father_occupation);
+                    }
+                    
+                    // Mother details
+                    $('#mother_name').val(response.data.mother_name || '');
+                    if (response.data.mother_phone) {
+                        // If you have these fields in your form, uncomment them
+                        // $('#mother_phone').val(response.data.mother_phone);
+                        // $('#mother_email').val(response.data.mother_email);
+                        // $('#mother_occupation').val(response.data.mother_occupation);
+                    }
+                    
+                    $('#date_of_birth').val(response.data.date_of_birth || '');
+                    $('#date_of_admission').val(response.data.date_of_admission || '');
+                    $('#date_of_leaving').val(response.data.date_of_leaving || '');
+                    $('#student_class').val(response.data.student_class || '');
+                    $('#roll_no').val(response.data.roll_no || '');
+                    $('#obtained_attendance').val(response.data.obtained_attendance || '');
+                    $('#subject').val(response.data.subjects || '');
+                    $('#nationality').val(response.data.nationality || '');
+                    $('#admit_class').val(response.data.admit_class || '');
+                    
+                    // If any key field is missing, show a warning
+                    var missing_fields = [];
+                    if (!response.data.father_name || response.data.father_name === 'Not Available') missing_fields.push('Father Name');
+                    if (!response.data.mother_name || response.data.mother_name === 'Not Available') missing_fields.push('Mother Name');
+                    if (!response.data.date_of_admission) missing_fields.push('Date of Admission');
+                    
+                    if (missing_fields.length > 0) {
+                        $('#search_status').removeClass('alert-success').addClass('alert-warning').html('<i class="fa fa-exclamation-triangle"></i> <?php echo get_phrase("Student found but missing some data"); ?>: ' + missing_fields.join(', ')).show();
+                    }
                     
                     // Show the form
                     $('#student_details').show();

@@ -2901,25 +2901,48 @@ class Admin extends CI_Controller {
                 error_log('Integer DB query returned ' . $query->num_rows() . ' rows');
             }
             
+            // Check if student exists at all
+            if ($query->num_rows() == 0) {
+                error_log('No student found with admission_number: ' . $admission_number);
+                // Get a list of all admission numbers for debugging
+                $this->db->select('admission_number');
+                $all_students = $this->db->get('student')->result_array();
+                error_log('Available admission numbers: ' . implode(', ', array_column($all_students, 'admission_number')));
+                
+                echo json_encode(array('status' => 'error', 'message' => get_phrase('Student not found with this admission number')));
+                return;
+            }
+            
+            // Get student details using our model
             $student_data = $this->transfer_certificate_model->get_student_details($admission_number);
             
             if ($student_data) {
-                error_log('Student found, returning data');
+                error_log('Student found, returning data: ' . json_encode($student_data));
                 echo json_encode(array('status' => 'success', 'data' => $student_data));
             } else {
-                error_log('Student not found with admission_number: ' . $admission_number);
+                error_log('get_student_details returned false for admission_number: ' . $admission_number);
                 
-                // Get one sample student for debugging
-                $sample = $this->db->limit(1)->get('student')->row_array();
-                if ($sample) {
-                    error_log('Sample student admission_number: ' . $sample['admission_number'] . ' (type: ' . gettype($sample['admission_number']) . ')');
-                }
+                // Fallback - get raw student data
+                $raw_student = $query->row_array();
+                error_log('Raw student data: ' . json_encode($raw_student));
                 
-                echo json_encode(array('status' => 'error', 'message' => get_phrase('Student not found with this admission number')));
+                // Try to create a minimal response
+                $minimal_data = array(
+                    'student_id' => $raw_student['student_id'],
+                    'student_name' => $raw_student['name'],
+                    'admission_number' => $raw_student['admission_number'],
+                    'father_name' => isset($raw_student['father_name']) ? $raw_student['father_name'] : '',
+                    'mother_name' => isset($raw_student['mother_name']) ? $raw_student['mother_name'] : '',
+                    'date_of_birth' => isset($raw_student['birthday']) ? $raw_student['birthday'] : '',
+                    'date_of_admission' => isset($raw_student['date_of_joining']) ? $raw_student['date_of_joining'] : date('Y-m-d')
+                );
+                
+                error_log('Sending minimal data as fallback: ' . json_encode($minimal_data));
+                echo json_encode(array('status' => 'success', 'data' => $minimal_data));
             }
         } catch (Exception $e) {
             error_log('Error in get_student_for_certificate: ' . $e->getMessage());
-            echo json_encode(array('status' => 'error', 'message' => get_phrase('An error occurred while retrieving student data')));
+            echo json_encode(array('status' => 'error', 'message' => get_phrase('An error occurred while retrieving student data: ') . $e->getMessage()));
         }
     }
 

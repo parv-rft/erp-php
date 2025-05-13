@@ -1375,6 +1375,19 @@ CREATE TABLE IF NOT EXISTS `student` (
 -- Example data for table `student`
 --
 
+INSERT INTO `student` (`student_id`, `admission_number`, `student_code`, `apaar_id`, `name`, `birthday`, `age`, `sex`, `religion`, `blood_group`, `address`, `city`, `state`, `nationality`, `phone`, `email`, `password`, `class_id`, `section_id`, `father_name`, `father_phone`, `father_email`, `father_occupation`, `father_designation`, `father_qualification`, `father_annual_income`, `mother_name`, `mother_phone`, `mother_email`, `mother_occupation`, `mother_designation`, `mother_qualification`, `roll`, `transport_id`, `dormitory_id`, `house_id`, `student_category_id`, `club_id`, `session`, `admission_date`, `date_of_leaving`) 
+VALUES 
+(11, 101, 1001, 123456, 'John Smith', '2005-05-15', '18', 'male', 'Christianity', 'O+', '123 Main Street', 'New Delhi', 'Delhi', 'Indian', '9876543210', 'john.smith@student.com', SHA1('password123'), 2, 1, 'Robert Smith', '9876543211', 'robert.smith@parent.com', 'Engineer', 'Senior Engineer', 'B.Tech', '1200000', 'Mary Smith', '9876543212', 'mary.smith@parent.com', 'Teacher', 'Assistant Teacher', 'M.A.', '101', 1, 0, 2, 2, 0, '2023-2024', '2022-06-05', '2024-05-31'),
+(12, 102, 1002, 654321, 'Sarah Johnson', '2006-08-20', '17', 'female', 'Hinduism', 'B+', '456 Park Avenue', 'Mumbai', 'Maharashtra', 'Indian', '8765432109', 'sarah.johnson@student.com', SHA1('password456'), 2, 1, 'James Johnson', '8765432108', 'james.johnson@parent.com', 'Doctor', 'Surgeon', 'MBBS, MD', '2500000', 'Emily Johnson', '8765432107', 'emily.johnson@parent.com', 'Lawyer', 'Senior Advocate', 'LLB', '102', 2, 0, 1, 2, 0, '2023-2024', '2021-06-10', '2024-05-31');
+
+--
+-- Dumping data for table `transfer_certificate`
+--
+
+INSERT INTO `transfer_certificate` (`tc_id`, `tc_no`, `student_id`, `student_name`, `admission_number`, `father_name`, `mother_name`, `nationality`, `category`, `date_of_birth`, `qualified`, `date_of_admission`, `date_of_leaving`, `student_class`, `to_class`, `class_in_words`, `admit_class`, `fees_paid_up_to`, `fees_concession_availed`, `max_attendance`, `obtained_attendance`, `last_attendance_date`, `tc_charge`, `exam_in`, `whether_failed`, `subject`, `games_played`, `extra_activity`, `general_conduct`, `behavior_remarks`, `reason`, `remarks`, `date_of_issue`, `roll_no`, `issue_status`) 
+VALUES 
+(1, 'TC/2024/1', 11, 'John Smith', 101, 'Robert Smith', 'Mary Smith', 'Indian', 'General', '2005-05-15', 'Yes', '2022-06-05', '2024-05-31', 'Class X', 'Class XI', 'Tenth', 'Class VI', '2024-05-31', 'No', '220', '210', '2024-05-31', 'Yes', 'Annual Examination 2024', 'No', 'English, Mathematics, Science, Social Studies, Hindi', 'Cricket, Football', 'Debate Club, Science Club', 'Excellent', 'Well-mannered student with leadership qualities', 'Completed education at this institution', 'Recommended for higher studies', '2024-06-05', '101', 'issued'),
+(2, 'TC/2024/2', 12, 'Sarah Johnson', 102, 'James Johnson', 'Emily Johnson', 'Indian', 'General', '2006-08-20', 'Yes', '2021-06-10', '2024-05-31', 'Class X', 'Class XI', 'Tenth', 'Class V', '2024-05-31', 'No', '220', '195', '2024-05-31', 'Yes', 'Annual Examination 2024', 'No', 'English, Mathematics, Science, Social Studies, Hindi', 'Basketball, Badminton', 'Art Club, Dance Club', 'Good', 'Sincere and hardworking student', 'Parental relocation', 'Wishes well for future academic endeavors', '2024-06-05', '102', 'issued');
 
 -- --------------------------------------------------------
 
