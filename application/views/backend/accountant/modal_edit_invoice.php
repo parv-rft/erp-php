@@ -31,6 +31,13 @@ foreach($invoices as $key => $row):?>
                         </select>
                     </div>
                 </div>
+
+                <div class="form-group">
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('receipt_number');?></label>
+                    <div class="col-sm-12">
+                        <input type="text" class="form-control" name="receipt_number" value="<?php echo $row['receipt_number'];?>"/>
+                    </div>
+                </div>
                 
 					<div class="form-group">
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('title');?></label>
@@ -45,6 +52,34 @@ foreach($invoices as $key => $row):?>
 					<textarea type="text" rows="5" class="form-control" name="description" ><?php echo $row['description'];?></textarea>
                     </div>
                 </div>
+                
+                <div class="form-group">
+                    <label class="col-md-12" for="example-text"><?php echo get_phrase('Fee Type');?></label>
+                    <div class="col-sm-12">
+                        <select name="fee_type" class="form-control select2" style="width:100%">
+                            <option value="REGISTRATION FEE" <?php if($row['fee_type']== 'REGISTRATION FEE')echo 'selected';?>>REGISTRATION FEE</option>
+                            <option value="MONTHLY FEE" <?php if($row['fee_type']== 'MONTHLY FEE')echo 'selected';?>>MONTHLY FEE</option>
+                            <option value="ADMISSION FEE" <?php if($row['fee_type']== 'ADMISSION FEE')echo 'selected';?>>ADMISSION FEE</option>
+                            <option value="EXAMINATION FEES" <?php if($row['fee_type']== 'EXAMINATION FEES')echo 'selected';?>>EXAMINATION FEES</option>
+                            <option value="ANNUAL CHARGE" <?php if($row['fee_type']== 'ANNUAL CHARGE')echo 'selected';?>>ANNUAL CHARGE</option>
+                            <option value="DEVLOPMENT FUND" <?php if($row['fee_type']== 'DEVLOPMENT FUND')echo 'selected';?>>DEVELOPMENT FUND</option>
+                            <option value="A.C. CHARGES" <?php if($row['fee_type']== 'A.C. CHARGES')echo 'selected';?>>A.C. CHARGES</option>
+                            <option value="TUITION FEE" <?php if($row['fee_type']== 'TUITION FEE')echo 'selected';?>>TUITION FEE</option>
+                            <option value="COMPUTER-CUM-SMART CLASS" <?php if($row['fee_type']== 'COMPUTER-CUM-SMART CLASS')echo 'selected';?>>COMPUTER-CUM-SMART CLASS</option>
+                            <option value="READMIT CHARGE" <?php if($row['fee_type']== 'READMIT CHARGE')echo 'selected';?>>READMIT CHARGE</option>
+                            <option value="LATE FEE" <?php if($row['fee_type']== 'LATE FEE')echo 'selected';?>>LATE FEE</option>
+                            <option value="TRANSPORT FEE" <?php if($row['fee_type']== 'TRANSPORT FEE')echo 'selected';?>>TRANSPORT FEE</option>
+                            <option value="PTA" <?php if($row['fee_type']== 'PTA')echo 'selected';?>>PTA</option>
+                            <option value="SMART CLASS" <?php if($row['fee_type']== 'SMART CLASS')echo 'selected';?>>SMART CLASS</option>
+                            <option value="COMPUTER CLASS" <?php if($row['fee_type']== 'COMPUTER CLASS')echo 'selected';?>>COMPUTER CLASS</option>
+                            <option value="CHEQUE BOUNCE CHARGES" <?php if($row['fee_type']== 'CHEQUE BOUNCE CHARGES')echo 'selected';?>>CHEQUE BOUNCE CHARGES</option>
+                            <option value="SECURITY AND SAFETY" <?php if($row['fee_type']== 'SECURITY AND SAFETY')echo 'selected';?>>SECURITY AND SAFETY</option>
+                            <option value="PUPILS FUND" <?php if($row['fee_type']== 'PUPILS FUND')echo 'selected';?>>PUPILS FUND</option>
+                            <option value="ACTIVITIES" <?php if($row['fee_type']== 'ACTIVITIES')echo 'selected';?>>ACTIVITIES</option>
+                        </select>
+                    </div>
+                </div>
+                
                 <div class="form-group">
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('total_amount');?></label>
                     <div class="col-sm-12">

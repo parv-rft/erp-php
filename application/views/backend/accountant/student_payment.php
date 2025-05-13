@@ -15,6 +15,12 @@
                 </div>
             </div>
 
+            <div class="form-group">
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Receipt Number');?></label>
+                <div class="col-sm-12">
+                    <input type="text" class="form-control" name="receipt_number" value="<?php echo 'RCPT'. rand(1000, 9999) . date('Ymd');?>" / required>
+                </div>
+            </div>
 
             <div class="form-group">
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Title');?></label>
@@ -50,6 +56,33 @@
                 </div>
             </div>
 
+            <div class="form-group">
+                <label class="col-md-12" for="example-text"><?php echo get_phrase('Fee Type');?></label>
+                <div class="col-sm-12">
+                    <select name="fee_type" class="form-control select2" required>
+                        <option value=""><?php echo get_phrase('select_fee_type');?></option>
+                        <option value="REGISTRATION FEE">REGISTRATION FEE</option>
+                        <option value="MONTHLY FEE">MONTHLY FEE</option>
+                        <option value="ADMISSION FEE">ADMISSION FEE</option>
+                        <option value="EXAMINATION FEES">EXAMINATION FEES</option>
+                        <option value="ANNUAL CHARGE">ANNUAL CHARGE</option>
+                        <option value="DEVLOPMENT FUND">DEVELOPMENT FUND</option>
+                        <option value="A.C. CHARGES">A.C. CHARGES</option>
+                        <option value="TUITION FEE">TUITION FEE</option>
+                        <option value="COMPUTER-CUM-SMART CLASS">COMPUTER-CUM-SMART CLASS</option>
+                        <option value="READMIT CHARGE">READMIT CHARGE</option>
+                        <option value="LATE FEE">LATE FEE</option>
+                        <option value="TRANSPORT FEE">TRANSPORT FEE</option>
+                        <option value="PTA">PTA</option>
+                        <option value="SMART CLASS">SMART CLASS</option>
+                        <option value="COMPUTER CLASS">COMPUTER CLASS</option>
+                        <option value="CHEQUE BOUNCE CHARGES">CHEQUE BOUNCE CHARGES</option>
+                        <option value="SECURITY AND SAFETY">SECURITY AND SAFETY</option>
+                        <option value="PUPILS FUND">PUPILS FUND</option>
+                        <option value="ACTIVITIES">ACTIVITIES</option>
+                    </select>
+                </div>
+            </div>
 
 			<div class="form-group">
                 <label class="col-md-12" for="example-text"><?php echo get_phrase('select_date');?></label>
@@ -137,6 +170,12 @@
                 </div>
             </div>
 
+            <div class="form-group">
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Receipt Number');?></label>
+                <div class="col-sm-12">
+                    <input type="text" class="form-control" name="receipt_number" value="<?php echo 'RCPT'. rand(1000, 9999) . date('Ymd');?>" / required>
+                </div>
+            </div>
 
             <div class="form-group">
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Title');?></label>
@@ -170,6 +209,33 @@
                 </div>
             </div>
 
+            <div class="form-group">
+                <label class="col-md-12" for="example-text"><?php echo get_phrase('Fee Type');?></label>
+                <div class="col-sm-12">
+                    <select name="fee_type" class="form-control select2" required>
+                        <option value=""><?php echo get_phrase('select_fee_type');?></option>
+                        <option value="REGISTRATION FEE">REGISTRATION FEE</option>
+                        <option value="MONTHLY FEE">MONTHLY FEE</option>
+                        <option value="ADMISSION FEE">ADMISSION FEE</option>
+                        <option value="EXAMINATION FEES">EXAMINATION FEES</option>
+                        <option value="ANNUAL CHARGE">ANNUAL CHARGE</option>
+                        <option value="DEVLOPMENT FUND">DEVELOPMENT FUND</option>
+                        <option value="A.C. CHARGES">A.C. CHARGES</option>
+                        <option value="TUITION FEE">TUITION FEE</option>
+                        <option value="COMPUTER-CUM-SMART CLASS">COMPUTER-CUM-SMART CLASS</option>
+                        <option value="READMIT CHARGE">READMIT CHARGE</option>
+                        <option value="LATE FEE">LATE FEE</option>
+                        <option value="TRANSPORT FEE">TRANSPORT FEE</option>
+                        <option value="PTA">PTA</option>
+                        <option value="SMART CLASS">SMART CLASS</option>
+                        <option value="COMPUTER CLASS">COMPUTER CLASS</option>
+                        <option value="CHEQUE BOUNCE CHARGES">CHEQUE BOUNCE CHARGES</option>
+                        <option value="SECURITY AND SAFETY">SECURITY AND SAFETY</option>
+                        <option value="PUPILS FUND">PUPILS FUND</option>
+                        <option value="ACTIVITIES">ACTIVITIES</option>
+                    </select>
+                </div>
+            </div>
 
 			<div class="form-group">
                 <label class="col-md-12" for="example-text"><?php echo get_phrase('select_date');?></label>

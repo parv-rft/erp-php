@@ -843,9 +843,14 @@ DROP TABLE IF EXISTS `invoice`;
 CREATE TABLE IF NOT EXISTS `invoice` (
   `invoice_id` int(11) NOT NULL AUTO_INCREMENT,
   `invoice_number` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `receipt_number` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci,
   `student_id` int(11) NOT NULL,
+  `admission_number` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci,
+  `student_name` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci,
+  `class` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci,
   `title` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `description` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `fee_type` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci,
   `amount` int(11) NOT NULL,
   `discount` int(11) NOT NULL,
   `amount_paid` int(11) NOT NULL,
@@ -861,8 +866,8 @@ CREATE TABLE IF NOT EXISTS `invoice` (
 -- Dumping data for table `invoice`
 --
 
-INSERT INTO `invoice` (`invoice_id`, `invoice_number`, `student_id`, `title`, `description`, `amount`, `discount`, `amount_paid`, `due`, `creation_timestamp`, `payment_method`, `status`, `year`) VALUES
-(2, '742593INV2019', 45, 'Another Part payment for eLibrary', 'Another Part payment for eLibrary.', 7000, 0, 6200, 800, '2019-11-12', '1', 2, '2019-2020');
+INSERT INTO `invoice` (`invoice_id`, `invoice_number`, `receipt_number`, `student_id`, `admission_number`, `student_name`, `class`, `title`, `description`, `fee_type`, `amount`, `discount`, `amount_paid`, `due`, `creation_timestamp`, `payment_method`, `status`, `year`) VALUES
+(2, '742593INV2019', '', 45, 'Another Part payment for eLibrary', 'Another Part payment for eLibrary.', 'expense', 7000, 0, 6200, 800, '2019-11-12', '1', 2, '2019-2020');
 
 -- --------------------------------------------------------
 
