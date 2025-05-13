@@ -34,7 +34,8 @@ class Admin extends CI_Controller {
             'student_payment_model',
             'award_model',
             'payroll_model',
-            'calendar_timetable_model'
+            'calendar_timetable_model',
+            'transfer_certificate_model'
         ));
         
         // Check admin login status
@@ -2786,6 +2787,104 @@ class Admin extends CI_Controller {
         
         // Load the view directly without using index.php
         $this->load->view('backend/timetable_print_view', $data);
+    }
+
+    /**
+     * Transfer Certificate Management
+     */
+    function transfer_certificate($param1 = null, $param2 = null, $param3 = null) {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        // Load the transfer certificate model
+        $this->load->model('transfer_certificate_model');
+        
+        // Make sure the table exists
+        $this->transfer_certificate_model->create_table_if_not_exists();
+        
+        // Handle different operations based on parameters
+        if ($param1 == 'add') {
+            $page_data['page_name'] = 'transfer_certificate_add';
+            $page_data['page_title'] = get_phrase('Add Transfer Certificate');
+            $page_data['tc_no'] = $this->transfer_certificate_model->generate_tc_number();
+            $this->load->view('backend/index', $page_data);
+        } 
+        else if ($param1 == 'create') {
+            $tc_id = $this->transfer_certificate_model->create_certificate();
+            if ($tc_id) {
+                $this->session->set_flashdata('flash_message', get_phrase('Transfer certificate created successfully'));
+            } else {
+                $this->session->set_flashdata('error_message', get_phrase('Failed to create transfer certificate'));
+            }
+            redirect(base_url() . 'admin/transfer_certificate', 'refresh');
+        } 
+        else if ($param1 == 'edit' && !empty($param2)) {
+            $page_data['certificate'] = $this->transfer_certificate_model->get_certificate($param2);
+            if (empty($page_data['certificate'])) {
+                $this->session->set_flashdata('error_message', get_phrase('Certificate not found'));
+                redirect(base_url() . 'admin/transfer_certificate', 'refresh');
+            }
+            $page_data['page_name'] = 'transfer_certificate_add';
+            $page_data['page_title'] = get_phrase('Edit Transfer Certificate');
+            $page_data['edit_mode'] = true;
+            $this->load->view('backend/index', $page_data);
+        } 
+        else if ($param1 == 'update' && !empty($param2)) {
+            $result = $this->transfer_certificate_model->update_certificate($param2);
+            if ($result) {
+                $this->session->set_flashdata('flash_message', get_phrase('Transfer certificate updated successfully'));
+            } else {
+                $this->session->set_flashdata('error_message', get_phrase('Failed to update transfer certificate'));
+            }
+            redirect(base_url() . 'admin/transfer_certificate', 'refresh');
+        } 
+        else if ($param1 == 'delete' && !empty($param2)) {
+            $result = $this->transfer_certificate_model->delete_certificate($param2);
+            if ($result) {
+                $this->session->set_flashdata('flash_message', get_phrase('Transfer certificate deleted successfully'));
+            } else {
+                $this->session->set_flashdata('error_message', get_phrase('Failed to delete transfer certificate'));
+            }
+            redirect(base_url() . 'admin/transfer_certificate', 'refresh');
+        } 
+        else if ($param1 == 'print' && !empty($param2)) {
+            $page_data['certificate'] = $this->transfer_certificate_model->get_certificate($param2);
+            if (empty($page_data['certificate'])) {
+                $this->session->set_flashdata('error_message', get_phrase('Certificate not found'));
+                redirect(base_url() . 'admin/transfer_certificate', 'refresh');
+            }
+            $page_data['page_name'] = 'transfer_certificate_print';
+            $page_data['page_title'] = get_phrase('Print Transfer Certificate');
+            $this->load->view('backend/index', $page_data);
+        } 
+        else {
+            // Default view - list all certificates
+            $page_data['certificates'] = $this->transfer_certificate_model->get_all_certificates();
+            $page_data['page_name'] = 'transfer_certificate';
+            $page_data['page_title'] = get_phrase('Transfer Certificates');
+            $this->load->view('backend/index', $page_data);
+        }
+    }
+    
+    /**
+     * Find student by admission number for transfer certificate
+     */
+    function get_student_for_certificate() {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+        
+        $admission_number = $this->input->post('admission_number');
+        $this->load->model('transfer_certificate_model');
+        
+        $student_data = $this->transfer_certificate_model->get_student_details($admission_number);
+        
+        if ($student_data) {
+            echo json_encode(array('status' => 'success', 'data' => $student_data));
+        } else {
+            echo json_encode(array('status' => 'error', 'message' => get_phrase('Student not found')));
+        }
     }
 
 }

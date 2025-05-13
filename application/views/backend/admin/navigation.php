@@ -263,6 +263,13 @@
                              <span class="hide-menu"><?php echo get_phrase('Social Category'); ?></span>
                         </a>
      </li>
+     
+     <li class="<?php if ($page_name == 'transfer_certificate' || $page_name == 'transfer_certificate_add' || $page_name == 'transfer_certificate_print') echo 'active'; ?> ">
+                        <a href="<?php echo base_url(); ?>admin/transfer_certificate">
+                        <i class="fa fa-angle-double-right p-r-10"></i>
+                             <span class="hide-menu"><?php echo get_phrase('Transfer Certificate'); ?></span>
+                        </a>
+     </li>
         
      
                  </ul>
@@ -619,3 +626,34 @@
             </div>
         </div>
         <!-- Left navbar-header end -->
+
+        <?php if($this->session->userdata('admin_role') == 1 ):?>
+        <li> <a href="#" class="waves-effect"><i data-icon="&#xe006;" class="fa fa-certificate p-r-10"></i> <span class="hide-menu"><?php echo get_phrase('Certificates');?><span class="fa arrow"></span></span></a>
+            <ul class=" nav nav-second-level<?php
+            if ($page_name == 'generate_student_idcard' || $page_name == 'generate_teacher_idcard' || $page_name == 'transfer_certificate') echo 'opened active'; ?>">
+
+                <li class="<?php if ($page_name == 'generate_student_idcard') echo 'active'; ?> ">
+                    <a href="<?php echo base_url(); ?>admin/generate_student_idcard">
+                        <i class="fa fa-angle-double-right p-r-10"></i>
+                         <span class="hide-menu"><?php echo get_phrase('generate_student_idcard'); ?></span>
+                    </a>
+                </li>
+
+                <li class="<?php if ($page_name == 'generate_teacher_idcard') echo 'active'; ?> ">
+                    <a href="<?php echo base_url(); ?>admin/generate_teacher_idcard">
+                        <i class="fa fa-angle-double-right p-r-10"></i>
+                         <span class="hide-menu"><?php echo get_phrase('generate_teacher_idcard'); ?></span>
+                    </a>
+                </li>
+                
+                <li class="<?php if ($page_name == 'transfer_certificate') echo 'active'; ?> ">
+                    <a href="<?php echo base_url(); ?>admin/transfer_certificate">
+                        <i class="fa fa-angle-double-right p-r-10"></i>
+                         <span class="hide-menu"><?php echo get_phrase('transfer_certificate'); ?></span>
+                    </a>
+                </li>
+
+
+            </ul>
+        </li>
+        <?php endif;?>

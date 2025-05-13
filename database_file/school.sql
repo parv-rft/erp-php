@@ -1554,6 +1554,57 @@ CREATE TABLE IF NOT EXISTS `vehicle` (
 
 INSERT INTO `vehicle` (`vehicle_id`, `name`, `vehicle_number`, `vehicle_model`, `vehicle_quantity`, `year_made`, `driver_name`, `driver_license`, `driver_contact`, `description`, `status`) VALUES
 (2, 'Toyota', '423', 'Camry', '2', '2019', 'Udemy Sheg', 'License', 'Contact address here', 'description here', 'available');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `transfer_certificate`
+--
+
+CREATE TABLE IF NOT EXISTS `transfer_certificate` (
+  `tc_id` int(11) NOT NULL AUTO_INCREMENT,
+  `tc_no` varchar(50) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `student_name` varchar(100) NOT NULL,
+  `admission_number` varchar(50) NOT NULL,
+  `father_name` varchar(100) NOT NULL,
+  `mother_name` varchar(100) NOT NULL,
+  `nationality` varchar(50) DEFAULT NULL,
+  `category` varchar(50) DEFAULT NULL,
+  `date_of_birth` date NOT NULL,
+  `qualified` varchar(50) DEFAULT NULL,
+  `date_of_admission` date NOT NULL,
+  `date_of_leaving` date NOT NULL,
+  `student_class` varchar(50) NOT NULL,
+  `to_class` varchar(50) DEFAULT NULL,
+  `class_in_words` varchar(100) DEFAULT NULL,
+  `admit_class` varchar(50) DEFAULT NULL,
+  `fees_paid_up_to` date DEFAULT NULL,
+  `fees_concession_availed` varchar(50) DEFAULT NULL,
+  `max_attendance` varchar(20) DEFAULT NULL,
+  `obtained_attendance` varchar(20) DEFAULT NULL,
+  `last_attendance_date` date DEFAULT NULL,
+  `tc_charge` varchar(20) DEFAULT NULL,
+  `exam_in` varchar(100) DEFAULT NULL,
+  `whether_failed`   varchar(50) DEFAULT NULL,
+  `subject` text DEFAULT NULL,
+  `games_played` text DEFAULT NULL,
+  `extra_activity` text DEFAULT NULL,
+  `general_conduct` varchar(50) DEFAULT NULL,
+  `behavior_remarks` text DEFAULT NULL,
+  `reason` varchar(255) DEFAULT NULL,
+  `remarks` text DEFAULT NULL,
+  `date_of_issue` date NOT NULL,
+  `roll_no` varchar(50) DEFAULT NULL,
+  `issue_status` varchar(20) DEFAULT 'issued',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`tc_id`),
+  UNIQUE KEY `tc_no` (`tc_no`),
+  KEY `student_id` (`student_id`),
+  KEY `admission_number` (`admission_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
