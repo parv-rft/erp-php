@@ -2800,8 +2800,7 @@ class Admin extends CI_Controller {
         // Load the transfer certificate model
         $this->load->model('transfer_certificate_model');
         
-        // Make sure the table exists
-        $this->transfer_certificate_model->create_table_if_not_exists();
+        // No need to create table as it already exists in database
         
         // Handle different operations based on parameters
         if ($param1 == 'add') {
@@ -2876,14 +2875,51 @@ class Admin extends CI_Controller {
         }
         
         $admission_number = $this->input->post('admission_number');
+        
+        // Log received admission number for debugging
+        error_log('Received admission number: ' . $admission_number);
+        
+        // Validate input
+        if (empty($admission_number)) {
+            echo json_encode(array('status' => 'error', 'message' => get_phrase('Please enter admission number')));
+            return;
+        }
+        
         $this->load->model('transfer_certificate_model');
         
-        $student_data = $this->transfer_certificate_model->get_student_details($admission_number);
-        
-        if ($student_data) {
-            echo json_encode(array('status' => 'success', 'data' => $student_data));
-        } else {
-            echo json_encode(array('status' => 'error', 'message' => get_phrase('Student not found')));
+        try {
+            // Check if we can find the student directly in the database
+            $this->db->where('admission_number', $admission_number);
+            $query = $this->db->get('student');
+            error_log('Direct DB query for admission_number ' . $admission_number . ' returned ' . $query->num_rows() . ' rows');
+            
+            // Try both string and integer comparison
+            if ($query->num_rows() == 0) {
+                error_log('Trying integer comparison for admission_number');
+                $this->db->where('admission_number', (int)$admission_number);
+                $query = $this->db->get('student');
+                error_log('Integer DB query returned ' . $query->num_rows() . ' rows');
+            }
+            
+            $student_data = $this->transfer_certificate_model->get_student_details($admission_number);
+            
+            if ($student_data) {
+                error_log('Student found, returning data');
+                echo json_encode(array('status' => 'success', 'data' => $student_data));
+            } else {
+                error_log('Student not found with admission_number: ' . $admission_number);
+                
+                // Get one sample student for debugging
+                $sample = $this->db->limit(1)->get('student')->row_array();
+                if ($sample) {
+                    error_log('Sample student admission_number: ' . $sample['admission_number'] . ' (type: ' . gettype($sample['admission_number']) . ')');
+                }
+                
+                echo json_encode(array('status' => 'error', 'message' => get_phrase('Student not found with this admission number')));
+            }
+        } catch (Exception $e) {
+            error_log('Error in get_student_for_certificate: ' . $e->getMessage());
+            echo json_encode(array('status' => 'error', 'message' => get_phrase('An error occurred while retrieving student data')));
         }
     }
 

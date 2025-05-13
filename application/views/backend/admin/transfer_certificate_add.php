@@ -13,10 +13,11 @@
                     <div class="form-group">
                         <label class="col-md-3 control-label"><?php echo get_phrase('Student Admission Number'); ?></label>
                         <div class="col-md-7">
-                            <input type="text" class="form-control" name="admission_number" id="admission_number" required />
+                            <input type="number" class="form-control" name="admission_number" id="admission_number" required />
                             <button type="button" class="btn btn-info btn-sm" onclick="searchStudent()" style="margin-top:10px;">
                                 <i class="fa fa-search"></i> <?php echo get_phrase('Search Student'); ?>
                             </button>
+                            <div id="search_status" class="alert mt-2" style="display:none; margin-top:10px;"></div>
                         </div>
                     </div>
 
@@ -265,7 +266,9 @@
 
                         <div class="form-group">
                             <div class="col-md-offset-3 col-md-7">
-                                <button type="submit" class="btn btn-info btn-lg"><?php echo get_phrase('Create Transfer Certificate'); ?></button>
+                                <button type="submit" class="btn btn-info">
+                                    <i class="fa fa-save"></i> <?php echo get_phrase('Save Transfer Certificate'); ?>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -279,40 +282,68 @@
 <script type="text/javascript">
     function searchStudent() {
         var admission_number = $('#admission_number').val();
-        if (!admission_number) {
-            toastr.error('Please enter admission number');
+        
+        if (admission_number.trim() === '') {
+            $('#search_status').removeClass('alert-success').addClass('alert-danger').html('<i class="fa fa-times-circle"></i> <?php echo get_phrase("Please enter admission number"); ?>').show();
             return;
         }
         
+        $('#search_status').html('<i class="fa fa-spinner fa-spin"></i> <?php echo get_phrase("Searching..."); ?>').show();
+        
+        console.log('Searching for admission number:', admission_number);
+        
         $.ajax({
-            url: '<?php echo base_url(); ?>admin/transfer_certificate/search',
+            url: '<?php echo base_url(); ?>admin/get_student_for_certificate',
             type: 'POST',
-            data: {admission_no: admission_number},
+            data: {
+                admission_number: admission_number
+            },
             dataType: 'json',
             success: function(response) {
-                if (response.error) {
-                    toastr.error(response.error);
-                    return;
+                console.log('Server response:', response);
+                
+                if (response.status === 'success') {
+                    // Show success message
+                    $('#search_status').removeClass('alert-danger').addClass('alert-success').html('<i class="fa fa-check-circle"></i> <?php echo get_phrase("Student found"); ?>').show();
+                    
+                    // Populate form fields with student data
+                    $('#student_id').val(response.data.student_id);
+                    $('#student_name').val(response.data.student_name);
+                    $('#father_name').val(response.data.father_name);
+                    $('#mother_name').val(response.data.mother_name);
+                    $('#date_of_birth').val(response.data.date_of_birth);
+                    $('#date_of_admission').val(response.data.date_of_admission);
+                    $('#student_class').val(response.data.student_class);
+                    $('#roll_no').val(response.data.roll_no);
+                    $('#obtained_attendance').val(response.data.obtained_attendance);
+                    $('#subject').val(response.data.subjects);
+                    $('#nationality').val(response.data.nationality);
+                    $('#admit_class').val(response.data.admit_class);
+                    
+                    // Show the form
+                    $('#student_details').show();
+                } else {
+                    // Show error message
+                    $('#search_status').removeClass('alert-success').addClass('alert-danger').html('<i class="fa fa-times-circle"></i> ' + response.message).show();
+                    $('#student_details').hide();
                 }
-                
-                // Fill student details
-                $('#student_id').val(response.student_id);
-                $('#student_name').val(response.fullName);
-                $('#father_name').val(response.fatherName);
-                $('#mother_name').val(response.motherName);
-                $('#date_of_birth').val(response.dateOfBirth);
-                $('#nationality').val(response.nationality);
-                $('#date_of_admission').val(response.dateOfAdmission);
-                $('#student_class').val(response.currentClass);
-                $('#admit_class').val(response.admitClass);
-                $('#roll_no').val(response.rollNo);
-                
-                // Show the form
-                $('#student_details').show();
             },
-            error: function(xhr) {
-                toastr.error('Error occurred while searching for student');
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', status, error);
+                console.log('Response:', xhr.responseText);
+                $('#search_status').removeClass('alert-success').addClass('alert-danger').html('<i class="fa fa-times-circle"></i> <?php echo get_phrase("An error occurred while processing your request"); ?>').show();
+                $('#student_details').hide();
             }
         });
     }
+    
+    $(document).ready(function() {
+        // Handle Enter key on admission number field
+        $('#admission_number').keypress(function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                searchStudent();
+            }
+        });
+    });
 </script> 
