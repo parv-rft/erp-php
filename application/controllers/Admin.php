@@ -1684,6 +1684,70 @@ class Admin extends CI_Controller {
         $this->session->set_flashdata('flash_message', get_phrase('Data updated successfully'));
         redirect(base_url(). 'admin/newAdministrator', 'refresh');
     }
+    
+    /**
+     * Get student details for viewing in modal popup
+     * 
+     * @param int $student_id Student ID
+     */
+    function get_student_details($student_id) {
+        // Verify student exists
+        $student = $this->db->get_where('student', array('student_id' => $student_id))->row_array();
+        if (empty($student)) {
+            echo '<div class="alert alert-danger">Student not found</div>';
+            return;
+        }
+        
+        // Get class information
+        $class = $this->db->get_where('class', array('class_id' => $student['class_id']))->row_array();
+        
+        // Load view with student data
+        $data['student'] = $student;
+        $data['class'] = $class;
+        $this->load->view('backend/admin/student_view_details', $data);
+    }
+    
+    // Generate temporary admission data for printing
+    function generate_admission_print() {
+        // Create a temporary student record with form data
+        $temp_id = md5(uniqid(rand(), true));
+        
+        // Store form data in session for temporary use
+        $student_data = array();
+        $form_fields = $this->input->post();
+        
+        // Remove unnecessary fields
+        unset($form_fields['userfile']);
+        unset($form_fields['student_password']);
+        
+        // Store in session
+        $this->session->set_userdata('temp_admission_' . $temp_id, $form_fields);
+        
+        // Return the temporary ID
+        echo $temp_id;
+    }
+    
+    // Display admission form for printing
+    function admission_print_view($temp_id = '') {
+        // Get the student data from session
+        $student = $this->session->userdata('temp_admission_' . $temp_id);
+        
+        if (empty($student)) {
+            $this->session->set_flashdata('error_message', get_phrase('Print session expired or invalid'));
+            redirect(base_url() . 'admin/new_student', 'refresh');
+            return;
+        }
+        
+        // Get class information
+        $class = $this->db->get_where('class', array('class_id' => $student['class_id']))->row_array();
+        
+        // Prepare view data
+        $page_data['student'] = $student;
+        $page_data['class'] = $class;
+        
+        // Load the view
+        $this->load->view('backend/admin/admission_print_view', $page_data);
+    }
 
     /* Teacher Attendance functions */
     function teacher_attendance($param1 = '', $param2 = '', $param3 = '') {
