@@ -129,11 +129,35 @@
         
         <div class="info-row">
             <div class="info-label">Present Address</div>
-            <div class="info-value"><?php echo isset($student['current_address']) ? $student['current_address'] : 'N/A'; ?></div>
+            <div class="info-value"><?php echo isset($student['address']) ? $student['address'] : 'N/A'; ?></div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">City</div>
+            <div class="info-value"><?php echo isset($student['city']) ? $student['city'] : 'N/A'; ?></div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">State</div>
+            <div class="info-value"><?php echo isset($student['state']) ? $student['state'] : 'N/A'; ?></div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Pincode</div>
+            <div class="info-value"><?php echo isset($student['pincode']) ? $student['pincode'] : 'N/A'; ?></div>
         </div>
         <div class="info-row">
             <div class="info-label">Permanent Address</div>
             <div class="info-value"><?php echo isset($student['permanent_address']) ? $student['permanent_address'] : 'N/A'; ?></div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Permanent City</div>
+            <div class="info-value"><?php echo isset($student['permanent_city']) ? $student['permanent_city'] : 'N/A'; ?></div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Permanent State</div>
+            <div class="info-value"><?php echo isset($student['permanent_state']) ? $student['permanent_state'] : 'N/A'; ?></div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Permanent Pincode</div>
+            <div class="info-value"><?php echo isset($student['permanent_pincode']) ? $student['permanent_pincode'] : 'N/A'; ?></div>
         </div>
     </div>
     

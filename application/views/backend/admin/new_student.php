@@ -421,9 +421,19 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                         </div>
                     <?php endif; ?>
 
+                    <!-- Form validation errors container -->
+                    <div id="form-validation-errors" class="alert alert-danger" style="display: none;">
+                        <i class="fa fa-exclamation-circle"></i>
+                        <strong>Form Validation Errors:</strong>
+                        <ul id="error-list"></ul>
+                    </div>
+
                     <form class="form-horizontal form-material" method="post" 
                           action="<?php echo base_url();?>admin/new_student/create/" 
-                          enctype="multipart/form-data">
+                          enctype="multipart/form-data"
+                          id="student-admission-form"
+                          onsubmit="return validateForm();"
+                          novalidate>
 
                         <!-- Progress Indicator -->
                         <div class="progress-indicator">
@@ -500,9 +510,9 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group required-field">
-                                            <label class="col-md-12"><?php echo get_phrase('admission_no');?> <span class="text-danger">*</span></label>
+                                            <label class="col-md-12"><?php echo get_phrase('admission_no');?> </label>
                                             <div class="col-sm-12">
-                                                <input type="text" class="form-control" name="admission_no" 
+                                                <input type="text" class="form-control" name="admission_number" 
                                                     value="<?php 
                                                         $next_id = $this->db->count_all('student') + 1;
                                                         echo $next_id; 
@@ -535,7 +545,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group required-field">
-                                            <label class="col-md-12"><?php echo get_phrase('full_name'); ?> <span class="text-danger">*</span></label>
+                                            <label class="col-md-12"><?php echo get_phrase('full_name'); ?> </label>
                                             <div class="col-sm-12">
                                                 <input type="text" class="form-control" name="name" required>
                                                 <small class="text-muted">(Required) Enter student's full name</small>
@@ -545,7 +555,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 
                                     <div class="col-md-6">
                                         <div class="form-group required-field">
-                                            <label class="col-md-12"><?php echo get_phrase('email');?> <span class="text-danger">*</span></label>
+                                            <label class="col-md-12"><?php echo get_phrase('email');?></label>
                                             <div class="col-sm-12">
                                                 <input type="email" class="form-control" name="student_email" 
                                                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
@@ -561,7 +571,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group required-field">
-                                            <label class="col-md-12"><?php echo get_phrase('password');?> <span class="text-danger">*</span></label>
+                                            <label class="col-md-12"><?php echo get_phrase('password');?> </label>
                                             <div class="col-sm-12">
                                                 <div class="input-group">
                                                     <input type="password" class="form-control" name="password" id="student_password" 
@@ -579,7 +589,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 
                                     <div class="col-md-6">
                                         <div class="form-group required-field">
-                                            <label class="col-md-12"><?php echo get_phrase('gender'); ?> <span class="text-danger">*</span></label>
+                                            <label class="col-md-12"><?php echo get_phrase('gender'); ?> </label>
                                             <div class="col-sm-12">
                                                 <select name="sex" class="form-control select2" required>
                                                     <option value=""><?php echo get_phrase('select'); ?></option>
@@ -595,7 +605,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group required-field">
-                                            <label class="col-md-12"><?php echo get_phrase('date_of_birth'); ?> <span class="text-danger">*</span></label>
+                                            <label class="col-md-12"><?php echo get_phrase('date_of_birth'); ?></label>
                                             <div class="col-sm-12">
                                                 <input type="date" class="form-control datepicker" name="birthday" id="birthday" required>
                                                 <small class="text-muted">(Required) Enter student's date of birth</small>
@@ -964,7 +974,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group required-field">
-                                            <label class="col-md-12"><?php echo get_phrase('father_email');?> <span class="text-danger">*</span></label>
+                                            <label class="col-md-12"><?php echo get_phrase('father_email');?> </label>
                                             <div class="col-sm-12">
                                                 <input type="email" class="form-control" name="father_email" 
                                                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
@@ -977,7 +987,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                     
                                     <div class="col-md-6">
                                         <div class="form-group required-field">
-                                            <label class="col-md-12"><?php echo get_phrase('father_password');?> <span class="text-danger">*</span></label>
+                                            <label class="col-md-12"><?php echo get_phrase('father_password');?> </label>
                                             <div class="col-sm-12">
                                                 <div class="input-group">
                                                     <input type="password" class="form-control" name="father_password" id="father_password" 
@@ -1932,6 +1942,24 @@ function printAdmissionForm() {
     // Get form data
     var formData = new FormData($('form')[0]);
     
+    // Make sure all form fields have values (even empty) to ensure complete form data
+    $('form input, form select, form textarea').each(function() {
+        if (!formData.has($(this).attr('name')) && $(this).attr('name')) {
+            formData.append($(this).attr('name'), $(this).val() || '');
+        }
+    });
+    
+    // Create a backup of form data in localStorage
+    try {
+        var formBackup = {};
+        for (var pair of formData.entries()) {
+            formBackup[pair[0]] = pair[1];
+        }
+        localStorage.setItem('admission_form_backup', JSON.stringify(formBackup));
+    } catch (e) {
+        console.warn('Could not create form backup in localStorage:', e);
+    }
+    
     // Submit form data to a temporary endpoint that will generate the print view
     $.ajax({
         url: '<?php echo base_url();?>admin/generate_admission_print',
@@ -1939,21 +1967,34 @@ function printAdmissionForm() {
         data: formData,
         processData: false,
         contentType: false,
+        cache: false,
         success: function(response) {
             // Remove overlay
             $('#print-overlay').remove();
             
+            if (!response) {
+                alert('Error: No response from server. Please try again.');
+                return;
+            }
+            
+            console.log('Print ID received:', response);
+            
+            // Store the temp ID in localStorage
+            localStorage.setItem('admission_print_temp_id', response);
+            
             // Open print view in new window
-            var printWindow = window.open('<?php echo base_url();?>admin/admission_print_view/' + response, '_blank');
+            var printUrl = '<?php echo base_url();?>admin/admission_print_view/' + response;
+            var printWindow = window.open(printUrl, '_blank');
             if (printWindow) {
                 printWindow.focus();
             } else {
                 alert('Please allow popups for this site to use the print feature.');
             }
         },
-        error: function() {
+        error: function(xhr, status, error) {
             // Remove overlay
             $('#print-overlay').remove();
+            console.error('Print preparation error:', status, error);
             alert('There was an error preparing the print view. Please try again.');
         }
     });
@@ -2106,7 +2147,7 @@ $(document).ready(function() {
     $('.js-example-basic-single').select2();
 
     // Format admission number to allow 1-6 digits
-    $('input[name="admission_no"]').on('input', function() {
+    $('input[name="admission_number"]').on('input', function() {
         // Remove non-digit characters
         this.value = this.value.replace(/[^0-9]/g, '');
         
@@ -2121,14 +2162,14 @@ $(document).ready(function() {
 
     // Validate admission number
     function validateAdmissionNumber() {
-        var admissionNo = $('input[name="admission_no"]').val();
+        var admissionNo = $('input[name="admission_number"]').val();
         var isValid = /^\d{1,6}$/.test(admissionNo) && parseInt(admissionNo) > 0;
         
         // Perform validation
         if (isValid) {
-            $('input[name="admission_no"]').removeClass('is-invalid').addClass('is-valid');
+            $('input[name="admission_number"]').removeClass('is-invalid').addClass('is-valid');
         } else {
-            $('input[name="admission_no"]').removeClass('is-valid').addClass('is-invalid');
+            $('input[name="admission_number"]').removeClass('is-valid').addClass('is-invalid');
         }
         
         return isValid;
@@ -2343,6 +2384,184 @@ function toggleStudentPasswordVisibility() {
         passwordField.type = "password";
         toggleIcon.className = "fa fa-eye";
     }
+}
+
+// Form Validation Function
+function validateForm() {
+    // Reset error container
+    $('#form-validation-errors').hide();
+    $('#error-list').empty();
+    
+    var errors = [];
+    var isValid = true;
+    
+    // Required fields validation
+    var requiredFields = {
+        'admission_number': 'Admission Number',
+        'name': 'Student Name',
+        'student_email': 'Student Email',
+        'password': 'Password',
+        'sex': 'Gender',
+        'birthday': 'Date of Birth',
+        'class_id': 'Class',
+        'transport_mode': 'Transport Mode',
+        'father_name': 'Father\'s Name',
+        'father_phone': 'Father\'s Phone',
+        'father_email': 'Father\'s Email',
+        'father_password': 'Father\'s Password'
+    };
+    
+    // Check required fields
+    $.each(requiredFields, function(fieldName, fieldLabel) {
+        var $field = $('[name="' + fieldName + '"]');
+        var value = $field.val();
+        
+        if (!value || value.trim() === '' || (fieldName === 'class_id' && value === '')) {
+            errors.push(fieldLabel + ' is required');
+            $field.addClass('is-invalid');
+            
+            // Show the tab with the error
+            var tabId = $field.closest('.tab-pane').attr('id');
+            if (tabId) {
+                $('.nav-tabs a[href="#' + tabId + '"]').tab('show');
+            }
+            
+            isValid = false;
+        } else {
+            $field.removeClass('is-invalid');
+        }
+    });
+    
+    // Email validation
+    var emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    
+    // Validate student email
+    var studentEmail = $('[name="student_email"]').val();
+    if (studentEmail && !emailRegex.test(studentEmail)) {
+        errors.push('Please enter a valid Student Email address');
+        $('[name="student_email"]').addClass('is-invalid');
+        isValid = false;
+    }
+    
+    // Validate father email
+    var fatherEmail = $('[name="father_email"]').val();
+    if (fatherEmail && !emailRegex.test(fatherEmail)) {
+        errors.push('Please enter a valid Father\'s Email address');
+        $('[name="father_email"]').addClass('is-invalid');
+        isValid = false;
+    }
+    
+    // Validate mother email if provided
+    var motherEmail = $('[name="mother_email"]').val();
+    if (motherEmail && !emailRegex.test(motherEmail)) {
+        errors.push('Please enter a valid Mother\'s Email address');
+        $('[name="mother_email"]').addClass('is-invalid');
+        isValid = false;
+    }
+    
+    // Phone number validation (10 digits)
+    var phoneRegex = /^[0-9]{10}$/;
+    
+    // Validate father phone
+    var fatherPhone = $('[name="father_phone"]').val();
+    if (fatherPhone && !phoneRegex.test(fatherPhone)) {
+        errors.push('Father\'s Phone must be a 10-digit number');
+        $('[name="father_phone"]').addClass('is-invalid');
+        isValid = false;
+    }
+    
+    // Validate mother phone if provided
+    var motherPhone = $('[name="mother_phone"]').val();
+    if (motherPhone && !phoneRegex.test(motherPhone)) {
+        errors.push('Mother\'s Phone must be a 10-digit number');
+        $('[name="mother_phone"]').addClass('is-invalid');
+        isValid = false;
+    }
+    
+    // Validate Aadhar number if provided (12 digits)
+    var aadharRegex = /^[0-9]{12}$/;
+    var aadharNo = $('[name="adhar_no"]').val();
+    if (aadharNo && !aadharRegex.test(aadharNo)) {
+        errors.push('Aadhar Card Number must be a 12-digit number');
+        $('[name="adhar_no"]').addClass('is-invalid');
+        isValid = false;
+    }
+    
+    // File upload validation for student photo
+    var studentPhoto = $('input[name="userfile"]')[0];
+    if (studentPhoto.files.length === 0) {
+        errors.push('Student Photo is required');
+        $(studentPhoto).addClass('is-invalid');
+        isValid = false;
+    } else if (studentPhoto.files.length > 0) {
+        var file = studentPhoto.files[0];
+        
+        // Check file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+            errors.push('Student Photo size exceeds 5MB limit');
+            $(studentPhoto).addClass('is-invalid');
+            isValid = false;
+        }
+        
+        // Check file type
+        var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            errors.push('Student Photo must be JPG, JPEG, or PNG format');
+            $(studentPhoto).addClass('is-invalid');
+            isValid = false;
+        }
+    }
+    
+    // Password strength validation
+    var password = $('[name="password"]').val();
+    if (password && password.length < 6) {
+        errors.push('Password must be at least 6 characters long');
+        $('[name="password"]').addClass('is-invalid');
+        isValid = false;
+    }
+    
+    // Father password validation
+    var fatherPassword = $('[name="father_password"]').val();
+    if (fatherPassword && fatherPassword.length < 6) {
+        errors.push('Father\'s Password must be at least 6 characters long');
+        $('[name="father_password"]').addClass('is-invalid');
+        isValid = false;
+    }
+    
+    // If address fields are hidden due to same_as_present checked, they should pass validation
+    if ($('#same_as_present').is(':checked')) {
+        // Copy values from present address to permanent address
+        $('textarea[name="permanent_address"]').val($('textarea[name="address"]').val());
+        $('input[name="permanent_city"]').val($('input[name="city"]').val());
+        $('input[name="permanent_state"]').val($('input[name="state"]').val());
+        $('input[name="permanent_pincode"]').val($('input[name="pincode"]').val());
+    }
+    
+    // Check if there are validation errors
+    if (!isValid) {
+        // Show error messages
+        $('#error-list').empty();
+        $.each(errors, function(index, error) {
+            $('#error-list').append('<li>' + error + '</li>');
+        });
+        $('#form-validation-errors').show();
+        
+        // Scroll to error container
+        $('html, body').animate({
+            scrollTop: $('#form-validation-errors').offset().top - 100
+        }, 300);
+    } else {
+        // If everything is valid, show loading overlay
+        showLoadingOverlay();
+    }
+    
+    return isValid;
+}
+
+// Show loading overlay when form is being submitted
+function showLoadingOverlay() {
+    var overlay = $('<div id="form-loading-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;justify-content:center;align-items:center;"><div style="background:white;padding:20px;border-radius:5px;text-align:center;box-shadow:0 0 20px rgba(0,0,0,0.3);"><i class="fa fa-spinner fa-spin fa-3x" style="color:#2196F3;margin-bottom:15px;display:block;"></i><div style="font-size:16px;font-weight:500;">Saving student information...</div><div style="font-size:13px;margin-top:10px;color:#666;">This may take a moment. Please do not close this page.</div></div></div>');
+    $('body').append(overlay);
 }
 </script>
 

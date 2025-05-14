@@ -73,7 +73,7 @@
 							<a href="#" onclick="showAjaxModal('<?php echo base_url();?>modal/popup/modal_take_payment/<?php echo $row['invoice_id'];?>');"><button type="button" class="btn btn-info btn-circle btn-xs"><i class="fa fa-credit-card"></i></button></a>
 							<?php endif;?>
 							 
-							<a href="#" onclick="showAjaxModal('<?php echo base_url();?>modal/popup/modal_view_invoice/<?php echo $row['invoice_id'];?>');"><button type="button" class="btn btn-warning btn-circle btn-xs"><i class="fa fa-print"></i></button></a>
+							<a href="<?php echo base_url();?>PrintInvoice/invoice/<?php echo $row['invoice_id'];?>" target="_blank"><button type="button" class="btn btn-warning btn-circle btn-xs"><i class="fa fa-print"></i></button></a>
 							 <a href="#" onclick="showAjaxModal('<?php echo base_url();?>modal/popup/modal_edit_invoice/<?php echo $row['invoice_id'];?>');"><button type="button" class="btn btn-success btn-circle btn-xs"><i class="fa fa-edit"></i></button></a>
 							<a href="#" onclick="confirm_modal('<?php echo base_url();?>admin/student_payment/delete_invoice/<?php echo $row['invoice_id'];?>');"><button type="button" class="btn btn-danger btn-circle btn-xs"><i class="fa fa-times"></i></button></a>
 							
@@ -159,7 +159,7 @@
 					            <td data-amount="<?php echo $row['amount']; ?>"><?php echo $this->db->get_where('settings', array('type' => 'currency'))->row()->description; ?><?php echo number_format($row['amount'],2,".",",");?></td>
 					            <td data-timestamp="<?php echo $row['timestamp']; ?>"><?php echo date('d M,Y', $row['timestamp']);?></td>
 					            <td >
-			                <a href="#" onclick="showAjaxModal('<?php echo base_url();?>modal/popup/modal_view_invoice/<?php echo $row['invoice_id'];?>');"> <button type="button" class="btn btn-info btn-circle btn-xs"><i class="fa fa-print"></i></button></a>	            	
+			                <a href="<?php echo base_url();?>PrintInvoice/invoice/<?php echo $row['invoice_id'];?>" target="_blank"><button type="button" class="btn btn-info btn-circle btn-xs"><i class="fa fa-print"></i></button></a>	            	
 					            </td>
 					        </tr>
 					        <?php endforeach;?>
@@ -168,11 +168,24 @@
 					
 <script type="text/javascript">
 $(document).ready(function() {
-    // Initialize payment history table with export buttons
+    // Initialize payment history table with export buttons (without print)
     $('#payment_history_table').DataTable({
         dom: 'Bfrtip',
         buttons: [
-            'copy', 'csv', 'excel', 'pdf', 'print'
+            'copy', 'csv', 'excel', 'pdf'
+        ],
+        "paging": true,
+        "searching": true,
+        "ordering": true,
+        "info": true,
+        "autoWidth": false
+    });
+    
+    // Initialize unpaid invoices table with export buttons (without print)
+    $('#example23').DataTable({
+        dom: 'Bfrtip',
+        buttons: [
+            'copy', 'csv', 'excel', 'pdf'
         ],
         "paging": true,
         "searching": true,

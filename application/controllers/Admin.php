@@ -1726,37 +1726,80 @@ class Admin extends CI_Controller {
     
     // Generate temporary admission data for printing
     function generate_admission_print() {
-        // Create a temporary student record with form data
-        $temp_id = md5(uniqid(rand(), true));
-        
-        // Store form data in session for temporary use
-        $student_data = array();
-        $form_fields = $this->input->post();
-        
-        // Remove unnecessary fields
-        unset($form_fields['userfile']);
-        unset($form_fields['student_password']);
-        
-        // Store in session
-        $this->session->set_userdata('temp_admission_' . $temp_id, $form_fields);
-        
-        // Return the temporary ID
-        echo $temp_id;
+        // Validate CSRF token for security
+        if ($this->input->is_ajax_request() && $this->input->method() === 'post') {
+            // Create a temporary student record with form data
+            $temp_id = md5(uniqid(rand(), true));
+            
+            // Store form data in session for temporary use
+            $form_fields = $this->input->post();
+            
+            // Remove unnecessary fields
+            if(isset($form_fields['userfile'])) {
+                unset($form_fields['userfile']);
+            }
+            if(isset($form_fields['student_password'])) {
+                unset($form_fields['student_password']);
+            }
+            
+            // Set a longer session expiration time (2 hours)
+            $this->session->sess_expiration = 7200;
+            $this->session->sess_expire_on_close = FALSE;
+            
+            // Store in session with a clear key format
+            $session_key = 'temp_admission_' . $temp_id;
+            $this->session->set_userdata($session_key, $form_fields);
+            
+            // Add timestamp for debugging
+            $form_fields['timestamp'] = date('Y-m-d H:i:s');
+            
+            // Log the data for debugging
+            error_log('Storing admission print data in session: ' . $session_key);
+            error_log('Session data size: ' . strlen(json_encode($form_fields)) . ' bytes');
+            
+            // Return the temporary ID
+            echo $temp_id;
+        } else {
+            // Invalid request
+            http_response_code(403);
+            echo 'Invalid request';
+        }
     }
     
     // Display admission form for printing
     function admission_print_view($temp_id = '') {
-        // Get the student data from session
-        $student = $this->session->userdata('temp_admission_' . $temp_id);
-        
-        if (empty($student)) {
-            $this->session->set_flashdata('error_message', get_phrase('Print session expired or invalid'));
+        if (empty($temp_id)) {
+            $this->session->set_flashdata('error_message', get_phrase('Invalid print request'));
             redirect(base_url() . 'admin/new_student', 'refresh');
             return;
         }
         
-        // Get class information
-        $class = $this->db->get_where('class', array('class_id' => $student['class_id']))->row_array();
+        // Get the student data from session
+        $session_key = 'temp_admission_' . $temp_id;
+        $student = $this->session->userdata($session_key);
+        
+        error_log('Retrieving admission print data from session: ' . $session_key);
+        
+        if (empty($student)) {
+            error_log('Session data not found for key: ' . $session_key);
+            
+            // Instead of redirecting immediately, provide a recovery option
+            $page_data['temp_id'] = $temp_id;
+            $page_data['page_title'] = get_phrase('Session Expired');
+            $this->load->view('backend/admin/admission_print_recovery', $page_data);
+            return;
+        }
+        
+        // Get class information if class_id is set
+        $class = array();
+        if (isset($student['class_id']) && !empty($student['class_id'])) {
+            $class = $this->db->get_where('class', array('class_id' => $student['class_id']))->row_array();
+            if (empty($class)) {
+                $class = array('name' => 'Not specified');
+            }
+        } else {
+            $class = array('name' => 'Not specified');
+        }
         
         // Prepare view data
         $page_data['student'] = $student;
@@ -3087,6 +3130,108 @@ class Admin extends CI_Controller {
         );
         
         echo json_encode($response);
+    }
+
+    // Recover admission print data from localStorage backup
+    function recover_admission_print() {
+        if (!$this->input->is_ajax_request()) {
+            echo json_encode(array('success' => false, 'message' => 'Invalid request'));
+            return;
+        }
+        
+        $form_data = $this->input->post('form_data');
+        $temp_id = $this->input->post('temp_id');
+        
+        if (empty($form_data) || empty($temp_id)) {
+            echo json_encode(array('success' => false, 'message' => 'Missing data'));
+            return;
+        }
+        
+        // Create a new session with the recovered data
+        $new_temp_id = md5(uniqid(rand(), true));
+        $session_key = 'temp_admission_' . $new_temp_id;
+        
+        // Set a longer session expiration time
+        $this->session->sess_expiration = 7200;
+        $this->session->sess_expire_on_close = FALSE;
+        
+        // Store in session
+        $this->session->set_userdata($session_key, $form_data);
+        
+        // Log recovery attempt
+        error_log('Recovered admission print data. Original temp_id: ' . $temp_id . ', New temp_id: ' . $new_temp_id);
+        
+        echo json_encode(array('success' => true, 'temp_id' => $new_temp_id));
+    }
+
+    /**
+     * Handle student update from edit_student form
+     */
+    function student($action = '', $student_id = ''){
+        if($action == 'update'){
+            if($this->session->userdata('admin_login') != 1){
+                redirect(base_url(), 'refresh');
+            }
+            
+            // Log the request details for debugging
+            error_log('Student update request received - Student ID: ' . $student_id . ', POST data: ' . json_encode($_POST));
+            error_log('FILES data: ' . json_encode($_FILES));
+            
+            // Load the student model if not already loaded
+            $this->load->model('student_model');
+            
+            // Verify student exists
+            $student_exists = $this->db->get_where('student', array('student_id' => $student_id))->num_rows() > 0;
+            if (!$student_exists) {
+                error_log('Error: Student ID ' . $student_id . ' not found in database');
+                $this->session->set_flashdata('error_message', get_phrase('Student not found'));
+                redirect(base_url() . 'admin/student_information', 'refresh');
+                return;
+            }
+            
+            // Check for required fields
+            $required_fields = array('admission_number', 'name', 'email', 'class_id');
+            $missing_fields = array();
+            
+            foreach ($required_fields as $field) {
+                if (empty($this->input->post($field))) {
+                    $missing_fields[] = ucfirst(str_replace('_', ' ', $field));
+                }
+            }
+            
+            if (!empty($missing_fields)) {
+                error_log('Missing required fields: ' . implode(', ', $missing_fields));
+                $this->session->set_flashdata('error_message', get_phrase('Missing required fields: ') . implode(', ', $missing_fields));
+                redirect(base_url() . 'admin/edit_student/' . $student_id, 'refresh');
+                return;
+            }
+            
+            // Call updateNewStudent function with proper student_id parameter
+            error_log('Calling updateNewStudent with student_id: ' . $student_id);
+            try {
+                $result = $this->student_model->updateNewStudent($student_id);
+                
+                if($result === true){
+                    $this->session->set_flashdata('flash_message', get_phrase('Student information updated successfully'));
+                } else {
+                    // If result is a string, it's an error message
+                    if (is_string($result)) {
+                        $this->session->set_flashdata('error_message', $result);
+                    } else {
+                        $this->session->set_flashdata('error_message', get_phrase('Error updating student information. Check server logs for details.'));
+                    }
+                }
+            } catch (Exception $e) {
+                error_log('Exception in Admin/student/update: ' . $e->getMessage());
+                $this->session->set_flashdata('error_message', get_phrase('Error: ') . $e->getMessage());
+            }
+            
+            // Redirect back to edit student page with the same active tab
+            $activeTab = $this->input->get('tab');
+            if(!$activeTab) $activeTab = 'student';
+            
+            redirect(base_url() . 'admin/edit_student/' . $student_id . '?tab=' . $activeTab, 'refresh');
+        }
     }
 
 }

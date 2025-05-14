@@ -13,6 +13,12 @@
 			success: function(response)
 			{
 				jQuery('#modal_ajax .modal-body').html(response);
+			},
+			error: function(xhr, status, error) {
+				console.error("AJAX Error:", error);
+				console.log("Status:", status);
+				console.log("Response:", xhr.responseText);
+				jQuery('#modal_ajax .modal-body').html('<div class="alert alert-danger"><strong>Error!</strong> ' + error + '<br>Status: ' + status + '</div>');
 			}
 		});
 	}
@@ -22,8 +28,8 @@
 	
     <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" id="modal_ajax">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content slimscrollsidebar">
-                <div class="modal-body " style="height:400px"></div>
+            <div class="modal-content">
+                <div class="modal-body" style="max-height:600px; overflow-y:auto;"></div>
             </div>
         </div>
     </div>

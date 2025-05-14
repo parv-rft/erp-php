@@ -36,6 +36,14 @@
             background-color: #f5f5f5;
             border: 1px solid #ddd;
         }
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 15px 0 10px;
+            padding: 5px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+        }
         .info-section {
             margin-bottom: 15px;
             border: 1px solid #ddd;
@@ -57,10 +65,9 @@
             border: 1px solid #ddd;
             height: 150px;
             width: 120px;
-            margin-left: auto;
-            float: right;
+            padding: 5px;
             text-align: center;
-            line-height: 150px;
+            line-height: 140px;
         }
         .photo-box img {
             max-width: 100%;
@@ -81,16 +88,22 @@
             background-color: #f5f5f5;
             font-weight: bold;
         }
+        .label {
+            font-weight: bold;
+            background-color: #f9f9f9;
+            width: 30%;
+        }
         .signature-section {
             margin-top: 20px;
             display: flex;
             justify-content: space-between;
         }
         .signature-box {
-            border-top: 1px dotted #999;
-            width: 32%;
+            border: 1px solid #ddd;
+            width: 30%;
+            height: 80px;
             text-align: center;
-            padding-top: 5px;
+            padding-top: 60px;
             font-weight: bold;
         }
         .declaration {
@@ -161,367 +174,305 @@
             ADMISSION FORM
         </div>
         
-        <!-- Basic Details Section -->
-        <div class="info-section">
-            <div class="row">
-                <div class="col-xs-9">
-                    <div class="info-row">
-                        <div class="info-label">Admission No.:</div>
-                        <div class="info-value"><?php echo $student['admission_number']; ?></div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">1. Class for which admission is sought:</div>
-                        <div class="info-value"><?php echo $class['name']; ?></div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">2. Name Of Student (In Block Letters):</div>
-                        <div class="info-value"><?php echo strtoupper($student['name']); ?></div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">3. Date Of Birth:</div>
-                        <div class="info-value"><?php echo $student['birthday']; ?></div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">4. Gender:</div>
-                        <div class="info-value"><?php echo $student['sex']; ?></div>
-                    </div>
-                </div>
-                <div class="col-xs-3">
+        <!-- BASIC INFORMATION -->
+        <table>
+            <tr>
+                <td class="label">Admission No. :</td>
+                <td><?php echo isset($student['admission_no']) ? $student['admission_no'] : ''; ?></td>
+                <td class="label">Admission Date :</td>
+                <td><?php echo isset($student['admission_date']) ? $student['admission_date'] : date('Y-m-d'); ?></td>
+                <td rowspan="4" style="width:120px; vertical-align: top;">
                     <div class="photo-box">
-                        <?php if (file_exists('uploads/student_image/'.$student['student_id'].'.jpg')): ?>
+                        <?php if (isset($student['student_id']) && file_exists('uploads/student_image/'.$student['student_id'].'.jpg')): ?>
                             <img src="<?php echo base_url('uploads/student_image/'.$student['student_id'].'.jpg'); ?>">
                         <?php else: ?>
                             Photo
                         <?php endif; ?>
                     </div>
-                </div>
-            </div>
-            
-            <div class="info-row">
-                <div class="info-label">5. Category:</div>
-                <div class="info-value"><?php echo isset($student['caste']) ? $student['caste'] : ''; ?></div>
-            </div>
-            
-            <div class="column-section">
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Belong to BPL:</div>
-                        <div class="info-value"><?php echo isset($student['bpl']) && $student['bpl'] == 'yes' ? 'Yes' : 'No'; ?></div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">Height:</div>
-                        <div class="info-value"><?php echo isset($student['height']) ? $student['height'] : ''; ?></div>
-                    </div>
-                </div>
-                
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Blood Group:</div>
-                        <div class="info-value"><?php echo isset($student['blood_group']) ? $student['blood_group'] : ''; ?></div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div class="info-label">Weight:</div>
-                        <div class="info-value"><?php echo isset($student['weight']) ? $student['weight'] : ''; ?></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="info-row">
-                <div class="info-label">6. Father's Name (In Block Letters):</div>
-                <div class="info-value"><?php echo isset($student['father_name']) ? strtoupper($student['father_name']) : ''; ?></div>
-            </div>
-            
-            <div class="column-section">
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Academic Qualification:</div>
-                        <div class="info-value"><?php echo isset($student['father_qualification']) ? $student['father_qualification'] : ''; ?></div>
-                    </div>
-                </div>
-                
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Occupation:</div>
-                        <div class="info-value"><?php echo isset($student['father_occupation']) ? $student['father_occupation'] : ''; ?></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="column-section">
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Designation:</div>
-                        <div class="info-value"><?php echo isset($student['father_designation']) ? $student['father_designation'] : ''; ?></div>
-                    </div>
-                </div>
-                
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Mobile No.:</div>
-                        <div class="info-value"><?php echo isset($student['father_phone']) ? $student['father_phone'] : ''; ?></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="info-row">
-                <div class="info-label">7. Mother's Name (In Block Letters):</div>
-                <div class="info-value"><?php echo isset($student['mother_name']) ? strtoupper($student['mother_name']) : ''; ?></div>
-            </div>
-            
-            <div class="column-section">
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Academic Qualification:</div>
-                        <div class="info-value"><?php echo isset($student['mother_qualification']) ? $student['mother_qualification'] : ''; ?></div>
-                    </div>
-                </div>
-                
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Occupation:</div>
-                        <div class="info-value"><?php echo isset($student['mother_occupation']) ? $student['mother_occupation'] : ''; ?></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="column-section">
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Designation:</div>
-                        <div class="info-value"><?php echo isset($student['mother_designation']) ? $student['mother_designation'] : ''; ?></div>
-                    </div>
-                </div>
-                
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Mobile No.:</div>
-                        <div class="info-value"><?php echo isset($student['mother_phone']) ? $student['mother_phone'] : ''; ?></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="info-row">
-                <div class="info-label">8. Guardian's Name:</div>
-                <div class="info-value"><?php echo isset($student['guardian_name']) ? $student['guardian_name'] : ''; ?></div>
-            </div>
-            
-            <div class="info-row">
-                <div class="info-label">Mobile No.:</div>
-                <div class="info-value"><?php echo isset($student['guardian_phone']) ? $student['guardian_phone'] : ''; ?></div>
-            </div>
-            
-            <div class="info-row">
-                <div class="info-label">9. Present Address:</div>
-                <div class="info-value"><?php echo isset($student['current_address']) ? $student['current_address'] : ''; ?></div>
-            </div>
-            
-            <div class="info-row">
-                <div class="info-label">10. Permanent Address:</div>
-                <div class="info-value"><?php echo isset($student['permanent_address']) ? $student['permanent_address'] : ''; ?></div>
-            </div>
-            
-            <div class="column-section">
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">11. Student Aadhaar No.:</div>
-                        <div class="info-value"><?php echo isset($student['student_aadhaar']) ? $student['student_aadhaar'] : ''; ?></div>
-                    </div>
-                </div>
-                
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Father:</div>
-                        <div class="info-value"><?php echo isset($student['father_aadhaar']) ? $student['father_aadhaar'] : ''; ?></div>
-                    </div>
-                </div>
-                
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Mother:</div>
-                        <div class="info-value"><?php echo isset($student['mother_aadhaar']) ? $student['mother_aadhaar'] : ''; ?></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="info-row">
-                <div class="info-label">12. Type of Disability:</div>
-                <div class="info-value"><?php echo isset($student['disability']) ? $student['disability'] : ''; ?></div>
-            </div>
-        </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Student Code :</td>
+                <td><?php echo isset($student['student_code']) ? $student['student_code'] : ''; ?></td>
+                <td class="label">Session :</td>
+                <td><?php echo isset($student['session']) ? $student['session'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Class Applied For :</td>
+                <td><?php echo isset($class['name']) ? $class['name'] : ''; ?></td>
+                <td class="label">Section :</td>
+                <td>
+                    <?php 
+                    if (isset($student['section_id'])) {
+                        $section = $this->db->get_where('section', array('section_id' => $student['section_id']))->row();
+                        echo $section ? $section->name : '';
+                    }
+                    ?>
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Student's Name :</td>
+                <td colspan="3"><?php echo isset($student['name']) ? strtoupper($student['name']) : ''; ?></td>
+            </tr>
+        </table>
         
-        <!-- Previous School Details -->
-        <div class="info-section">
-            <div style="font-weight: bold; margin-bottom: 10px;">Previous School Details:</div>
-            
-            <div class="info-row">
-                <div class="info-label">Name:</div>
-                <div class="info-value"><?php echo isset($student['ps_attended']) ? $student['ps_attended'] : ''; ?></div>
-            </div>
-            
-            <div class="column-section">
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Class:</div>
-                        <div class="info-value"><?php echo isset($student['ps_class']) ? $student['ps_class'] : ''; ?></div>
-                    </div>
-                </div>
-                
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">TC No.:</div>
-                        <div class="info-value"><?php echo isset($student['tc_no']) ? $student['tc_no'] : ''; ?></div>
-                    </div>
-                </div>
-                
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Issue Date:</div>
-                        <div class="info-value"><?php echo isset($student['tc_issue_date']) ? $student['tc_issue_date'] : ''; ?></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="info-row">
-                <div class="info-label">Subjects:</div>
-                <div class="info-value"><?php echo isset($student['ps_subjects']) ? $student['ps_subjects'] : ''; ?></div>
-            </div>
-            
-            <div class="column-section">
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Board:</div>
-                        <div class="info-value"><?php echo isset($student['ps_board']) ? $student['ps_board'] : ''; ?></div>
-                    </div>
-                </div>
-                
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Result:</div>
-                        <div class="info-value"><?php echo isset($student['ps_result']) ? $student['ps_result'] : ''; ?></div>
-                    </div>
-                </div>
-                
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Obtained Marks:</div>
-                        <div class="info-value"><?php echo isset($student['ps_marks']) ? $student['ps_marks'] : ''; ?></div>
-                    </div>
-                </div>
-                
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">Max Marks:</div>
-                        <div class="info-value"><?php echo isset($student['ps_max_marks']) ? $student['ps_max_marks'] : ''; ?></div>
-                    </div>
-                </div>
-                
-                <div class="column">
-                    <div class="info-row">
-                        <div class="info-label">CGPA/%:</div>
-                        <div class="info-value"><?php echo isset($student['ps_percentage']) ? $student['ps_percentage'] : ''; ?></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- PERSONAL INFORMATION -->
+        <div class="section-title">PERSONAL INFORMATION</div>
+        <table>
+            <tr>
+                <td class="label">Date of Birth :</td>
+                <td><?php echo isset($student['birthday']) ? $student['birthday'] : ''; ?></td>
+                <td class="label">Age :</td>
+                <td><?php echo isset($student['age']) ? $student['age'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Gender :</td>
+                <td><?php echo isset($student['sex']) ? $student['sex'] : ''; ?></td>
+                <td class="label">Blood Group :</td>
+                <td><?php echo isset($student['blood_group']) ? $student['blood_group'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Religion :</td>
+                <td><?php echo isset($student['religion']) ? $student['religion'] : ''; ?></td>
+                <td class="label">Caste :</td>
+                <td><?php echo isset($student['caste']) ? $student['caste'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Admission Category :</td>
+                <td><?php echo isset($student['admission_category']) ? $student['admission_category'] : ''; ?></td>
+                <td class="label">Phone Number :</td>
+                <td><?php echo isset($student['phone']) ? $student['phone'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Email Address :</td>
+                <td colspan="3"><?php echo isset($student['student_email']) ? $student['student_email'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">APAAR ID :</td>
+                <td><?php echo isset($student['apaar_id']) ? $student['apaar_id'] : ''; ?></td>
+                <td class="label">Aadhaar Number :</td>
+                <td><?php echo isset($student['adhar_no']) ? $student['adhar_no'] : ''; ?></td>
+            </tr>
+        </table>
         
-        <!-- Siblings Details -->
-        <div class="info-section">
-            <div style="font-weight: bold; margin-bottom: 10px;">Details of siblings: Full Details (Admission No / Name / Class /Age)</div>
-            <div class="info-value" style="width: 100%; height: 40px; border-bottom: 1px dotted #999;">
-                <?php echo isset($student['siblings_details']) ? $student['siblings_details'] : ''; ?>
-            </div>
-        </div>
+        <!-- ADDRESS INFORMATION -->
+        <div class="section-title">ADDRESS INFORMATION</div>
+        <table>
+            <tr>
+                <td class="label">Present Address :</td>
+                <td colspan="3"><?php echo isset($student['address']) ? $student['address'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">City :</td>
+                <td><?php echo isset($student['city']) ? $student['city'] : ''; ?></td>
+                <td class="label">State :</td>
+                <td><?php echo isset($student['state']) ? $student['state'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Pincode :</td>
+                <td colspan="3"><?php echo isset($student['pincode']) ? $student['pincode'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Permanent Address :</td>
+                <td colspan="3"><?php echo isset($student['permanent_address']) ? $student['permanent_address'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">City :</td>
+                <td><?php echo isset($student['permanent_city']) ? $student['permanent_city'] : ''; ?></td>
+                <td class="label">State :</td>
+                <td><?php echo isset($student['permanent_state']) ? $student['permanent_state'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Pincode :</td>
+                <td colspan="3"><?php echo isset($student['permanent_pincode']) ? $student['permanent_pincode'] : ''; ?></td>
+            </tr>
+        </table>
         
-        <!-- Declaration -->
+        <!-- PARENT INFORMATION -->
+        <div class="section-title">PARENT INFORMATION</div>
+        <table>
+            <tr>
+                <td class="label">Father's Name :</td>
+                <td colspan="3"><?php echo isset($student['father_name']) ? strtoupper($student['father_name']) : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Phone Number :</td>
+                <td><?php echo isset($student['father_phone']) ? $student['father_phone'] : ''; ?></td>
+                <td class="label">Email :</td>
+                <td><?php echo isset($student['father_email']) ? $student['father_email'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Qualification :</td>
+                <td><?php echo isset($student['father_qualification']) ? $student['father_qualification'] : ''; ?></td>
+                <td class="label">Occupation :</td>
+                <td><?php echo isset($student['father_occupation']) ? $student['father_occupation'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Designation :</td>
+                <td><?php echo isset($student['father_designation']) ? $student['father_designation'] : ''; ?></td>
+                <td class="label">Annual Income :</td>
+                <td><?php echo isset($student['father_annual_income']) ? $student['father_annual_income'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Aadhaar Number :</td>
+                <td colspan="3"><?php echo isset($student['father_adhar']) ? $student['father_adhar'] : ''; ?></td>
+            </tr>
+            
+            <tr>
+                <td class="label">Mother's Name :</td>
+                <td colspan="3"><?php echo isset($student['mother_name']) ? strtoupper($student['mother_name']) : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Phone Number :</td>
+                <td><?php echo isset($student['mother_phone']) ? $student['mother_phone'] : ''; ?></td>
+                <td class="label">Email :</td>
+                <td><?php echo isset($student['mother_email']) ? $student['mother_email'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Qualification :</td>
+                <td><?php echo isset($student['mother_qualification']) ? $student['mother_qualification'] : ''; ?></td>
+                <td class="label">Occupation :</td>
+                <td><?php echo isset($student['mother_occupation']) ? $student['mother_occupation'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Designation :</td>
+                <td><?php echo isset($student['mother_designation']) ? $student['mother_designation'] : ''; ?></td>
+                <td class="label">Annual Income :</td>
+                <td><?php echo isset($student['mother_annual_income']) ? $student['mother_annual_income'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Aadhaar Number :</td>
+                <td colspan="3"><?php echo isset($student['mother_adhar']) ? $student['mother_adhar'] : ''; ?></td>
+            </tr>
+            
+            <tr>
+                <td class="label">Guardian's Name :</td>
+                <td><?php echo isset($student['guardian_name']) ? $student['guardian_name'] : ''; ?></td>
+                <td class="label">Phone Number :</td>
+                <td><?php echo isset($student['guardian_phone']) ? $student['guardian_phone'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Email :</td>
+                <td><?php echo isset($student['guardian_email']) ? $student['guardian_email'] : ''; ?></td>
+                <td class="label">Relation :</td>
+                <td><?php echo isset($student['guardian_relation']) ? $student['guardian_relation'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Address :</td>
+                <td colspan="3"><?php echo isset($student['guardian_address']) ? $student['guardian_address'] : ''; ?></td>
+            </tr>
+        </table>
+        
+        <!-- PREVIOUS SCHOOL DETAILS -->
+        <div class="section-title">PREVIOUS SCHOOL DETAILS</div>
+        <table>
+            <tr>
+                <td class="label">School Name :</td>
+                <td colspan="3"><?php echo isset($student['ps_attended']) ? $student['ps_attended'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Class Attended :</td>
+                <td><?php echo isset($student['ps_class']) ? $student['ps_class'] : ''; ?></td>
+                <td class="label">Board :</td>
+                <td><?php echo isset($student['ps_board']) ? $student['ps_board'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Result :</td>
+                <td><?php echo isset($student['ps_result']) ? $student['ps_result'] : ''; ?></td>
+                <td class="label">TC Number :</td>
+                <td><?php echo isset($student['tc_no']) ? $student['tc_no'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">TC Issue Date :</td>
+                <td><?php echo isset($student['tc_issue_date']) ? $student['tc_issue_date'] : ''; ?></td>
+                <td class="label">Obtained Marks :</td>
+                <td><?php echo isset($student['ps_marks']) ? $student['ps_marks'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Max Marks :</td>
+                <td><?php echo isset($student['ps_max_marks']) ? $student['ps_max_marks'] : ''; ?></td>
+                <td class="label">CGPA/% :</td>
+                <td><?php echo isset($student['ps_percentage']) ? $student['ps_percentage'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Subjects :</td>
+                <td colspan="3"><?php echo isset($student['ps_subjects']) ? $student['ps_subjects'] : ''; ?></td>
+            </tr>
+        </table>
+        
+        <!-- TRANSPORT DETAILS -->
+        <div class="section-title">TRANSPORT DETAILS</div>
+        <table>
+            <tr>
+                <td class="label">Transport Mode :</td>
+                <td><?php echo isset($student['transport_mode']) ? $student['transport_mode'] : ''; ?></td>
+                <td class="label">Transport ID :</td>
+                <td><?php echo isset($student['transport_id']) ? $student['transport_id'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Pick Area :</td>
+                <td><?php echo isset($student['pick_area']) ? $student['pick_area'] : ''; ?></td>
+                <td class="label">Pick Stand :</td>
+                <td><?php echo isset($student['pick_stand']) ? $student['pick_stand'] : ''; ?></td>
+            </tr>
+            <tr>
+                <td class="label">Drop Area :</td>
+                <td><?php echo isset($student['drop_area']) ? $student['drop_area'] : ''; ?></td>
+                <td class="label">Drop Stand :</td>
+                <td><?php echo isset($student['drop_stand']) ? $student['drop_stand'] : ''; ?></td>
+            </tr>
+        </table>
+        
+        <!-- DECLARATION -->
         <div class="declaration">
-            <strong>Declaration:</strong> I hereby declare that the above information including Name of the Candidate, Father's, Guardian's, Mother's and Date of Birth furnished by me is correct to the best of my knowledge and belief. I shall abide by the rules of the school.
+            <strong>Declaration :</strong> I hereby declare that the above information including Name of the Candidate, Father's, Guardian's, Mother's and Date of Birth furnished by me is correct to the best of my knowledge and belief. I shall abide by the rules of the school.
         </div>
         
-        <!-- Signature Section -->
+        <!-- SIGNATURE SECTION -->
         <div class="signature-section">
             <div class="signature-box">FATHER</div>
             <div class="signature-box">MOTHER</div>
             <div class="signature-box">GUARDIAN</div>
         </div>
         
-        <!-- Office Use Section -->
+        <div style="text-align:center; margin: 10px 0;">
+            <strong>PARENT'S SIGNATURE</strong>
+        </div>
+        
+        <!-- OFFICE USE SECTION -->
         <div class="office-section">
-            <div class="office-title">(for Office Use Only)</div>
+            <div class="office-title">(FOR OFFICE USE ONLY)</div>
             
-            <div class="row">
-                <div class="col-xs-4">
-                    <div class="info-row">
-                        <div class="info-label">Admission No.:</div>
-                        <div class="info-value"></div>
-                    </div>
-                </div>
-                
-                <div class="col-xs-4">
-                    <div class="info-row">
-                        <div class="info-label">Receipt No.:</div>
-                        <div class="info-value"></div>
-                    </div>
-                </div>
-                
-                <div class="col-xs-4">
-                    <div class="info-row">
-                        <div class="info-label">Checked By:</div>
-                        <div class="info-value"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-xs-4">
-                    <div class="info-row">
-                        <div class="info-label">Admission Date:</div>
-                        <div class="info-value"></div>
-                    </div>
-                </div>
-                
-                <div class="col-xs-4">
-                    <div class="info-row">
-                        <div class="info-label">Payment Mode:</div>
-                        <div class="info-value"></div>
-                    </div>
-                </div>
-                
-                <div class="col-xs-4">
-                    <div class="info-row">
-                        <div class="info-label">Verified By:</div>
-                        <div class="info-value"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-xs-4">
-                    <div class="info-row">
-                        <div class="info-label">Admitted Class:</div>
-                        <div class="info-value"></div>
-                    </div>
-                </div>
-                
-                <div class="col-xs-4">
-                    <div class="info-row">
-                        <div class="info-label">Paid Amount:</div>
-                        <div class="info-value"></div>
-                    </div>
-                </div>
-                
-                <div class="col-xs-4">
-                    <div class="info-row">
-                        <div class="info-label">Approved By:</div>
-                        <div class="info-value"></div>
-                    </div>
-                </div>
-            </div>
+            <table>
+                <tr>
+                    <td class="label">Admission No. :</td>
+                    <td><?php echo isset($student['admin_admission_no']) ? $student['admin_admission_no'] : ''; ?></td>
+                    <td class="label">Receipt No. :</td>
+                    <td><?php echo isset($student['receipt_no']) ? $student['receipt_no'] : ''; ?></td>
+                </tr>
+                <tr>
+                    <td class="label">Admission Date :</td>
+                    <td><?php echo isset($student['admin_admission_date']) ? $student['admin_admission_date'] : ''; ?></td>
+                    <td class="label">Payment Mode :</td>
+                    <td><?php echo isset($student['payment_mode']) ? $student['payment_mode'] : ''; ?></td>
+                </tr>
+                <tr>
+                    <td class="label">Admitted Class :</td>
+                    <td><?php echo isset($student['admitted_class']) ? $student['admitted_class'] : ''; ?></td>
+                    <td class="label">Paid Amount :</td>
+                    <td><?php echo isset($student['paid_amount']) ? $student['paid_amount'] : ''; ?></td>
+                </tr>
+                <tr>
+                    <td class="label">Checked By :</td>
+                    <td><?php echo isset($student['checked_by']) ? $student['checked_by'] : ''; ?></td>
+                    <td class="label">Verified By :</td>
+                    <td><?php echo isset($student['verified_by']) ? $student['verified_by'] : ''; ?></td>
+                </tr>
+                <tr>
+                    <td class="label">Approved By :</td>
+                    <td colspan="3"><?php echo isset($student['approved_by']) ? $student['approved_by'] : ''; ?></td>
+                </tr>
+            </table>
         </div>
         
         <div class="footer">
@@ -533,7 +484,7 @@
         // Auto print when page loads
         window.onload = function() {
             setTimeout(function() {
-                // window.print(); // Uncomment to auto-print
+                window.print();
             }, 500);
         };
     </script>

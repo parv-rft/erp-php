@@ -366,8 +366,22 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                             <?php echo $this->session->flashdata('flash_message'); ?>
                         </div>
                     <?php endif; ?>
+                    
+                    <?php if($this->session->flashdata('warning_message')): ?>
+                        <div class="alert alert-warning">
+                            <i class="fa fa-exclamation-triangle"></i>
+                            <?php echo $this->session->flashdata('warning_message'); ?>
+                        </div>
+                    <?php endif; ?>
 
-                    <?php echo form_open(base_url() . 'admin/student/update/' . $student_id, array('class' => 'form-horizontal form-groups-bordered validate', 'enctype' => 'multipart/form-data')); ?>
+                    <!-- Form validation errors container -->
+                    <div id="form-validation-errors" class="alert alert-danger" style="display: none;">
+                        <i class="fa fa-exclamation-circle"></i>
+                        <strong>Form Validation Errors:</strong>
+                        <ul id="error-list"></ul>
+                    </div>
+
+                    <?php echo form_open(base_url() . 'admin/student/update/' . $student_id, array('class' => 'form-horizontal form-groups-bordered validate', 'enctype' => 'multipart/form-data', 'id' => 'student-edit-form', 'onsubmit' => 'return validateForm();')); ?>
 
                     <!-- Progress Indicator -->
                     <div class="progress-indicator">
@@ -461,7 +475,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 					<div class="form-group">
                                         <label class="col-md-12"><?php echo get_phrase('admission_no');?> <span class="text-danger">*</span></label>
                     <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="admission_no" value="<?php echo $student['admission_no'];?>" required>
+                                            <input type="text" class="form-control" name="admission_number" value="<?php echo $student['admission_number'];?>" required>
                                             <small class="text-muted"><?php echo get_phrase('Enter admission number (Required)'); ?></small>
                                         </div>
 						</div>
@@ -746,13 +760,27 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                 <i class="fa fa-home"></i> <?php echo get_phrase('Permanent Address'); ?>
                                 <div class="pull-right">
                                     <label>
-                                        <input type="checkbox" id="same_as_present" name="same_as_present" <?php if(isset($student['same_as_present']) && $student['same_as_present'] == 1) echo 'checked'; ?>> 
+                                        <input type="checkbox" id="same_as_present" name="same_as_present" <?php 
+                                            // Check if permanent address matches present address
+                                            if(isset($student['address']) && isset($student['permanent_address']) && 
+                                               $student['address'] == $student['permanent_address'] && 
+                                               $student['city'] == $student['permanent_city'] && 
+                                               $student['state'] == $student['permanent_state'] && 
+                                               $student['pincode'] == $student['permanent_pincode']) echo 'checked'; 
+                                        ?>> 
                                         <?php echo get_phrase('Same as present address'); ?>
                                     </label>
                                 </div>
                             </div>
                             
-                            <div id="permanent_address_fields" <?php if(isset($student['same_as_present']) && $student['same_as_present'] == 1) echo 'style="display:none;"'; ?>>
+                            <div id="permanent_address_fields" <?php 
+                                // Hide fields if addresses match
+                                if(isset($student['address']) && isset($student['permanent_address']) && 
+                                   $student['address'] == $student['permanent_address'] && 
+                                   $student['city'] == $student['permanent_city'] && 
+                                   $student['state'] == $student['permanent_state'] && 
+                                   $student['pincode'] == $student['permanent_pincode']) echo 'style="display:none;"'; 
+                            ?>>
                                 <div class="row">
                                     <div class="col-md-12">
 				<div class="form-group">
@@ -1881,7 +1909,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
         
         var printHeader = '<div class="page-header">' +
                           '<h2>Student Information: <?php echo $student["name"]; ?></h2>' +
-                          '<p>Admission No: <?php echo $student["admission_no"]; ?> | Class: <?php echo $this->db->get_where("class", array("class_id" => $student["class_id"]))->row()->name; ?></p>' +
+                          '<p>Admission No: <?php echo $student["admission_number"]; ?> | Class: <?php echo $this->db->get_where("class", array("class_id" => $student["class_id"]))->row()->name; ?></p>' +
                           '</div>';
         
         document.body.innerHTML = '<div class="container">' + printHeader + printContents + '</div>';
@@ -1904,16 +1932,28 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 
     // Toggle same_as_present checkbox
     $(document).ready(function() {
+        // Function to copy present address to permanent address
+        function copyPresentToPermanent() {
+            $('textarea[name="permanent_address"]').val($('textarea[name="address"]').val());
+            $('input[name="permanent_city"]').val($('input[name="city"]').val());
+            $('input[name="permanent_state"]').val($('input[name="state"]').val());
+            $('input[name="permanent_pincode"]').val($('input[name="pincode"]').val());
+        }
+        
+        // Toggle permanent address fields on checkbox change
         $('#same_as_present').change(function() {
             if(this.checked) {
+                copyPresentToPermanent();
                 $('#permanent_address_fields').hide();
-                // Copy values from present address to permanent address
-                $('textarea[name="permanent_address"]').val($('textarea[name="address"]').val());
-                $('input[name="permanent_city"]').val($('input[name="city"]').val());
-                $('input[name="permanent_state"]').val($('input[name="state"]').val());
-                $('input[name="permanent_pincode"]').val($('input[name="pincode"]').val());
             } else {
                 $('#permanent_address_fields').show();
+            }
+        });
+        
+        // Also copy values when present address fields change if checkbox is checked
+        $('textarea[name="address"], input[name="city"], input[name="state"], input[name="pincode"]').on('input', function() {
+            if($('#same_as_present').is(':checked')) {
+                copyPresentToPermanent();
             }
         });
         
@@ -1921,6 +1961,13 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
         if($('#same_as_present').is(':checked')) {
             $('#same_as_present').trigger('change');
         }
+        
+        // Make sure present address fields are also copied to permanent on form submit if checkbox is checked
+        $('#student-edit-form').on('submit', function() {
+            if($('#same_as_present').is(':checked')) {
+                copyPresentToPermanent();
+            }
+        });
     });
 
     // Check password strength
@@ -2024,6 +2071,164 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
             }
         }
     });
+    
+    // Form Validation Function
+    function validateForm() {
+        // Reset error container
+        $('#form-validation-errors').hide();
+        $('#error-list').empty();
+        
+        var errors = [];
+        var isValid = true;
+        
+        // Required fields validation
+        var requiredFields = {
+            'admission_number': 'Admission Number',
+            'name': 'Student Name',
+            'email': 'Student Email',
+            'class_id': 'Class'
+        };
+        
+        // Check required fields
+        $.each(requiredFields, function(fieldName, fieldLabel) {
+            var $field = $('[name="' + fieldName + '"]');
+            var value = $field.val();
+            
+            if (!value || value.trim() === '' || (fieldName === 'class_id' && value === '')) {
+                errors.push(fieldLabel + ' is required');
+                $field.addClass('is-invalid');
+                
+                // Show the tab with the error
+                var tabId = $field.closest('.tab-pane').attr('id');
+                if (tabId) {
+                    $('.nav-tabs a[href="#' + tabId + '"]').tab('show');
+                }
+                
+                isValid = false;
+            } else {
+                $field.removeClass('is-invalid');
+            }
+        });
+        
+        // Email validation
+        var emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        
+        // Validate student email
+        var studentEmail = $('[name="email"]').val();
+        if (studentEmail && !emailRegex.test(studentEmail)) {
+            errors.push('Please enter a valid Student Email address');
+            $('[name="email"]').addClass('is-invalid');
+            isValid = false;
+        }
+        
+        // Validate father email if provided
+        var fatherEmail = $('[name="father_email"]').val();
+        if (fatherEmail && !emailRegex.test(fatherEmail)) {
+            errors.push('Please enter a valid Father\'s Email address');
+            $('[name="father_email"]').addClass('is-invalid');
+            isValid = false;
+        }
+        
+        // Validate mother email if provided
+        var motherEmail = $('[name="mother_email"]').val();
+        if (motherEmail && !emailRegex.test(motherEmail)) {
+            errors.push('Please enter a valid Mother\'s Email address');
+            $('[name="mother_email"]').addClass('is-invalid');
+            isValid = false;
+        }
+        
+        // Phone number validation (10 digits)
+        var phoneRegex = /^[0-9]{10}$/;
+        
+        // Validate father phone if provided
+        var fatherPhone = $('[name="father_phone"]').val();
+        if (fatherPhone && !phoneRegex.test(fatherPhone)) {
+            errors.push('Father\'s Phone must be a 10-digit number');
+            $('[name="father_phone"]').addClass('is-invalid');
+            isValid = false;
+        }
+        
+        // Validate mother phone if provided
+        var motherPhone = $('[name="mother_phone"]').val();
+        if (motherPhone && !phoneRegex.test(motherPhone)) {
+            errors.push('Mother\'s Phone must be a 10-digit number');
+            $('[name="mother_phone"]').addClass('is-invalid');
+            isValid = false;
+        }
+        
+        // Validate password if provided (optional in update)
+        var password = $('[name="password"]').val();
+        if (password && password.length < 6) {
+            errors.push('Password must be at least 6 characters long');
+            $('[name="password"]').addClass('is-invalid');
+            isValid = false;
+        }
+        
+        // If address fields are hidden due to same_as_present checked, they should pass validation
+        if ($('#same_as_present').is(':checked')) {
+            // Copy values from present address to permanent address
+            $('textarea[name="permanent_address"]').val($('textarea[name="address"]').val());
+            $('input[name="permanent_city"]').val($('input[name="city"]').val());
+            $('input[name="permanent_state"]').val($('input[name="state"]').val());
+            $('input[name="permanent_pincode"]').val($('input[name="pincode"]').val());
+        }
+        
+        // File validation for uploaded photo if any
+        var fileInput = $('input[name="userfile"]')[0];
+        if (fileInput.files.length > 0) {
+            var file = fileInput.files[0];
+            
+            // Check file size
+            if (file.size > 5 * 1024 * 1024) {
+                errors.push('Student Photo size exceeds 5MB limit');
+                $(fileInput).addClass('is-invalid');
+                isValid = false;
+            }
+            
+            // Check file type
+            var allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedTypes.includes(file.type)) {
+                errors.push('Student Photo must be JPG, JPEG, or PNG format');
+                $(fileInput).addClass('is-invalid');
+                isValid = false;
+            }
+        }
+        
+        // Validate Aadhar number if provided (12 digits)
+        var aadharRegex = /^[0-9]{12}$/;
+        var aadharNo = $('[name="adhar_no"]').val();
+        if (aadharNo && !aadharRegex.test(aadharNo)) {
+            errors.push('Aadhar Card Number must be a 12-digit number');
+            $('[name="adhar_no"]').addClass('is-invalid');
+            isValid = false;
+        }
+        
+        // Check if there are validation errors
+        if (!isValid) {
+            // Show error messages
+            $('#error-list').empty();
+            $.each(errors, function(index, error) {
+                $('#error-list').append('<li>' + error + '</li>');
+            });
+            $('#form-validation-errors').show();
+            
+            // Scroll to error container
+            $('html, body').animate({
+                scrollTop: $('#form-validation-errors').offset().top - 100
+            }, 300);
+        } else {
+            // If everything is valid, show loading overlay
+            showLoadingOverlay();
+        }
+        
+        return isValid;
+    }
+    
+    // Show loading overlay when form is being submitted
+    function showLoadingOverlay() {
+        var overlay = $('<div id="form-loading-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:9999;display:flex;justify-content:center;align-items:center;"><div style="background:white;padding:20px;border-radius:5px;text-align:center;box-shadow:0 0 20px rgba(0,0,0,0.3);"><i class="fa fa-spinner fa-spin fa-3x" style="color:#2196F3;margin-bottom:15px;display:block;"></i><div style="font-size:16px;font-weight:500;">Updating student information...</div><div style="font-size:13px;margin-top:10px;color:#666;">This may take a moment. Please do not close this page.</div></div></div>');
+        $('body').append(overlay);
+    }
 </script>
 
 <?php endforeach; ?>

@@ -99,3 +99,12 @@ $route['teacher/get_my_timetable_data'] = 'teacher/get_my_timetable_data';
 // Common routes for both
 $route['get_sections/(:num)'] = 'admin/get_sections/$1';
 $route['get_subjects/(:num)'] = 'admin/get_subjects/$1';
+
+// Student routes
+$route['admin/student/update/(:num)'] = 'admin/student/update/$1';
+
+// Invoice Print routes
+$route['PrintInvoice'] = 'PrintInvoice/index';
+$route['PrintInvoice/invoice/(:num)'] = 'PrintInvoice/invoice/$1';
+$route['PrintInvoice/invoice/(.+)'] = 'PrintInvoice/error_404';
+$route['PrintInvoice/(.+)'] = 'PrintInvoice/error_404';
