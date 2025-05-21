@@ -1327,215 +1327,211 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                 
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <div class="form-group required-field">
+                                        <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('transport_mode');?></label>
                                             <div class="col-sm-12">
                                                 <select name="transport_mode" class="form-control select2" required>
                                                     <option value=""><?php echo get_phrase('select');?></option>
-                                                    <option value="self"><?php echo get_phrase('self');?></option>
-                                                    <option value="parents"><?php echo get_phrase('parents');?></option>
-                                                    <option value="bus"><?php echo get_phrase('bus');?></option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="col-md-6 bus-option">
-                                        <div class="form-group">
-                                            <label class="col-md-12"><?php echo get_phrase('transport_route');?></label>
-                                            <div class="col-sm-12">
-                                                <select name="transport_id" class="form-control select2">
-                                                    <option value=""><?php echo get_phrase('select');?></option>
-                                                    <?php 
-                                                    $transports = $this->db->get('transport')->result_array();
-                                                    foreach($transports as $row):
-                                                    ?>
-                                                    <option value="<?php echo $row['transport_id'];?>">
-                                                        <?php echo $row['name'];?> - <?php echo $row['route'];?>
-                                                    </option>
-                                                    <?php endforeach;?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Pickup Information Section -->
-                                <div class="form-section-title">
-                                    <i class="fa fa-map-marker"></i> <?php echo get_phrase('Pickup Information'); ?>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="col-md-12"><?php echo get_phrase('pick_area');?></label>
-                                            <div class="col-sm-12">
-                                                <input type="text" class="form-control" name="pick_area">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="col-md-12"><?php echo get_phrase('pick_stand');?></label>
-                                            <div class="col-sm-12">
-                                                <input type="text" class="form-control" name="pick_stand">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="col-md-12"><?php echo get_phrase('pick_route');?></label>
-                                            <div class="col-sm-12">
-                                                <select name="pick_route_id" class="form-control select2">
-                                                    <option value=""><?php echo get_phrase('select');?></option>
-                                                    <?php 
-                                                    $routes = $this->db->get('transport_route')->result_array();
-                                                    foreach($routes as $row):
-                                                    ?>
-                                                    <option value="<?php echo $row['transport_route_id'];?>">
-                                                        <?php echo $row['name'];?> (<?php echo $row['description'];?>)
-                                                    </option>
-                                                    <?php endforeach;?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="col-md-12"><?php echo get_phrase('pick_driver');?></label>
-                                            <div class="col-sm-12">
-                                                <select name="pick_driver_id" class="form-control select2">
-                                                    <option value=""><?php echo get_phrase('select');?></option>
-                                                    <?php 
-                                                    $drivers = $this->db->get('vehicle')->result_array();
-                                                    foreach($drivers as $row):
-                                                    ?>
-                                                    <option value="<?php echo $row['vehicle_id'];?>">
-                                                        <?php echo $row['driver_name'];?> (<?php echo $row['vehicle_number'];?>)
-                                                    </option>
-                                                    <?php endforeach;?>
+                                                    <option value="Bus"><?php echo get_phrase('Bus');?></option>
+                                                    <option value="Self"><?php echo get_phrase('Self');?></option>
+                                                    <option value="Parent"><?php echo get_phrase('Parent');?></option>
                                                 </select>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Drop Information Section -->
-                                <div class="form-section-title">
-                                    <i class="fa fa-map-marker"></i> <?php echo get_phrase('Drop Information'); ?>
-                                </div>
+                                <div class="transport-details">
+                                    <!-- Pickup Information Section -->
+                                    <div class="form-section-title">
+                                        <i class="fa fa-map-marker"></i> <?php echo get_phrase('Pickup Information'); ?>
+                                    </div>
 
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="col-md-12"><?php echo get_phrase('drop_area');?></label>
-                                            <div class="col-sm-12">
-                                                <input type="text" class="form-control" name="drop_area">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="col-md-12"><?php echo get_phrase('pick_area');?></label>
+                                                <div class="col-sm-12">
+                                                    <input type="text" class="form-control" name="pick_area" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="col-md-12"><?php echo get_phrase('pick_stand');?></label>
+                                                <div class="col-sm-12">
+                                                    <input type="text" class="form-control" name="pick_stand" required>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="col-md-12"><?php echo get_phrase('drop_stand');?></label>
-                                            <div class="col-sm-12">
-                                                <input type="text" class="form-control" name="drop_stand">
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="col-md-12"><?php echo get_phrase('pick_route');?></label>
+                                                <div class="col-sm-12">
+                                                    <select name="pick_route_id" class="form-control select2" required>
+                                                        <option value=""><?php echo get_phrase('select');?></option>
+                                                        <?php
+                                                        $routes = $this->db->get('transport_route')->result_array();
+                                                        foreach($routes as $route):
+                                                        ?>
+                                                        <option value="<?php echo $route['route_id'];?>">
+                                                            <?php echo $route['route_name'];?> (<?php echo $route['name'];?>)
+                                                        </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="col-md-12"><?php echo get_phrase('pick_driver');?></label>
+                                                <div class="col-sm-12">
+                                                    <select name="pick_driver_id" class="form-control select2" required>
+                                                        <option value=""><?php echo get_phrase('select');?></option>
+                                                        <?php
+                                                        $drivers = $this->db->get('vehicle')->result_array();
+                                                        foreach($drivers as $driver):
+                                                        ?>
+                                                        <option value="<?php echo $driver['vehicle_id'];?>">
+                                                            <?php echo $driver['driver_name'];?> (<?php echo $driver['vehicle_number'];?>)
+                                                        </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="col-md-12"><?php echo get_phrase('drop_route');?></label>
-                                            <div class="col-sm-12">
-                                                <select name="drop_route_id" class="form-control select2">
-                                                    <option value=""><?php echo get_phrase('select');?></option>
-                                                    <?php 
-                                                    $routes = $this->db->get('transport_route')->result_array();
-                                                    foreach($routes as $row):
-                                                    ?>
-                                                    <option value="<?php echo $row['transport_route_id'];?>">
-                                                        <?php echo $row['name'];?> (<?php echo $row['description'];?>)
-                                                    </option>
-                                                    <?php endforeach;?>
-                                                </select>
+                                    <!-- Drop Information Section -->
+                                    <div class="form-section-title">
+                                        <i class="fa fa-map-marker"></i> <?php echo get_phrase('Drop Information'); ?>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="col-md-12"><?php echo get_phrase('drop_area');?></label>
+                                                <div class="col-sm-12">
+                                                    <input type="text" class="form-control" name="drop_area" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="col-md-12"><?php echo get_phrase('drop_stand');?></label>
+                                                <div class="col-sm-12">
+                                                    <input type="text" class="form-control" name="drop_stand" required>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="col-md-12"><?php echo get_phrase('drop_driver');?></label>
-                                            <div class="col-sm-12">
-                                                <select name="drop_driver_id" class="form-control select2">
-                                                    <option value=""><?php echo get_phrase('select');?></option>
-                                                    <?php 
-                                                    $drivers = $this->db->get('vehicle')->result_array();
-                                                    foreach($drivers as $row):
-                                                    ?>
-                                                    <option value="<?php echo $row['vehicle_id'];?>">
-                                                        <?php echo $row['driver_name'];?> (<?php echo $row['vehicle_number'];?>)
-                                                    </option>
-                                                    <?php endforeach;?>
-                                                </select>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="col-md-12"><?php echo get_phrase('drop_route');?></label>
+                                                <div class="col-sm-12">
+                                                    <select name="drop_route_id" class="form-control select2" required>
+                                                        <option value=""><?php echo get_phrase('select');?></option>
+                                                        <?php
+                                                        foreach($routes as $route):
+                                                        ?>
+                                                        <option value="<?php echo $route['route_id'];?>">
+                                                            <?php echo $route['route_name'];?> (<?php echo $route['name'];?>)
+                                                        </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="col-md-12"><?php echo get_phrase('drop_driver');?></label>
+                                                <div class="col-sm-12">
+                                                    <select name="drop_driver_id" class="form-control select2" required>
+                                                        <option value=""><?php echo get_phrase('select');?></option>
+                                                        <?php
+                                                        foreach($drivers as $driver):
+                                                        ?>
+                                                        <option value="<?php echo $driver['vehicle_id'];?>">
+                                                            <?php echo $driver['driver_name'];?> (<?php echo $driver['vehicle_number'];?>)
+                                                        </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <!-- Transport Months Section -->
-                                <div class="form-section-title">
-                                    <div class="month-selector-title-row">
-                                        <div>
-                                            <i class="fa fa-calendar"></i> <?php echo get_phrase('Transport Months'); ?>
-                                        </div>
-                                        <div class="month-selector-controls">
-                                            <button type="button" class="btn btn-info" id="select-all-months">
-                                                <i class="fa fa-check-square-o"></i> <?php echo get_phrase('Select All'); ?>
-                                            </button>
-                                            <button type="button" class="btn btn-warning" id="deselect-all-months">
-                                                <i class="fa fa-square-o"></i> <?php echo get_phrase('Deselect All'); ?>
-                                            </button>
+                                    <!-- Transport Fee Section -->
+                                    <div class="form-section-title">
+                                        <i class="fa fa-money"></i> <?php echo get_phrase('Transport Fee Details'); ?>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="col-md-12"><?php echo get_phrase('transport_fee');?></label>
+                                                <div class="col-sm-12">
+                                                    <input type="number" class="form-control" name="transport_fee" required>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label class="col-md-12"><?php echo get_phrase('select_months');?></label>
-                                            <div class="col-sm-12">
-                                                <div class="months-container">
-                                                    <?php 
-                                                    $months = array(
-                                                        'january' => get_phrase('January'),
-                                                        'february' => get_phrase('February'),
-                                                        'march' => get_phrase('March'),
-                                                        'april' => get_phrase('April'),
-                                                        'may' => get_phrase('May'),
-                                                        'june' => get_phrase('June'),
-                                                        'july' => get_phrase('July'),
-                                                        'august' => get_phrase('August'),
-                                                        'september' => get_phrase('September'),
-                                                        'october' => get_phrase('October'),
-                                                        'november' => get_phrase('November'),
-                                                        'december' => get_phrase('December')
-                                                    );
-                                                    
-                                                    foreach($months as $key => $month):
-                                                    ?>
-                                                    <div class="checkbox checkbox-info checkbox-circle">
-                                                        <input id="month_<?php echo $key; ?>" type="checkbox" name="transport_months[]" value="<?php echo $key; ?>">
-                                                        <label for="month_<?php echo $key; ?>"><?php echo $month; ?></label>
+                                    <!-- Transport Months Section -->
+                                    <div class="form-section-title">
+                                        <div class="month-selector-title-row">
+                                            <div>
+                                                <i class="fa fa-calendar"></i> <?php echo get_phrase('Transport Months'); ?>
+                                            </div>
+                                            <div class="month-selector-controls">
+                                                <button type="button" class="btn btn-info" id="select-all-months">
+                                                    <i class="fa fa-check-square-o"></i> <?php echo get_phrase('Select All'); ?>
+                                                </button>
+                                                <button type="button" class="btn btn-warning" id="deselect-all-months">
+                                                    <i class="fa fa-square-o"></i> <?php echo get_phrase('Deselect All'); ?>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <div class="col-sm-12">
+                                                    <div class="months-container">
+                                                        <?php 
+                                                        $months = array(
+                                                            'january' => get_phrase('January'),
+                                                            'february' => get_phrase('February'),
+                                                            'march' => get_phrase('March'),
+                                                            'april' => get_phrase('April'),
+                                                            'may' => get_phrase('May'),
+                                                            'june' => get_phrase('June'),
+                                                            'july' => get_phrase('July'),
+                                                            'august' => get_phrase('August'),
+                                                            'september' => get_phrase('September'),
+                                                            'october' => get_phrase('October'),
+                                                            'november' => get_phrase('November'),
+                                                            'december' => get_phrase('December')
+                                                        );
+                                                        
+                                                        foreach($months as $key => $month):
+                                                        ?>
+                                                        <div class="checkbox checkbox-info checkbox-circle">
+                                                            <input id="month_<?php echo $key; ?>" type="checkbox" name="transport_months[]" value="<?php echo $key; ?>" required>
+                                                            <label for="month_<?php echo $key; ?>"><?php echo $month; ?></label>
+                                                        </div>
+                                                        <?php endforeach; ?>
                                                     </div>
-                                                    <?php endforeach; ?>
                                                 </div>
                                             </div>
                                         </div>
@@ -1930,6 +1926,103 @@ $(document).ready(function() {
             e.preventDefault();
             return false;
         }
+    });
+
+    // Transport section handling
+    $(document).ready(function() {
+        // Initially hide transport details
+        $('.transport-details').hide();
+        
+        // Handle transport mode change
+        $('select[name="transport_mode"]').on('change', function() {
+            var selectedMode = $(this).val();
+            if (selectedMode === 'Bus') {
+                $('.transport-details').slideDown();
+                // Make all transport fields required
+                $('.transport-details input, .transport-details select').prop('required', true);
+            } else {
+                $('.transport-details').slideUp();
+                // Remove required attribute from transport fields
+                $('.transport-details input, .transport-details select').prop('required', false);
+                // Clear all transport fields
+                $('.transport-details input[type="text"], .transport-details input[type="number"]').val('');
+                $('.transport-details select').val('').trigger('change');
+                $('.transport-details input[type="checkbox"]').prop('checked', false);
+            }
+        });
+        
+        // Handle next button in transport section
+        $('.next-tab[data-next="documents"]').on('click', function() {
+            var transportMode = $('select[name="transport_mode"]').val();
+            if (transportMode === 'Bus') {
+                // Validate transport fields if bus is selected
+                var isValid = true;
+                var firstInvalidField = null;
+                
+                // Check all required fields
+                $('.transport-details input, .transport-details select').each(function() {
+                    if ($(this).prop('required')) {
+                        if ($(this).is('select')) {
+                            if (!$(this).val()) {
+                                isValid = false;
+                                $(this).addClass('is-invalid');
+                                if (!firstInvalidField) firstInvalidField = $(this);
+                            } else {
+                                $(this).removeClass('is-invalid');
+                            }
+                        } else if ($(this).is('input[type="checkbox"]')) {
+                            var name = $(this).attr('name');
+                            if ($('input[name="' + name + '"]:checked').length === 0) {
+                                isValid = false;
+                                $(this).closest('.months-container').addClass('is-invalid');
+                                if (!firstInvalidField) firstInvalidField = $(this);
+                            } else {
+                                $(this).closest('.months-container').removeClass('is-invalid');
+                            }
+                        } else {
+                            if (!$(this).val()) {
+                                isValid = false;
+                                $(this).addClass('is-invalid');
+                                if (!firstInvalidField) firstInvalidField = $(this);
+                            } else {
+                                $(this).removeClass('is-invalid');
+                            }
+                        }
+                    }
+                });
+                
+                if (!isValid) {
+                    // Show error message
+                    alert('Please fill in all required transport details');
+                    // Focus on first invalid field
+                    if (firstInvalidField) {
+                        firstInvalidField.focus();
+                    }
+                    return false;
+                }
+            }
+            
+            // Proceed to next tab
+            $('a[href="#documents"]').tab('show');
+        });
+        
+        // Select all months
+        $('#select-all-months').click(function() {
+            $('input[name="transport_months[]"]').prop('checked', true);
+            $('.months-container').removeClass('is-invalid');
+        });
+        
+        // Deselect all months
+        $('#deselect-all-months').click(function() {
+            $('input[name="transport_months[]"]').prop('checked', false);
+            $('.months-container').addClass('is-invalid');
+        });
+        
+        // Validate months when checkbox changes
+        $('input[name="transport_months[]"]').on('change', function() {
+            var anyChecked = $('input[name="transport_months[]"]:checked').length > 0;
+            $('.months-container').toggleClass('is-invalid', !anyChecked);
+        });
     });
 });
 

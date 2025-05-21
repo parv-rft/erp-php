@@ -100,6 +100,20 @@
                 </a>
         </li>
 
+        <li class="<?php if ($page_name == 'classes') echo 'active'; ?>">
+                <a href="<?php echo base_url(); ?>admin/classes">
+                <i class="fa fa-angle-double-right p-r-10"></i>
+                     <span class="hide-menu"><?php echo get_phrase('classes'); ?></span>
+                </a>
+        </li>
+
+        <li class="<?php if ($page_name == 'section') echo 'active'; ?>">
+                <a href="<?php echo base_url(); ?>admin/section">
+                <i class="fa fa-angle-double-right p-r-10"></i>
+                     <span class="hide-menu"><?php echo get_phrase('sections'); ?></span>
+                </a>
+        </li>
+
         <li class="<?php if ($page_name == 'class_timetable') echo 'active'; ?>">
                 <a href="<?php echo base_url(); ?>admin/calendar_timetable">
                 <i class="fa fa-angle-double-right p-r-10"></i>
