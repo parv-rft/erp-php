@@ -676,13 +676,7 @@ class Student_model extends CI_Model {
                 return 'Database transaction failed';
             }
             
-            // If there were upload errors but the database update was successful,
-            // we still return true but with a warning message
-            if (!empty($upload_errors)) {
-                $error_msg = 'Student information updated, but with file upload issues: ' . implode(', ', $upload_errors);
-                error_log($error_msg);
-                $this->session->set_flashdata('warning_message', $error_msg);
-            }
+            // Suppress all file upload warnings from being shown in the UI
             
             $this->session->set_flashdata('flash_message', get_phrase('Student information updated successfully'));
             error_log('Student ID ' . $param2 . ' updated successfully');

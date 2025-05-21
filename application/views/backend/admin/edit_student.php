@@ -367,13 +367,6 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                         </div>
                     <?php endif; ?>
                     
-                    <?php if($this->session->flashdata('warning_message')): ?>
-                        <div class="alert alert-warning">
-                            <i class="fa fa-exclamation-triangle"></i>
-                            <?php echo $this->session->flashdata('warning_message'); ?>
-                        </div>
-                    <?php endif; ?>
-
                     <!-- Form validation errors container -->
                     <div id="form-validation-errors" class="alert alert-danger" style="display: none;">
                         <i class="fa fa-exclamation-circle"></i>
