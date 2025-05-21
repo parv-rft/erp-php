@@ -182,6 +182,9 @@ $(document).ready(function() {
     });
     
     // Initialize unpaid invoices table with export buttons (without print)
+    if ( $.fn.dataTable.isDataTable('#example23') ) {
+        $('#example23').DataTable().destroy();
+    }
     $('#example23').DataTable({
         dom: 'Bfrtip',
         buttons: [
