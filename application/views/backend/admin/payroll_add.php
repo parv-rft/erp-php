@@ -77,9 +77,7 @@
                 <select name="year" class="form-control select2" required>
                     <option value=""><?php echo get_phrase('select_a_year'); ?></option>
                 <?php 
-                
-                for($i = 2019; $i <= 2030; $i++):
-    
+                for($i = 2019; $i <= 2050; $i++):
                 ?>
                         <option value="<?php echo $i;?>"><?php echo $i;?> </option>
                 <?php endfor;?>

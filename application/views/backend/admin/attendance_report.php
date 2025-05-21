@@ -80,10 +80,8 @@
                 <label class="col-md-12" for="example-text"><?php echo get_phrase('year');?></label>
                 <div class="col-sm-12">
                     <select id="year" class="form-control">
-                    <?php $list_year = array("2019", "2020", "2021","2022", "2023","2024", "2025", "2026");
-                    foreach($list_year as $key => $row){
-                    ?>
-                    <option value="<?php echo $row;?>"<?php if($row == $year) echo 'selected';?>><?php echo $row;?></option>
+                    <?php for($i = 2019; $i <= 2050; $i++) { ?>
+                    <option value="<?php echo $i;?>"<?php if($i == $year) echo 'selected';?>><?php echo $i;?></option>
                     <?php } ?>
                 </select>
 				</div>

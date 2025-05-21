@@ -56,15 +56,11 @@
                             <label class="control-label"><?php echo get_phrase('year'); ?></label>
                             <select name="year" id="year" class="form-control selectboxit">
                                 <?php
-                                $running_year = $this->db->get_where('settings', array('type' => 'running_year'))->row()->description;
-                                $year_array = explode('-', $running_year);
-                                $current_year = date('Y');
-                                $previous_year = $current_year - 1;
-                                $next_year = $current_year + 1;
+                                for ($i = 2019; $i <= 2050; $i++) {
+                                    $selected = ($i == date('Y')) ? 'selected' : '';
                                 ?>
-                                <option value="<?php echo $previous_year; ?>"><?php echo $previous_year; ?></option>
-                                <option value="<?php echo $current_year; ?>" selected><?php echo $current_year; ?></option>
-                                <option value="<?php echo $next_year; ?>"><?php echo $next_year; ?></option>
+                                    <option value="<?php echo $i; ?>" <?php echo $selected; ?>><?php echo $i; ?></option>
+                                <?php } ?>
                             </select>
                         </div>
                     </div>

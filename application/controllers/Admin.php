@@ -2204,15 +2204,6 @@ class Admin extends CI_Controller {
                 return;
             }
             
-            // Create sample data if needed
-            try {
-                $this->teacher_attendance_model->createSampleAttendanceData($month, $year);
-                error_log('Sample data created if needed');
-            } catch (Exception $e) {
-                error_log('Failed to create sample data: ' . $e->getMessage());
-                // Continue anyway, not critical
-            }
-            
             // Get the attendance report from the model with error handling
             try {
                 error_log('Getting teacher attendance report for month ' . $page_data['month'] . ' year ' . $page_data['year']);
@@ -3232,6 +3223,32 @@ class Admin extends CI_Controller {
             
             redirect(base_url() . 'admin/edit_student/' . $student_id . '?tab=' . $activeTab, 'refresh');
         }
+    }
+
+    function clean_teacher_attendance() {
+        if ($this->session->userdata('admin_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
+
+        // First, let's get all the records we need to update
+        $this->db->where('day', '1');
+        $this->db->where('status', 1);
+        $this->db->where('(year < 2025 OR (year = 2025 AND month < 8))');
+        $records = $this->db->get('teacher_attendance')->result_array();
+        
+        $count = 0;
+        foreach ($records as $record) {
+            // Update each record to status 0 (undefined)
+            $this->db->where('attendance_id', $record['attendance_id']);
+            $this->db->update('teacher_attendance', array('status' => 0));
+            $count++;
+        }
+        
+        $this->session->set_flashdata('flash_message', 
+            get_phrase('Successfully cleaned up ') . $count . 
+            get_phrase(' auto-generated attendance records'));
+            
+        redirect(base_url() . 'index.php?admin/teacher_attendance_report', 'refresh');
     }
 
 }

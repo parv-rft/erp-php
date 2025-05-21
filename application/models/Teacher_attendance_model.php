@@ -158,6 +158,7 @@ class Teacher_attendance_model extends CI_Model {
                         $attendance_record = $this->db->get('teacher_attendance')->row_array();
                         
                         if (!empty($attendance_record) && isset($attendance_record['status'])) {
+                            // For the first day, show the real status if marked, otherwise blank
                             $attendance_data[$d] = intval($attendance_record['status']);
                         } else {
                             $attendance_data[$d] = 0; // Not marked
@@ -172,68 +173,31 @@ class Teacher_attendance_model extends CI_Model {
                 $present_count = 0;
                 $absent_count = 0;
                 $late_count = 0;
-                $unmarked_count = 0;
+                $half_day_count = 0;
                 
                 foreach ($attendance_data as $status) {
                     if ($status == 1) $present_count++;
                     else if ($status == 2) $absent_count++;
                     else if ($status == 3) $late_count++;
-                    else $unmarked_count++;
+                    else if ($status == 4) $half_day_count++;
                 }
                 
-                $result[$teacher_id] = array(
+                $result[] = array(
                     'teacher_id' => $teacher_id,
                     'teacher_name' => $teacher_name,
                     'attendance_data' => $attendance_data,
-                    'stats' => array(
-                        'present' => $present_count,
-                        'absent' => $absent_count,
-                        'late' => $late_count,
-                        'unmarked' => $unmarked_count,
-                        'total_days' => $number_of_days
-                    )
+                    'present_count' => $present_count,
+                    'absent_count' => $absent_count,
+                    'late_count' => $late_count,
+                    'half_day_count' => $half_day_count,
+                    'total_days' => $number_of_days
                 );
             }
             
-            // Make sure we have results
-            error_log('Generated attendance report for ' . count($result) . ' teachers');
-            
-            // Return empty array if no data, otherwise ensure some data exists
-            if (empty($result)) {
-                // Create a sample entry if no data exists
-                error_log('No attendance data found, creating sample entry');
-                $this->createSampleAttendanceData($month, $year);
-                
-                // Try to get the data again - but only once to avoid infinite recursion
-                $second_attempt = true;
-                if (isset($second_attempt) && $second_attempt) {
-                    // Get teachers again
-                    $teachers = $this->db->get('teacher')->result_array();
-                    if (!empty($teachers)) {
-                        $teacher = $teachers[0];
-                        // Create a minimal result with just one teacher
-                        $result[$teacher['teacher_id']] = array(
-                            'teacher_id' => $teacher['teacher_id'],
-                            'teacher_name' => isset($teacher['name']) ? $teacher['name'] : 'Unknown Teacher',
-                            'attendance_data' => array(1 => 1), // Mark as present on first day
-                            'stats' => array(
-                                'present' => 1,
-                                'absent' => 0,
-                                'late' => 0,
-                                'unmarked' => $number_of_days - 1,
-                                'total_days' => $number_of_days
-                            )
-                        );
-                        error_log('Created minimal result for one teacher');
-                    }
-                }
-            }
-            
             return $result;
+            
         } catch (Exception $e) {
             error_log('Error in getTeacherAttendanceReport: ' . $e->getMessage());
-            
-            // Return a minimal valid response structure
             return array();
         }
     }

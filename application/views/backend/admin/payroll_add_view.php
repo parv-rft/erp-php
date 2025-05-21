@@ -1,4 +1,3 @@
-
 <?php echo form_open(base_url() . 'admin/payroll_selector'); ?>
     
     <div class="row">
@@ -87,7 +86,7 @@
                 <select name="year" class="form-control select2" required>
                     <option value=""><?php echo get_phrase('select_a_year'); ?></option>
                     <?php
-                    for($i = 2019; $i <= 2030; $i++): ?>
+                    for($i = 2019; $i <= 2050; $i++): ?>
                         <option value="<?php echo $i; ?>"
                             <?php if($i == $year) echo 'selected'; ?>>
                                 <?php echo $i; ?>
