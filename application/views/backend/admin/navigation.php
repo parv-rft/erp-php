@@ -100,6 +100,13 @@
                 </a>
         </li>
 
+        <li class="<?php if ($page_name == 'subject') echo 'active'; ?>">
+            <a href="<?php echo base_url(); ?>subject/subject">
+            <i class="fa fa-angle-double-right p-r-10"></i>
+                 <span class="hide-menu"><?php echo get_phrase('subjects'); ?></span>
+            </a>
+        </li>
+
         <li class="<?php if ($page_name == 'classes') echo 'active'; ?>">
                 <a href="<?php echo base_url(); ?>admin/classes">
                 <i class="fa fa-angle-double-right p-r-10"></i>
