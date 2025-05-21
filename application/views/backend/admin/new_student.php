@@ -1580,7 +1580,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('upload_transfer_certificate');?></label>
                                             <div class="col-sm-12">
-                                                <input type="file" class="form-control" name="transfer_certificate">
+                                                <input type="file" class="form-control" name="transfer_certificate_doc">
                                                 <small class="text-muted">Upload transfer certificate document (PDF/JPG/PNG)</small>
                                             </div>
                                         </div>
@@ -1607,7 +1607,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('father_adharcard');?></label>
                                             <div class="col-sm-12">
-                                                <input type="file" class="form-control" name="father_adharcard">
+                                                <input type="file" class="form-control" name="father_adharcard_doc">
                                             </div>
                                         </div>
                                     </div>
@@ -1616,7 +1616,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('mother_adharcard');?></label>
                                             <div class="col-sm-12">
-                                                <input type="file" class="form-control" name="mother_adharcard">
+                                                <input type="file" class="form-control" name="mother_adharcard_doc">
                                             </div>
                                         </div>
                                     </div>
@@ -1627,7 +1627,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('income_certificate');?></label>
                                             <div class="col-sm-12">
-                                                <input type="file" class="form-control" name="income_certificate">
+                                                <input type="file" class="form-control" name="income_certificate_doc">
                                             </div>
                                         </div>
                                     </div>
@@ -1636,7 +1636,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('date_of_birth_proof');?></label>
                                             <div class="col-sm-12">
-                                                <input type="file" class="form-control" name="dob_proof">
+                                                <input type="file" class="form-control" name="dob_proof_doc">
                                             </div>
                                         </div>
                                     </div>
@@ -1647,7 +1647,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('migration_certificate');?></label>
                                             <div class="col-sm-12">
-                                                <input type="file" class="form-control" name="migration_certificate">
+                                                <input type="file" class="form-control" name="migration_certificate_doc">
                                             </div>
                                         </div>
                                     </div>
@@ -1656,7 +1656,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('caste_certificate');?></label>
                                             <div class="col-sm-12">
-                                                <input type="file" class="form-control" name="caste_certificate">
+                                                <input type="file" class="form-control" name="caste_certificate_doc">
                                             </div>
                                         </div>
                                     </div>
@@ -1667,7 +1667,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('aadhar_card');?></label>
                                             <div class="col-sm-12">
-                                                <input type="file" class="form-control" name="aadhar_card">
+                                                <input type="file" class="form-control" name="aadhar_card_doc">
                                             </div>
                                         </div>
                                     </div>
@@ -1676,7 +1676,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('address_proof');?></label>
                                             <div class="col-sm-12">
-                                                <input type="file" class="form-control" name="address_proof">
+                                                <input type="file" class="form-control" name="address_proof_doc">
                                             </div>
                                         </div>
                                     </div>

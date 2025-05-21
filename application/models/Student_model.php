@@ -603,14 +603,23 @@ class Student_model extends CI_Model {
             $document_fields = [
                 'signature' => 'signature',
                 'transfer_certificate' => 'transfer_certificate_doc',
+                'transfer_certificate_doc' => 'transfer_certificate_doc',
                 'father_adharcard' => 'father_adharcard_doc',
+                'father_adharcard_doc' => 'father_adharcard_doc',
                 'mother_adharcard' => 'mother_adharcard_doc',
+                'mother_adharcard_doc' => 'mother_adharcard_doc',
                 'income_certificate' => 'income_certificate_doc',
+                'income_certificate_doc' => 'income_certificate_doc',
                 'dob_proof' => 'dob_proof_doc',
+                'dob_proof_doc' => 'dob_proof_doc',
                 'migration_certificate' => 'migration_certificate_doc',
+                'migration_certificate_doc' => 'migration_certificate_doc',
                 'caste_certificate' => 'caste_certificate_doc',
+                'caste_certificate_doc' => 'caste_certificate_doc',
                 'aadhar_card' => 'aadhar_card_doc',
-                'address_proof' => 'address_proof_doc'
+                'aadhar_card_doc' => 'aadhar_card_doc',
+                'address_proof' => 'address_proof_doc',
+                'address_proof_doc' => 'address_proof_doc'
             ];
             
             if (is_dir('uploads/student_documents/') && is_writable('uploads/student_documents/')) {
@@ -619,20 +628,38 @@ class Student_model extends CI_Model {
                     if (!empty($_FILES[$field_name]['name'])) {
                         try {
                             $file = $_FILES[$field_name];
+                            // Validate file type
+                            $allowed_types = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+                            if (!in_array($file['type'], $allowed_types)) {
+                                $upload_errors[] = 'Invalid file type for ' . $field_name . '. Only PDF, JPG, JPEG, and PNG are allowed';
+                                error_log('Invalid file type for ' . $field_name . ': ' . $file['type']);
+                                continue;
+                            }
+                            // Validate file size (5MB max)
+                            if ($file['size'] > 5242880) {
+                                $upload_errors[] = 'File size too large for ' . $field_name . '. Maximum size is 5MB';
+                                error_log('File size too large for ' . $field_name . ': ' . $file['size'] . ' bytes');
+                                continue;
+                            }
                             $file_path = 'uploads/student_documents/' . $param2 . '_' . $field_name . '.' . pathinfo($file['name'], PATHINFO_EXTENSION);
-                            
                             if (move_uploaded_file($file['tmp_name'], $file_path)) {
-                                // Update the database with the document path
-                                $this->db->where('student_id', $param2);
-                                $this->db->update('student', array($db_field => $param2 . '_' . $field_name . '.' . pathinfo($file['name'], PATHINFO_EXTENSION)));
-                                error_log('Successfully uploaded ' . $field_name . ' to: ' . $file_path);
+                                // Only update DB for *_doc or signature fields
+                                if (substr($db_field, -4) === '_doc' || $db_field === 'signature') {
+                                    $this->db->where('student_id', $param2);
+                                    $this->db->update('student', array($db_field => $param2 . '_' . $field_name . '.' . pathinfo($file['name'], PATHINFO_EXTENSION)));
+                                    error_log('Successfully uploaded ' . $field_name . ' to: ' . $file_path);
+                                }
                             } else {
                                 error_log('Failed to move ' . $field_name . ' to: ' . $file_path);
                                 $upload_errors[] = 'Failed to upload ' . $field_name;
                             }
                         } catch (Exception $e) {
-                            error_log('Error handling ' . $field_name . ': ' . $e->getMessage());
-                            $upload_errors[] = 'Error processing ' . $field_name . ': ' . $e->getMessage();
+                            // Only show error if the db_field is valid (ends with _doc or is signature)
+                            if (substr($db_field, -4) === '_doc' || $db_field === 'signature') {
+                                error_log('Error handling ' . $field_name . ': ' . $e->getMessage());
+                                $upload_errors[] = 'Error processing ' . $field_name . ': ' . $e->getMessage();
+                            }
+                            // Otherwise, ignore error for legacy/old field names
                         }
                     }
                 }
