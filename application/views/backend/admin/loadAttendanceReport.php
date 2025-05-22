@@ -48,73 +48,104 @@
         Undefine&nbsp;-&nbsp;<i class="fa fa-circle" style="color: black;"></i>
         </div>
                                 
-    <table cellpadding="0" cellspacing="0" border="0" class="table">
-            <thead>
-                <tr>
-                    <td style="text-align: left;">Students<i class="fa fa-down-thin"></i>| Date:</td>
-                    <?php
-                    $days = date("t",mktime(0,0,0,$month,1,$year)); 
-                        for ($i=0; $i < $days; $i++) { 
-                           ?>
-                            <td style="text-align: center;"><?php echo ($i+1);?></td>   
-                           <?php 
-                        }
-                    ;?>
-                </tr>
-            </thead>
-            <tbody>
-            <?php 
-                //STUDENTS ATTENDANCE
-                $students   =   $this->db->get_where('student' , array('class_id'=>$class_id))->result_array();
-                foreach($students as $key => $student)
-                {
-                    ?>
-                <tr class="gradeA">
-                    <td align="left"><?php echo $student['name'];?></td>
-                    <?php 
-                    for ($i=1; $i <= $days; $i++) {
+    <div id="attendance-table-area">
+    <table class="table table-bordered table-striped datatable">
+        <thead>
+            <tr>
+                <th><?php echo get_phrase('student_name'); ?></th>
+                <?php
+                $days = date("t",mktime(0,0,0,$month,1,$year)); 
+                    for ($i=1; $i <= $days; $i++) { 
+                       echo '<th>' . $i . '</th>';
+                    }
+                ?>
+                <th><?php echo get_phrase('total_present'); ?></th>
+                <th><?php echo get_phrase('total_leave'); ?></th>
+                <th><?php echo get_phrase('total_half_day'); ?></th>
+                <th><?php echo get_phrase('total_late'); ?></th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php 
+            //STUDENTS ATTENDANCE
+            $students   =   $this->db->get_where('student' , array('class_id'=>$class_id))->result_array();
+            foreach($students as $key => $student)
+            {
+                $present_count = 0;
+                $absent_count = 0;
+                $half_day_count = 0;
+                $late_count = 0;
+                ?>
+            <tr>
+                <td><?php echo $student['name']; ?></td>
+                <?php 
+                for ($i=1; $i <= $days; $i++) {
                     $full_date = $year."-".$month."/".$i;
                     $verify_data  =  array('student_id' => $student['student_id'], 'date' => $full_date);
                     $attendance = $this->db->get_where('attendance' , $verify_data)->row();
                     $status     = $attendance->status;
+                    $status_class = '';
+                    switch ($status) {
+                        case 1: 
+                            $status_class = 'present';
+                            $present_count++;
+                            break;
+                        case 2: 
+                            $status_class = 'absent';
+                            $absent_count++;
+                            break;
+                        case 3: 
+                            $status_class = 'half-day';
+                            $half_day_count++;
+                            break;
+                        case 4: 
+                            $status_class = 'late';
+                            $late_count++;
+                            break;
+                        default: 
+                            $status_class = 'undefined';
+                            break;
+                    }
                     ?>
-                            <td style="text-align: center;">
-                                <?php if ($status == "0"):?>
-                                <i class="fa fa-circle" style="color:black;"></i>
-                                <?php endif;?>
-                                <?php if ($status == "1"):?>
-                                    <i class="fa fa-circle" style="color: green;"></i>
-                                <?php endif;?>
-								
-								<?php if ($status == "2"):?>
-                                    <i class="fa fa-circle" style="color: red;"></i>
-                                <?php endif;?>
-								
-								<?php if ($status == "3"):?>
-                                    <i class="fa fa-circle" style="color:grey;"></i>
-                                <?php endif;?>
-								
-								<?php if ($status == "4"):?>
-                                    <i class="fa fa-circle" style="color: yellow;"></i>
-                                <?php endif;?>
-								
-                            </td>    
-                           <?php 
-                        }
-                    ;?>
-                </tr>
-                <?php
+                    <td class="<?php echo $status_class; ?>"><i class="fa fa-circle"></i></td>
+                    <?php 
                 }
-                ;?>
-            </tbody>
-        </table>
+                ?>
+                <td class="text-center"><strong><?php echo $present_count; ?></strong></td>
+                <td class="text-center"><strong><?php echo $absent_count; ?></strong></td>
+                <td class="text-center"><strong><?php echo $half_day_count; ?></strong></td>
+                <td class="text-center"><strong><?php echo $late_count; ?></strong></td>
+            </tr>
+            <?php
+            }
+            ;?>
+        </tbody>
+    </table>
 
-        <a href="<?php echo base_url();?>admin/printAttendanceReport/<?php echo $class_id ;?>/<?php echo $section_id ;?>/<?php echo $month ;?>/<?php echo $year ;?>" class="btn btn-success btn-sm btn-rounded btn-block" style="color:white"> <i class="fa fa-print"></i> Print</a>
+    <style>
+    .present { color: #00a651; }
+    .absent { color: #EE4749; }
+    .half-day { color: #0000FF; }
+    .late { color: #FF6600; }
+    .undefined { color: black; }
+    </style>
+
+        <a href="#" onclick="printTableArea('attendance-table-area'); return false;" class="btn btn-success btn-sm btn-rounded btn-block" style="color:white"> <i class="fa fa-print"></i> Print</a>
 		
 	</div>
 	</div>
 	</div>
 	</div>
 	</div>
+
+<script>
+function printTableArea(divId) {
+    var printContents = document.getElementById(divId).innerHTML;
+    var originalContents = document.body.innerHTML;
+    document.body.innerHTML = printContents;
+    window.print();
+    document.body.innerHTML = originalContents;
+}
+</script>
 
 <?php endif;?>

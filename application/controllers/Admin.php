@@ -3251,4 +3251,20 @@ class Admin extends CI_Controller {
         redirect(base_url() . 'index.php?admin/teacher_attendance_report', 'refresh');
     }
 
+    function student_attendance_report_print_view($class_id = '', $section_id = '', $month = '', $year = '') {
+        if ($this->session->userdata('admin_login') != 1)
+            redirect(base_url(), 'refresh');
+
+        $page_data['class_id'] = $class_id;
+        $page_data['section_id'] = $section_id;
+        $page_data['month'] = $month;
+        $page_data['year'] = $year;
+
+        // Get attendance data
+        $this->load->model('Attendance_model');
+        $page_data['attendance_data'] = $this->Attendance_model->get_student_attendance_report($class_id, $section_id, $month, $year);
+
+        $this->load->view('backend/admin/student_attendance_report_print_view', $page_data);
+    }
+
 }
