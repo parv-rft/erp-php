@@ -433,13 +433,18 @@ class Student extends CI_Controller {
                 return;
             }
             
-            // Get class routine data
-            $this->db->select('cr.*, s.name as subject, t.name as teacher_name');
-            $this->db->from('class_routine as cr');
-            $this->db->join('subject as s', 's.subject_id = cr.subject_id', 'left');
-            $this->db->join('teacher as t', 't.teacher_id = cr.teacher_id', 'left');
-            $this->db->where('cr.class_id', $class_id);
-            $this->db->where('cr.section_id', $section_id);
+            // Get calendar timetable data
+            $this->db->select('ct.*, s.name as subject_name, t.name as teacher_name, c.name as class_name, sec.name as section_name');
+            $this->db->from('calendar_timetable as ct');
+            $this->db->join('subject as s', 's.subject_id = ct.subject_id', 'left');
+            $this->db->join('teacher as t', 't.teacher_id = ct.teacher_id', 'left');
+            $this->db->join('class as c', 'c.class_id = ct.class_id', 'left');
+            $this->db->join('section as sec', 'sec.section_id = ct.section_id', 'left');
+            $this->db->where('ct.class_id', $class_id);
+            $this->db->where('ct.section_id', $section_id);
+            // It's a good practice to order the results for consistency
+            $this->db->order_by('ct.day_of_week', 'ASC');
+            $this->db->order_by('ct.time_slot_start', 'ASC');
             $query = $this->db->get();
             $result = $query->result_array();
             
@@ -470,17 +475,17 @@ class Student extends CI_Controller {
                 redirect(base_url() . 'student/calendar_timetable', 'refresh');
             }
             
-            // Get timetable data
-            $this->db->select('calendar_timetable.*, subject.name as subject_name, teacher.name as teacher_name, class.name as class_name, section.name as section_name');
-            $this->db->from('calendar_timetable');
-            $this->db->join('subject', 'subject.subject_id = calendar_timetable.subject_id', 'left');
-            $this->db->join('teacher', 'teacher.teacher_id = calendar_timetable.teacher_id', 'left');
-            $this->db->join('class', 'class.class_id = calendar_timetable.class_id', 'left');
-            $this->db->join('section', 'section.section_id = calendar_timetable.section_id', 'left');
-            $this->db->where('calendar_timetable.class_id', $class_id);
-            $this->db->where('calendar_timetable.section_id', $section_id);
-            $this->db->order_by('calendar_timetable.day_of_week', 'ASC');
-            $this->db->order_by('calendar_timetable.time_slot_start', 'ASC');
+            // Get timetable data from calendar_timetable
+            $this->db->select('ct.*, s.name as subject_name, t.name as teacher_name, c.name as class_name, sec.name as section_name');
+            $this->db->from('calendar_timetable as ct');
+            $this->db->join('subject as s', 's.subject_id = ct.subject_id', 'left');
+            $this->db->join('teacher as t', 't.teacher_id = ct.teacher_id', 'left');
+            $this->db->join('class as c', 'c.class_id = ct.class_id', 'left');
+            $this->db->join('section as sec', 'sec.section_id = ct.section_id', 'left');
+            $this->db->where('ct.class_id', $class_id);
+            $this->db->where('ct.section_id', $section_id);
+            $this->db->order_by('ct.day_of_week', 'ASC');
+            $this->db->order_by('ct.time_slot_start', 'ASC');
             
             $data['timetable_data'] = $this->db->get()->result_array();
             $data['class_name'] = $class_details->name;
