@@ -8,6 +8,7 @@ class Login extends CI_Controller {
 
 		$this->load->database();
 		$this->load->library('session');
+        $this->load->model('login_model');
     }
 
     //***************** The function below redirects to logged in user area
@@ -27,49 +28,58 @@ class Login extends CI_Controller {
 
   //********************************** the function below validating user login request 
     function validate_login() {
-      
-        $login_check_model = $this->login_model->loginFunctionForAllUsers();
-        $login_user = $this->session->userdata('login_type');
-        if(!$login_check_model){
-          // Here, if the above conditions are not meant, the user will be redirected to login page again.
-          $this->session->set_flashdata('error_message', get_phrase('Wrong email or password'));
-          redirect(base_url() . 'login', 'refresh');
-        }
-        if($login_user == 'admin') {
-          $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
-          redirect(base_url() . 'admin/dashboard', 'refresh');
-        }
+      error_log("Attempting login validation..."); 
+      $email_posted = $this->input->post('email'); 
+      error_log("Email from POST: " . $email_posted); 
 
-        if($login_user == 'hrm') {
-          $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
-          redirect(base_url() . 'hrm/dashboard', 'refresh');
-        }
+      $login_check_model = $this->login_model->loginFunctionForAllUsers();
+      error_log("loginFunctionForAllUsers returned: " . ($login_check_model ? 'true' : 'false')); 
 
-        if($login_user == 'hostel') {
-          $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
-          redirect(base_url() . 'hostel/dashboard', 'refresh');
-        }
+      $login_user = $this->session->userdata('login_type');
+      error_log("Session login_type after model call: " . $login_user); 
 
-        if($login_user == 'accountant') {
-          $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
-          redirect(base_url() . 'accountant/dashboard', 'refresh');
-        }
-        if($login_user == 'librarian') {
-          $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
-          redirect(base_url() . 'librarian/dashboard', 'refresh');
-        }
-        if($login_user == 'parent') {
-          $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
-          redirect(base_url() . 'parents/dashboard', 'refresh');
-        }
-        if($login_user == 'student') {
-          $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
-          redirect(base_url() . 'student/dashboard', 'refresh');
-        }
-        if($login_user == 'teacher') {
-          $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
-          redirect(base_url() . 'teacher/dashboard', 'refresh');
-        }
+      if(!$login_check_model){
+        error_log("Login check failed. Redirecting to login page with error."); 
+        $this->session->set_flashdata('error_message', get_phrase('Wrong email or password'));
+        redirect(base_url() . 'login', 'refresh');
+      }
+      if($login_user == 'admin') {
+        $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
+        redirect(base_url() . 'admin/dashboard', 'refresh');
+      }
+
+      if($login_user == 'hrm') {
+        $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
+        redirect(base_url() . 'hrm/dashboard', 'refresh');
+      }
+
+      if($login_user == 'hostel') {
+        $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
+        redirect(base_url() . 'hostel/dashboard', 'refresh');
+      }
+
+      if($login_user == 'accountant') {
+        $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
+        redirect(base_url() . 'accountant/dashboard', 'refresh');
+      }
+      if($login_user == 'librarian') {
+        $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
+        redirect(base_url() . 'librarian/dashboard', 'refresh');
+      }
+      if($login_user == 'parent') {
+        $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
+        redirect(base_url() . 'parents/dashboard', 'refresh');
+      }
+      if($login_user == 'student') {
+        error_log("Login successful for student. Redirecting to student/dashboard."); 
+        $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
+        redirect(base_url() . 'student/dashboard', 'refresh');
+      }
+      if($login_user == 'teacher') {
+        $this->session->set_flashdata('flash_message', get_phrase('Successfully Login'));
+        redirect(base_url() . 'teacher/dashboard', 'refresh');
+      }
+      error_log("Login validation finished. No specific user type matched for redirect after successful login check. This should not happen if login_check_model was true and login_type was set.");
      }
 
 
