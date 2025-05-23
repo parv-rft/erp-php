@@ -839,19 +839,32 @@ class Teacher extends CI_Controller {
     
     public function get_subjects() {
         if ($this->session->userdata('teacher_login') != 1) {
+            error_log('Teacher_Controller_get_subjects: Access denied. User not logged in or not a teacher.');
             echo json_encode(['status' => 'error', 'message' => 'Access denied']);
             return;
         }
         
         $class_id = $this->input->post('class_id');
-        $section_id = $this->input->post('section_id');
+        $teacher_id = $this->session->userdata('teacher_id');
         
-        if (!$class_id || !$section_id) {
+        error_log('Teacher_Controller_get_subjects: Received class_id: ' . $class_id);
+        error_log('Teacher_Controller_get_subjects: Session teacher_id: ' . $teacher_id);
+        
+        if (!$class_id || !$teacher_id) {
+            error_log('Teacher_Controller_get_subjects: class_id or teacher_id is missing. class_id: ' . $class_id . ', teacher_id: ' . $teacher_id);
             echo json_encode([]);
             return;
         }
         
-        $subjects = $this->db->get_where('subject', ['class_id' => $class_id])->result_array();
+        // Fetch subjects based on class_id and teacher_id
+        $this->db->where('class_id', $class_id);
+        $this->db->where('teacher_id', $teacher_id);
+        $query = $this->db->get('subject');
+        $subjects = $query->result_array();
+        
+        error_log('Teacher_Controller_get_subjects: SQL Query: ' . $this->db->last_query());
+        error_log('Teacher_Controller_get_subjects: Found subjects: ' . json_encode($subjects));
+        
         echo json_encode($subjects);
     }
     

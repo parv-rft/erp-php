@@ -327,7 +327,7 @@ $teacher_name = $this->db->get_where('teacher', array('teacher_id' => $teacher_i
                 <div class="modal-body">
                     <div class="form-group">
                         <label>Class</label>
-                        <select name="class_id" class="form-control" required onchange="loadSections(this.value)">
+                        <select name="class_id" id="class_id" class="form-control" required onchange="loadSections(this.value)">
                             <option value="">Select Class</option>
                             <?php
                             $classes = $this->db->get('class')->result_array();
@@ -368,17 +368,17 @@ $teacher_name = $this->db->get_where('teacher', array('teacher_id' => $teacher_i
 
                     <div class="form-group">
                         <label>Start Time</label>
-                        <input type="time" name="time_slot_start" class="form-control" required>
+                        <input type="time" name="time_slot_start" id="time_slot_start" class="form-control" required>
                         </div>
 
                         <div class="form-group">
                         <label>End Time</label>
-                        <input type="time" name="time_slot_end" class="form-control" required>
+                        <input type="time" name="time_slot_end" id="time_slot_end" class="form-control" required>
                         </div>
 
                         <div class="form-group">
                         <label>Room Number</label>
-                        <input type="text" name="room_number" class="form-control" required>
+                        <input type="text" name="room_number" id="room_number" class="form-control" required>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -745,25 +745,36 @@ function loadSections(class_id, mode = 'add') {
 }
 
 function loadSubjects(mode = 'add') {
+    console.log('loadSubjects called with mode:', mode);
     const prefix = mode === 'edit' ? 'edit_' : '';
     const class_id = $(`#${prefix}class_id`).val();
-    const section_id = $(`#${prefix}section_id`).val();
+    console.log('loadSubjects: class_id:', class_id);
+    // const section_id = $(`#${prefix}section_id`).val(); // section_id is not needed for fetching subjects
     
-    if (!class_id || !section_id) return;
+    if (!class_id) {
+        console.log('loadSubjects: class_id is missing, returning.');
+        return; 
+    }
     
+    console.log('loadSubjects: Proceeding to AJAX call.');
     $.ajax({
         url: '<?php echo base_url(); ?>teacher/get_subjects',
         type: 'POST',
         data: { 
-            class_id: class_id,
-            section_id: section_id
+            class_id: class_id
+            // section_id: section_id // Do not send section_id
         },
         dataType: 'json',
         success: function(response) {
             let html = '<option value="">Select Subject</option>';
-            response.forEach(function(subject) {
-                html += `<option value="${subject.subject_id}">${subject.name}</option>`;
-            });
+            if (response && response.length > 0) {
+                response.forEach(function(subject) {
+                    html += `<option value="${subject.subject_id}">${subject.name}</option>`;
+                });
+            } else {
+                // Optionally, display a message if no subjects are found or leave the dropdown with only "Select Subject"
+                console.log('No subjects found for this class or an error occurred.');
+            }
             if (mode === 'edit') {
                 $('#edit_subject_id').html(html);
             } else {
