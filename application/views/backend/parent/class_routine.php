@@ -1,5 +1,8 @@
 <?php
 if (!defined('BASEPATH')) exit('No direct script access allowed');
+// Expects $children_list to be passed from the controller
+// Each item in $children_list should be an object/array with: 
+// student_id, name, class_id, section_id, class_name, section_name
 ?>
 <div class="row">
     <div class="col-sm-12">
@@ -11,55 +14,22 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
                 <div class="row mb-3">
                     <div class="col-md-5">
                         <div class="form-group">
-                            <label for="student_id"><?php echo get_phrase('select_child'); ?></label>
-                            <select class="form-control" id="student_id" onchange="loadStudentTimetable()">
-                                <?php 
-                                    $parent_id = $this->session->userdata('parent_id');
-                                    $children = $this->db->get_where('student', array('parent_id' => $parent_id))->result_array();
-                                    
-                                    foreach($children as $child): 
-                                        $class_id = $child['class_id'];
-                                        $section_id = $child['section_id'];
-                                        
-                                        // Add error handling for class data
-                                        $class_data = $this->db->get_where('class', array('class_id' => $class_id))->row();
-                                        $class_name = ($class_data) ? $class_data->name : 'Unknown Class';
-                                        
-                                        // Add error handling for section data
-                                        $section_data = $this->db->get_where('section', array('section_id' => $section_id))->row();
-                                        
-                                        // If section_id is 0 or section not found, try to get a valid section
-                                        if (!$section_data && $class_id) {
-                                            // Try to get the first section for this class
-                                            $first_section = $this->db->get_where('section', array('class_id' => $class_id))->row();
-                                            if ($first_section) {
-                                                $section_id = $first_section->section_id;
-                                                $section_data = $first_section;
-                                                
-                                                // Update the student record with the correct section
-                                                $this->db->where('student_id', $child['student_id']);
-                                                $this->db->update('student', array('section_id' => $section_id));
-                                            }
-                                        }
-                                        
-                                        $section_name = ($section_data) ? $section_data->name : 'Unknown Section';
-                                        
-                                        // Debug data
-                                        echo "<!-- Debug data: student_id=" . $child['student_id'] . 
-                                             ", class_id=" . $class_id . 
-                                             ", section_id=" . $section_id . 
-                                             ", class_name=" . $class_name . 
-                                             ", section_name=" . $section_name . " -->";
-                                ?>
-                                    <option value="<?php echo $child['student_id']; ?>" 
-                                            data-class-id="<?php echo $class_id; ?>" 
-                                            data-section-id="<?php echo $section_id; ?>"
-                                            data-class-name="<?php echo $class_name; ?>"
-                                            data-section-name="<?php echo $section_name; ?>">
-                                        <?php echo $child['name']; ?> - 
-                                        <?php echo $class_name . ' (' . $section_name . ')'; ?>
-                                    </option>
-                                <?php endforeach; ?>
+                            <label for="student_id_selector"><?php echo get_phrase('select_child'); ?></label>
+                            <select class="form-control" id="student_id_selector" onchange="loadStudentTimetable()">
+                                <?php if (!empty($children_list)): ?>
+                                    <?php foreach($children_list as $child): ?>
+                                        <option value="<?php echo html_escape($child['student_id']); ?>" 
+                                                data-class-id="<?php echo html_escape($child['class_id']); ?>" 
+                                                data-section-id="<?php echo html_escape($child['section_id']); ?>"
+                                                data-class-name="<?php echo html_escape($child['class_name']); ?>"
+                                                data-section-name="<?php echo html_escape($child['section_name']); ?>">
+                                            <?php echo html_escape($child['name']); ?> - 
+                                            <?php echo html_escape($child['class_name']) . ' (' . html_escape($child['section_name']) . ')'; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <option value=""><?php echo get_phrase('no_children_found'); ?></option>
+                                <?php endif; ?>
                             </select>
                         </div>
                     </div>
@@ -232,7 +202,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
     $(document).ready(function() {
         // Add debugging to check all data attributes
         console.log("Checking data attributes on load:");
-        var firstChild = $('#student_id option:first');
+        var firstChild = $('#student_id_selector option:first');
         console.log("First child data:", {
             student_id: firstChild.val(),
             class_id: firstChild.attr('data-class-id'),
@@ -248,9 +218,9 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
     // Function to print timetable
     function printTimetable() {
         // Get current student class and section
-        var student_id = $('#student_id').val();
-        var class_id = $('#student_id option:selected').attr('data-class-id');
-        var section_id = $('#student_id option:selected').attr('data-section-id');
+        var student_id = $('#student_id_selector').val();
+        var class_id = $('#student_id_selector option:selected').attr('data-class-id');
+        var section_id = $('#student_id_selector option:selected').attr('data-section-id');
         
         console.log("Print timetable for:", {
             student_id: student_id,
@@ -265,7 +235,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
     
     // Function to load timetable data for a specific student
     function loadStudentTimetable() {
-        var selected = $('#student_id option:selected');
+        var selected = $('#student_id_selector option:selected');
         
         // Direct attribute access for debugging
         var student_id = selected.val();

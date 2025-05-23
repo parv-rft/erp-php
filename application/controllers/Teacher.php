@@ -113,7 +113,7 @@ class Teacher extends CI_Controller {
                 }
             }
             
-            redirect(base_url() . 'teacher/manage_attendance/' . $data['timestamp'], 'refresh');
+            redirect(base_url() . 'teacher/manage_attendance/' . date('d-m-Y', $data['timestamp']), 'refresh');
         }
 
         function attendance_update($class_id = '', $section_id = '', $timestamp = '') {
@@ -471,8 +471,7 @@ class Teacher extends CI_Controller {
     }
     
     // AJAX function to get sections based on class_id
-    function get_sections_by_class() {
-        $class_id = $this->input->post('class_id');
+    function get_sections_by_class($class_id = '') {
         $this->load->model('teacher_diary_model');
         $sections = $this->teacher_diary_model->get_sections_by_class($class_id);
         

@@ -149,7 +149,7 @@
 <script type="text/javascript">
 function get_class_sections(class_id) {
     $.ajax({
-        url: '<?php echo base_url(); ?>admin/get_class_section/' + class_id,
+        url: '<?php echo base_url(); ?>teacher/get_sections_by_class/' + class_id,
         success: function(response) {
             jQuery('#section_selector_holder').html(response);
         }
