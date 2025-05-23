@@ -1069,25 +1069,25 @@ INSERT INTO `noticeboard` (`noticeboard_id`, `title`, `location`, `timestamp`, `
 -- Table structure for table `parent`
 --
 
-DROP TABLE IF EXISTS `parent`;
-CREATE TABLE IF NOT EXISTS `parent` (
-  `parent_id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `email` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `password` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `phone` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `address` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `profession` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `login_status` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`parent_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
+-- DROP TABLE IF EXISTS `parent`;
+-- CREATE TABLE IF NOT EXISTS `parent` (
+--   `parent_id` int(11) NOT NULL AUTO_INCREMENT,
+--   `name` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+--   `email` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+--   `password` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+--   `phone` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+--   `address` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+--   `profession` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+--   `login_status` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+--   PRIMARY KEY (`parent_id`)
+-- ) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `parent`
 --
 
-INSERT INTO `parent` (`parent_id`, `name`, `email`, `password`, `phone`, `address`, `profession`, `login_status`) VALUES
-(4, 'Mr. Parent', 'parent@parent.com', '7110eda4d09e062aa5e4a390b0a572ac0d2c0220', '+912345667', 'Udemy Address', 'Learners', '0');
+-- INSERT INTO `parent` (`parent_id`, `name`, `email`, `password`, `phone`, `address`, `profession`, `login_status`) VALUES
+-- (4, 'Mr. Parent', 'parent@parent.com', '7110eda4d09e062aa5e4a390b0a572ac0d2c0220', '+912345667', 'Udemy Address', 'Learners', '0');
 
 -- --------------------------------------------------------
 
@@ -1321,6 +1321,8 @@ CREATE TABLE IF NOT EXISTS `student` (
   `father_name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `father_phone` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
   `father_email` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `father_password_hash` VARCHAR(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `father_address` VARCHAR(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `father_occupation` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `father_photo` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `father_adhar` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -1330,6 +1332,8 @@ CREATE TABLE IF NOT EXISTS `student` (
   `mother_name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `mother_phone` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
   `mother_email` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `mother_password_hash` VARCHAR(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `mother_address` VARCHAR(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `mother_occupation` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `mother_photo` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `mother_adhar` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -1399,10 +1403,10 @@ CREATE TABLE IF NOT EXISTS `student` (
 -- Example data for table `student`
 --
 
-INSERT INTO `student` (`student_id`, `admission_number`, `student_code`, `apaar_id`, `name`, `birthday`, `age`, `sex`, `religion`, `blood_group`, `address`, `city`, `state`, `nationality`, `phone`, `email`, `password`, `class_id`, `section_id`, `father_name`, `father_phone`, `father_email`, `father_occupation`, `father_designation`, `father_qualification`, `father_annual_income`, `mother_name`, `mother_phone`, `mother_email`, `mother_occupation`, `mother_designation`, `mother_qualification`, `roll`, `transport_id`, `dormitory_id`, `house_id`, `student_category_id`, `club_id`, `session`, `admission_date`, `date_of_leaving`) 
+INSERT INTO `student` (`student_id`, `admission_number`, `student_code`, `apaar_id`, `name`, `birthday`, `age`, `sex`, `religion`, `blood_group`, `address`, `city`, `state`, `nationality`, `phone`, `email`, `password`, `class_id`, `section_id`, `father_name`, `father_phone`, `father_email`, `father_password_hash`, `father_address`, `father_occupation`, `father_designation`, `father_qualification`, `father_annual_income`, `mother_name`, `mother_phone`, `mother_email`, `mother_password_hash`, `mother_address`, `mother_occupation`, `mother_designation`, `mother_qualification`, `roll`, `transport_id`, `dormitory_id`, `house_id`, `student_category_id`, `club_id`, `session`, `admission_date`, `date_of_leaving`) 
 VALUES 
-(11, 101, 1001, 123456, 'John Smith', '2005-05-15', '18', 'male', 'Christianity', 'O+', '123 Main Street', 'New Delhi', 'Delhi', 'Indian', '9876543210', 'john.smith@student.com', SHA1('password123'), 2, 1, 'Robert Smith', '9876543211', 'robert.smith@parent.com', 'Engineer', 'Senior Engineer', 'B.Tech', '1200000', 'Mary Smith', '9876543212', 'mary.smith@parent.com', 'Teacher', 'Assistant Teacher', 'M.A.', '101', 1, 0, 2, 2, 0, '2023-2024', '2022-06-05', '2024-05-31'),
-(12, 102, 1002, 654321, 'Sarah Johnson', '2006-08-20', '17', 'female', 'Hinduism', 'B+', '456 Park Avenue', 'Mumbai', 'Maharashtra', 'Indian', '8765432109', 'sarah.johnson@student.com', SHA1('password456'), 2, 1, 'James Johnson', '8765432108', 'james.johnson@parent.com', 'Doctor', 'Surgeon', 'MBBS, MD', '2500000', 'Emily Johnson', '8765432107', 'emily.johnson@parent.com', 'Lawyer', 'Senior Advocate', 'LLB', '102', 2, 0, 1, 2, 0, '2023-2024', '2021-06-10', '2024-05-31');
+(11, 101, 1001, 123456, 'John Smith', '2005-05-15', '18', 'male', 'Christianity', 'O+', '123 Main Street', 'New Delhi', 'Delhi', 'Indian', '9876543210', 'john.smith@student.com', SHA1('C'), 2, 1, 'Robert Smith', '9876543211', 'robert.smith@parent.com', SHA1('123456'), '123 Main Street', 'Engineer', 'Senior Engineer', 'B.Tech', '1200000', 'Mary Smith', '9876543212', 'mary.smith@parent.com', SHA1('123456'), '123 Main Street', 'Teacher', 'Assistant Teacher', 'M.A.', '101', 1, 0, 2, 2, 0, '2023-2024', '2022-06-05', '2024-05-31'),
+(12, 102, 1002, 654321, 'Sarah Johnson', '2006-08-20', '17', 'female', 'Hinduism', 'B+', '456 Park Avenue', 'Mumbai', 'Maharashtra', 'Indian', '8765432109', 'sarah.johnson@student.com', SHA1('password456'), 2, 1, 'James Johnson', '8765432108', 'james.johnson@parent.com', SHA1('123456'), '456 Park Avenue' ,'Doctor', 'Surgeon', 'MBBS, MD', '2500000', 'Emily Johnson', '8765432107', 'emily.johnson@parent.com', SHA1('123456'), '456 Park Avenue' , 'Lawyer', 'Senior Advocate', 'LLB', '102', 2, 0, 1, 2, 0, '2023-2024', '2021-06-10', '2024-05-31');
 
 -- --------------------------------------------------------
 

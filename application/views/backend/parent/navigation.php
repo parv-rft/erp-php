@@ -13,25 +13,32 @@
             
             <li class="user-pro">
                         <?php
-                            $key = $this->session->userdata('login_type') . '_id';
-                            $face_file = 'uploads/' . $this->session->userdata('login_type') . '_image/' . $this->session->userdata($key) . '.jpg';
-                            if (!file_exists($face_file)) {
-                                $face_file = 'uploads/default.jpg';                                 
+                            $student_id = $this->session->userdata('student_id');
+                            $logged_in_parent_type = $this->session->userdata('logged_in_parent_type');
+                            $parent_photo_filename = $this->session->userdata('parent_photo'); // Assuming you set this in Login_model
+
+                            $face_file = 'uploads/defaults/user-default.png'; // Default image
+
+                            if ($parent_photo_filename && file_exists('uploads/parent_image/' . $parent_photo_filename)) {
+                                $face_file = 'uploads/parent_image/' . $parent_photo_filename;
+                            } elseif ($student_id && $logged_in_parent_type) {
+                                // Fallback construction if parent_photo not in session but student_id and type are
+                                $potential_face_file = 'uploads/parent_image/' . $student_id . '_' . $logged_in_parent_type . '.jpg';
+                                if (file_exists($potential_face_file)) {
+                                    $face_file = $potential_face_file;
+                                }
                             }
-                            ?>
+                        ?>
 
                     <a href="#" class="waves-effect"><img src="<?php echo base_url() . $face_file;?>" alt="user-img" class="img-circle"> <span class="hide-menu">
 
                        <?php 
-                                $account_type   =   $this->session->userdata('login_type');
-                                $account_id     =   $account_type.'_id';
-                                $name           =   $this->crud_model->get_type_name_by_id($account_type , $this->session->userdata($account_id), 'name');
-                                echo $name;
+                                echo $this->session->userdata('parent_name'); // Directly use parent_name from session
                         ?>
                         <span class="fa arrow"></span></span>
                     </a>
                         <ul class="nav nav-second-level">
-                            <li><a href="javascript:void(0)"><i class="ti-user"></i> My Profile</a></li>
+                            <li><a href="<?php echo base_url();?>parents/manage_profile"><i class="ti-user"></i> My Profile</a></li>
                             <li><a href="javascript:void(0)"><i class="ti-email"></i> Inbox</a></li>
                             <li><a href="javascript:void(0)"><i class="ti-settings"></i> Account Setting</a></li>
                             <li><a href="<?php echo base_url();?>login/logout"><i class="fa fa-power-off"></i> Logout</a></li>

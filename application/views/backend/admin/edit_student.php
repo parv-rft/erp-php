@@ -81,8 +81,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
     .tab-content > .tab-pane {
         display: none;
     }
-    
-    .tab-content > .active {
+    .tab-content > .active { /* This is for the active tab-pane */
         display: block;
     }
 
@@ -729,15 +728,18 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 					</div>
 			</div>
 					
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('state');?></label>
-                                        <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="state" value="<?php echo $student['state'];?>">
-                                        </div>
-                                    </div>
-                                </div>
+                                 <div class="col-md-4">
+                                     <div class="form-group">
+                                         <label class="col-md-12"><?php echo get_phrase('state');?></label>
+                                         <div class="col-sm-12">
+                                             <input type="text" class="form-control" name="state" value="<?php echo $student['state'];?>">
+                                         </div>
+                                     </div>
+                                 </div>
                                 
+                                 <div class="col-md-4">
+                                     <div class="form-group">
+                                         <label class="col-md-12"><?php echo get_phrase('pincode');?></label>
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label class="col-md-12"><?php echo get_phrase('pincode');?></label>
@@ -873,6 +875,14 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 
                             <div class="row">
                                 <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('father_password');?> (<?php echo get_phrase('leave_blank_if_no_change');?>)</label>
+                                        <div class="col-sm-12">
+                                            <input type="password" class="form-control" name="father_password" value="">
+                                        </div>
+                                    </div>
+						</div>
+                                <div class="col-md-4">
 						<div class="form-group">
                                         <label class="col-md-12"><?php echo get_phrase('father_occupation');?></label>
                     <div class="col-sm-12">
@@ -882,7 +892,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 					</div>
 
                                 <div class="col-md-4">
-					<div class="form-group">
+				<div class="form-group">
                                         <label class="col-md-12"><?php echo get_phrase('father_designation');?></label>
                     <div class="col-sm-12">
                                             <select name="father_designation" class="form-control select2" style="width:100%">
@@ -953,6 +963,17 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('father_address');?></label>
+                                        <div class="col-sm-12">
+                                            <textarea class="form-control" name="father_address" rows="3"><?php echo isset($student['father_address']) ? $student['father_address'] : '';?></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             
                             <!-- Mother's Information -->
                             <div class="form-section-title">
@@ -991,13 +1012,21 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 
                             <div class="row">
                                 <div class="col-md-4">
-				<div class="form-group">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('mother_password');?> (<?php echo get_phrase('leave_blank_if_no_change');?>)</label>
+                                        <div class="col-sm-12">
+                                            <input type="password" class="form-control" name="mother_password" value="">
+                                        </div>
+                                    </div>
+						</div>
+                                <div class="col-md-4">
+						<div class="form-group">
                                         <label class="col-md-12"><?php echo get_phrase('mother_occupation');?></label>
                     <div class="col-sm-12">
                                             <input type="text" class="form-control" name="mother_occupation" value="<?php echo $student['mother_occupation'];?>">
                                         </div>
                                     </div>
-                                </div>
+					</div>
                                 
                                 <div class="col-md-4">
                                     <div class="form-group">
@@ -1067,6 +1096,17 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                             <?php if(isset($student['mother_photo']) && !empty($student['mother_photo'])): ?>
                                                 <img src="<?php echo base_url('uploads/parent_image/' . $student['mother_photo']); ?>" alt="Mother's Photo" height="100" class="mt-2">
                                             <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="col-md-12"><?php echo get_phrase('mother_address');?></label>
+                                        <div class="col-sm-12">
+                                            <textarea class="form-control" name="mother_address" rows="3"><?php echo isset($student['mother_address']) ? $student['mother_address'] : '';?></textarea>
                                         </div>
                                     </div>
                                 </div>

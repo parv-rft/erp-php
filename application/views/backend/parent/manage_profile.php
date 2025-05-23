@@ -35,7 +35,14 @@
 					 <label class="col-sm-12"><?php echo get_phrase('parent Image');?>*</label>        
 					 <div class="col-sm-12">
   		  			 <input type='file' class="form-control" name="userfile" onChange="readURL(this);">
-					 <img id="blah" src="<?php echo $this->crud_model->get_image_url('parent', $row['parent_id']); ?>" alt="" height="200" width="200"/>
+					 <img id="blah" src="<?php 
+                                        if (!empty($row['photo'])) {
+                                            echo base_url() . 'uploads/parent_image/' . $row['photo'];
+                                        } else {
+                                            // Display a default image if no photo is set
+                                            echo base_url() . 'uploads/defaults/user-default.png'; // Adjust path to your default image
+                                        }
+                                     ?>" alt="" height="200" width="200"/>
 					</div>
 					</div>	
 

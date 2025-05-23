@@ -54,15 +54,37 @@ class Login_model extends CI_Model {
                     error_log("Login_model: Student not found or query failed for 'student' type."); 
                     break;
                 case 'parent':
-                    error_log("Login_model: Checking for user_type 'parent'");
-                    $query = $this->db->get_where('parent', $credential);
-                    error_log("Login_model: parent query executed. Num rows: " . ($query ? $query->num_rows() : 'Query failed or no result'));
-                    if ($query && $query->num_rows() > 0) {
-                        error_log("Login_model: Parent found. Calling setParentSession.");
-                        $this->setParentSession($query->row());
+                    error_log("Login_model: Attempting parent login via student table.");
+                    $email = isset($credential['email']) ? $credential['email'] : null;
+                    $password = isset($credential['password']) ? $credential['password'] : null;
+
+                    if (!$email || !$password) {
+                        error_log("Login_model: Parent login attempt with missing email or password.");
+                        break; // Skip to general check or fail
+                    }
+
+                    // Try to login as father
+                    $this->db->where('father_email', $email);
+                    $this->db->where('father_password_hash', $password);
+                    $query_father = $this->db->get('student');
+
+                    if ($query_father && $query_father->num_rows() > 0) {
+                        error_log("Login_model: Father found in student table. Calling setParentSession.");
+                        $this->setParentSession($query_father->row(), 'father');
                         return true;
                     }
-                    error_log("Login_model: Parent not found or query failed for 'parent' type.");
+
+                    // Try to login as mother
+                    $this->db->where('mother_email', $email);
+                    $this->db->where('mother_password_hash', $password);
+                    $query_mother = $this->db->get('student');
+
+                    if ($query_mother && $query_mother->num_rows() > 0) {
+                        error_log("Login_model: Mother found in student table. Calling setParentSession.");
+                        $this->setParentSession($query_mother->row(), 'mother');
+                        return true;
+                    }
+                    error_log("Login_model: Parent (father/mother) not found in student table with provided credentials.");
                     break;
             }
             
@@ -168,16 +190,6 @@ class Login_model extends CI_Model {
             }
         }
 
-        error_log("Login_model: Checking for 'parent' (general check)");
-        $query = $this->db->get_where('parent', $credential);
-        error_log("Login_model: parent query (general check) executed. Num rows: " . ($query ? $query->num_rows() : 'Query failed or no result'));
-        if ($query && $query->num_rows() > 0) {
-            error_log("Login_model: Parent found (general check). Calling setParentSession.");
-            $this->setParentSession($query->row());
-            return true;
-        }
-        error_log("Login_model: Parent not found (general check).");
-
         error_log("Login_model: Checking for 'student' (general check)"); 
         $query = $this->db->get_where('student', $credential);
         error_log("Login_model: student query (general check) executed. Num rows: " . ($query ? $query->num_rows() : 'Query failed or no result')); 
@@ -198,6 +210,36 @@ class Login_model extends CI_Model {
         }
         error_log("Login_model: Teacher not found (general check).");
         
+        // Gemini: Added parent check to general login flow
+        error_log("Login_model: Checking for 'parent' (general check via student table).");
+        $parent_email_for_check = $credential['email'];
+        $parent_password_hash_for_check = $credential['password'];
+
+        // Try to login as father (general check)
+        $this->db->where('father_email', $parent_email_for_check);
+        $this->db->where('father_password_hash', $parent_password_hash_for_check);
+        $query_father_general = $this->db->get('student');
+
+        if ($query_father_general && $query_father_general->num_rows() > 0) {
+            error_log("Login_model: Father found (general check). Calling setParentSession.");
+            $this->setParentSession($query_father_general->row(), 'father');
+            return true;
+        }
+        // error_log("Login_model: Father not found (general check)."); // Optional: reduce verbosity
+
+        // Try to login as mother (general check)
+        $this->db->where('mother_email', $parent_email_for_check);
+        $this->db->where('mother_password_hash', $parent_password_hash_for_check);
+        $query_mother_general = $this->db->get('student');
+
+        if ($query_mother_general && $query_mother_general->num_rows() > 0) {
+            error_log("Login_model: Mother found (general check). Calling setParentSession.");
+            $this->setParentSession($query_mother_general->row(), 'mother');
+            return true;
+        }
+        // error_log("Login_model: Mother not found (general check)."); // Optional: reduce verbosity
+        // End Gemini: Added parent check
+
         error_log("Login_model: loginFunctionForAllUsers returning false (no user matched).");
         return false;
     }
@@ -291,32 +333,39 @@ class Login_model extends CI_Model {
         }
     }
     
-    private function setParentSession($row) {
-        error_log("Login_model: setParentSession called.");
-        if (!$row) {
-            error_log("Login_model: setParentSession received null row. Aborting session set.");
+    private function setParentSession($row, $parent_type) {
+        error_log("Login_model: setParentSession called for type: " . $parent_type);
+        if (!$row || !isset($row->student_id)) {
+            error_log("Login_model: setParentSession received null or invalid row (missing student_id). Aborting session set.");
             return;
         }
-        if (!isset($row->parent_id) || !isset($row->name)) {
-            error_log("Login_model: setParentSession - row object does not have expected properties (parent_id or name). Row data: " . print_r($row, true));
-            return; 
-        }
-        error_log("Login_model: Setting parent session data. Parent ID: " . $row->parent_id . ", Name: " . $row->name);
 
         $this->session->set_userdata('login_type', 'parent');
         $this->session->set_userdata('parent_login', '1');
-        $this->session->set_userdata('parent_id', $row->parent_id);
-        $this->session->set_userdata('login_user_id', $row->parent_id);
-        $this->session->set_userdata('name', $row->name);
+        $this->session->set_userdata('student_id', $row->student_id);
+        $this->session->set_userdata('logged_in_parent_type', $parent_type);
 
-        error_log("Login_model: Updating parent login_status in DB for parent_id: " . $row->parent_id);
-        try {
-            $update_result = $this->db->set('login_status', ('1'))
-                    ->where('parent_id', $row->parent_id)
-                    ->update('parent');
-            error_log("Login_model: DB update for parent login_status result: " . ($update_result ? 'Success' : 'Failed'));
-        } catch (Throwable $t) {
-            error_log("Login_model: CRITICAL ERROR during parent login_status update: " . $t->getMessage());
+        if ($parent_type == 'father') {
+            if (!isset($row->father_name)) {
+                 error_log("Login_model: setParentSession - father row object does not have expected property (father_name). Row data: " . print_r($row, true));
+            }
+            error_log("Login_model: Setting father session data. Student ID: " . $row->student_id . ", Father Name: " . (isset($row->father_name) ? $row->father_name : 'N/A'));
+            $this->session->set_userdata('parent_name', $row->father_name);
+            $this->session->set_userdata('parent_email', $row->father_email);
+            $this->session->set_userdata('parent_photo', isset($row->father_photo) ? $row->father_photo : null);
+            $this->session->set_userdata('login_user_id', $row->student_id . '_father');
+        } elseif ($parent_type == 'mother') {
+            if (!isset($row->mother_name)) { 
+                 error_log("Login_model: setParentSession - mother row object does not have expected property (mother_name). Row data: " . print_r($row, true));
+            }
+            error_log("Login_model: Setting mother session data. Student ID: " . $row->student_id . ", Mother Name: " . (isset($row->mother_name) ? $row->mother_name : 'N/A'));
+            $this->session->set_userdata('parent_name', $row->mother_name);
+            $this->session->set_userdata('parent_email', $row->mother_email);
+            $this->session->set_userdata('parent_photo', isset($row->mother_photo) ? $row->mother_photo : null);
+            $this->session->set_userdata('login_user_id', $row->student_id . '_mother');
+        } else {
+            error_log("Login_model: setParentSession called with invalid parent_type: " . $parent_type);
+            return;
         }
     }
 
@@ -381,15 +430,14 @@ class Login_model extends CI_Model {
     }
 
     function logout_model_for_parent(){
-        error_log("Login_model: logout_model_for_parent for parent_id: " . $this->session->userdata('parent_id'));
-        try {
-            return $this->db->set('login_status', ('0'))
-                        ->where('parent_id', $this->session->userdata('parent_id'))
-                        ->update('parent');
-        } catch (Throwable $t) {
-            error_log("Login_model: CRITICAL ERROR during parent logout_status update: " . $t->getMessage());
-            return false; 
-        }
+        error_log("Login_model: logout_model_for_parent. Clearing parent session data.");
+        $this->session->unset_userdata('parent_login');
+        $this->session->unset_userdata('student_id');
+        $this->session->unset_userdata('parent_name');
+        $this->session->unset_userdata('parent_email');
+        $this->session->unset_userdata('parent_photo');
+        $this->session->unset_userdata('logged_in_parent_type');
+        return true;
     }
 
     function logout_model_for_teacher(){
@@ -414,6 +462,10 @@ class Login_model extends CI_Model {
             error_log("Login_model: CRITICAL ERROR during student logout_status update: " . $t->getMessage());
             return false; 
         }
+    }
+	
+    function get_user_details_by_id($user_type = '', $user_id = '') {
+        // ... existing code ...
     }
 	
 	

@@ -143,27 +143,30 @@ class Student_model extends CI_Model {
                 'password' => sha1($this->input->post('password')),
                 'class_id' => html_escape($this->input->post('class_id')),
                 'section_id' => html_escape($this->input->post('section_id')),
-                'father_id' => html_escape($this->input->post('father_id')),
                 
                 // Father details
                 'father_name' => html_escape($this->input->post('father_name')),
                 'father_phone' => html_escape($this->input->post('father_phone')),
                 'father_email' => html_escape($this->input->post('father_email')),
+                'father_password_hash' => sha1($this->input->post('father_password')),
                 'father_occupation' => html_escape($this->input->post('father_occupation')),
                 'father_adhar' => html_escape($this->input->post('father_adhar')),
                 'father_annual_income' => html_escape($this->input->post('father_annual_income')),
                 'father_designation' => html_escape($this->input->post('father_designation')),
                 'father_qualification' => html_escape($this->input->post('father_qualification')),
+                'father_address' => html_escape($this->input->post('father_address')),
                 
                 // Mother details
                 'mother_name' => html_escape($this->input->post('mother_name')),
                 'mother_phone' => html_escape($this->input->post('mother_phone')),
                 'mother_email' => html_escape($this->input->post('mother_email')),
+                'mother_password_hash' => sha1($this->input->post('mother_password')),
                 'mother_occupation' => html_escape($this->input->post('mother_occupation')),
                 'mother_adhar' => html_escape($this->input->post('mother_adhar')),
                 'mother_annual_income' => html_escape($this->input->post('mother_annual_income')),
                 'mother_designation' => html_escape($this->input->post('mother_designation')),
                 'mother_qualification' => html_escape($this->input->post('mother_qualification')),
+                'mother_address' => html_escape($this->input->post('mother_address')),
                 
                 'roll' => html_escape($this->input->post('roll')),
                 
@@ -372,21 +375,25 @@ class Student_model extends CI_Model {
                 'father_name'    => html_escape($this->input->post('father_name')),
                 'father_phone'   => html_escape($this->input->post('father_phone')),
                 'father_email'   => html_escape($this->input->post('father_email')),
+                'father_password_hash' => sha1($this->input->post('father_password')),
                 'father_occupation'  => html_escape($this->input->post('father_occupation')),
                 'father_adhar'   => html_escape($this->input->post('father_adhar')),
                 'father_annual_income' => html_escape($this->input->post('father_annual_income')),
                 'father_designation'   => html_escape($this->input->post('father_designation')),
                 'father_qualification' => html_escape($this->input->post('father_qualification')),
+                'father_address' => html_escape($this->input->post('father_address')),
                 
                 // Mother details
                 'mother_name'    => html_escape($this->input->post('mother_name')),
                 'mother_phone'   => html_escape($this->input->post('mother_phone')),
                 'mother_email'   => html_escape($this->input->post('mother_email')),
+                'mother_password_hash' => sha1($this->input->post('mother_password')),
                 'mother_occupation'  => html_escape($this->input->post('mother_occupation')),
                 'mother_adhar'   => html_escape($this->input->post('mother_adhar')),
                 'mother_annual_income' => html_escape($this->input->post('mother_annual_income')),
                 'mother_designation'   => html_escape($this->input->post('mother_designation')),
                 'mother_qualification' => html_escape($this->input->post('mother_qualification')),
+                'mother_address' => html_escape($this->input->post('mother_address')),
                 
                 // Guardian info
                 'guardian_name'  => html_escape($this->input->post('guardian_name')),
@@ -458,6 +465,16 @@ class Student_model extends CI_Model {
             // Handle password update
             if (!empty($this->input->post('password'))) {
                 $page_data['password'] = sha1($this->input->post('password'));
+            }
+
+            // Handle father's password update
+            if (!empty($this->input->post('father_password'))) {
+                $page_data['father_password_hash'] = sha1($this->input->post('father_password'));
+            }
+
+            // Handle mother's password update
+            if (!empty($this->input->post('mother_password'))) {
+                $page_data['mother_password_hash'] = sha1($this->input->post('mother_password'));
             }
             
             // Update student record

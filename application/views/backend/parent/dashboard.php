@@ -1,6 +1,7 @@
  <!--row -->
  <div class="row">
-                    <!-- <div class="col-md-3 col-sm-6">
+                    <?php /* Gemini: Removing problematic and redundant PHP block
+                    <div class="col-md-3 col-sm-6">
                         <div class="white-box">
                             <div class="r-icon-stats">
                                 <i class="ti-user bg-megna"></i>
@@ -40,11 +41,11 @@
                                 <div class="bodystate">
                                     <h4>
                                     <?php 
-                                    $parent_student_logic = $this->db->get_where('student', array('parent_id'=> $this->session->userdata('parent_id')))->row()->student_id;
-                                    $check_daily_attendance = array('date' => date('Y-m-d'), 'status' => '1');
-                                    $get_attendance_information = $this->db->get_where('attendance', $check_daily_attendance, 'student_id', $parent_student_logic);
-                                    $display_attendance_here = $get_attendance_information->num_rows();
-                                    echo $display_attendance_here;
+                                    // $parent_student_logic = $this->db->get_where('student', array('parent_id'=> $this->session->userdata('parent_id')))->row()->student_id;
+                                    // $check_daily_attendance = array('date' => date('Y-m-d'), 'status' => '1');
+                                    // $get_attendance_information = $this->db->get_where('attendance', $check_daily_attendance, 'student_id', $parent_student_logic);
+                                    // $display_attendance_here = $get_attendance_information->num_rows();
+                                    // echo $display_attendance_here;
                                     ?>
                                     </h4>
                                     <span class="text-muted"><?php echo get_phrase('Attendance');?></span>
@@ -52,8 +53,7 @@
                             </div>
                         </div>
                     </div>
-
-                -->
+                    */ ?>
           
                 <!--/row -->
                 <!-- .row -->

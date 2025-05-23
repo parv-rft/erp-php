@@ -949,7 +949,6 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                             <label class="col-md-12"><?php echo get_phrase('father_name');?></label>
                                             <div class="col-sm-12">
                                                 <input type="text" class="form-control" name="father_name" required>
-                                                <input type="hidden" name="father_id" value="<?php echo substr(md5(uniqid(rand(), true)), 0, 7); ?>">
                                                 <small class="text-muted">(Required) Enter father's full name</small>
                                             </div>
                                         </div>
@@ -1015,8 +1014,17 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="col-md-12"><?php echo get_phrase('father_address');?></label>
+                                            <div class="col-sm-12">
+                                                <textarea class="form-control" name="father_address" rows="3"></textarea>
+                                                <small class="text-muted">(Optional) Enter father's full address</small>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
@@ -1137,11 +1145,10 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                                 <input type="email" class="form-control" name="mother_email" 
                                                        pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                                                        title="Please enter a valid email address">
-                                                <small class="text-muted">Enter valid email address</small>
+                                                <small class="text-muted">(Optional) Enter valid email address</small>
                                             </div>
                                         </div>
                                     </div>
-                                    
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('mother_password');?></label>
@@ -1149,48 +1156,61 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                                 <div class="input-group">
                                                     <input type="password" class="form-control" name="mother_password" id="mother_password" 
                                                            pattern=".{6,}" 
-                                                           title="Password must be at least 6 characters long">
+                                                           title="Password must be at least 6 characters long"
+                                                           onkeyup="CheckMotherPasswordStrength(this.value)">
                                                     <div class="input-group-addon" style="cursor: pointer;" onclick="toggleMotherPasswordVisibility()">
                                                         <i class="fa fa-eye" id="mother-password-toggle-icon"></i>
                                                     </div>
                                                 </div>
-                                                <small class="text-muted">Password for parent login (at least 6 characters)</small>
+                                                <span id="mother_password_strength"></span>
+                                                <small class="text-muted">(Optional) Password for mother's login (at least 6 characters)</small>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('mother_photo');?></label>
                                             <div class="col-sm-12">
                                                 <input type="file" class="form-control" name="mother_image">
+                                                <small class="text-muted">(Optional) Upload mother's photo</small>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label class="col-md-12"><?php echo get_phrase('qualification');?></label>
                                             <div class="col-sm-12">
                                                 <input type="text" class="form-control" name="mother_qualification">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="col-md-12"><?php echo get_phrase('occupation');?></label>
-                                            <div class="col-sm-12">
-                                                <input type="text" class="form-control" name="mother_occupation">
+                                                <small class="text-muted">(Optional) Enter mother's qualification</small>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="col-md-12"><?php echo get_phrase('mother_occupation');?></label>
+                                            <div class="col-sm-12">
+                                                <input type="text" class="form-control" name="mother_occupation">
+                                                <small class="text-muted">(Optional) Enter mother's occupation</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="col-md-12"><?php echo get_phrase('mother_address');?></label>
+                                            <div class="col-sm-12">
+                                                <textarea class="form-control" name="mother_address" rows="3"></textarea>
+                                                <small class="text-muted">(Optional) Enter mother's full address</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
