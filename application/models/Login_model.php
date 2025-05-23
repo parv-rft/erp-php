@@ -84,72 +84,88 @@ class Login_model extends CI_Model {
         error_log("Login_model: hrm query (general check) executed. Num rows: " . ($query ? $query->num_rows() : 'Query failed or no result'));
         if ($query && $query->num_rows() > 0) {
             $row = $query->row();
-            error_log("Login_model: HRM found (general check). Setting session and updating DB. HRM ID: " . (isset($row->hrm_id) ? $row->hrm_id : 'N/A'));
+            error_log("Login_model: HRM found (general check). Setting session and attempting DB update. HRM ID: " . (isset($row->hrm_id) ? $row->hrm_id : 'N/A'));
             $this->session->set_userdata('login_type', 'hrm');
             $this->session->set_userdata('hrm_login', '1');
             $this->session->set_userdata('hrm_id', $row->hrm_id);
             $this->session->set_userdata('login_user_id', $row->hrm_id);
             $this->session->set_userdata('name', $row->name);
-
-            $update_result = $this->db->set('login_status', ('1'))
-                    ->where('hrm_id', $this->session->userdata('hrm_id'))
-                    ->update('hrm');
-            error_log("Login_model: DB update for hrm login_status result: " . ($update_result ? 'Success' : 'Failed'));
-            return $update_result; // Return the status of the update
+            try {
+                $update_result = $this->db->set('login_status', ('1'))
+                        ->where('hrm_id', $row->hrm_id)
+                        ->update('hrm');
+                error_log("Login_model: DB update for hrm login_status result: " . ($update_result ? 'Success' : 'Failed'));
+                return $update_result; 
+            } catch (Throwable $t) {
+                error_log("Login_model: CRITICAL ERROR during hrm login_status update: " . $t->getMessage());
+                return true; // Session set, but DB update failed, allow login
+            }
         }
 
         $query = $this->db->get_where('hostel', $credential);
         error_log("Login_model: hostel query (general check) executed. Num rows: " . ($query ? $query->num_rows() : 'Query failed or no result'));
         if ($query && $query->num_rows() > 0) {
             $row = $query->row();
-            error_log("Login_model: Hostel found (general check). Setting session and updating DB. Hostel ID: " . (isset($row->hostel_id) ? $row->hostel_id : 'N/A'));
+            error_log("Login_model: Hostel found (general check). Setting session and attempting DB update. Hostel ID: " . (isset($row->hostel_id) ? $row->hostel_id : 'N/A'));
             $this->session->set_userdata('login_type', 'hostel');
             $this->session->set_userdata('hostel_login', '1');
             $this->session->set_userdata('hostel_id', $row->hostel_id);
             $this->session->set_userdata('login_user_id', $row->hostel_id);
             $this->session->set_userdata('name', $row->name);
-
-            $update_result = $this->db->set('login_status', ('1'))
-                    ->where('hostel_id', $this->session->userdata('hostel_id'))
-                    ->update('hostel');
-            error_log("Login_model: DB update for hostel login_status result: " . ($update_result ? 'Success' : 'Failed'));
-            return $update_result;
+            try {
+                $update_result = $this->db->set('login_status', ('1'))
+                        ->where('hostel_id', $row->hostel_id)
+                        ->update('hostel');
+                error_log("Login_model: DB update for hostel login_status result: " . ($update_result ? 'Success' : 'Failed'));
+                return $update_result;
+            } catch (Throwable $t) {
+                error_log("Login_model: CRITICAL ERROR during hostel login_status update: " . $t->getMessage());
+                return true; 
+            }
         }
 
         $query = $this->db->get_where('accountant', $credential);
         error_log("Login_model: accountant query (general check) executed. Num rows: " . ($query ? $query->num_rows() : 'Query failed or no result'));
         if ($query && $query->num_rows() > 0) {
             $row = $query->row();
-            error_log("Login_model: Accountant found (general check). Setting session and updating DB. Accountant ID: " . (isset($row->accountant_id) ? $row->accountant_id : 'N/A'));
+            error_log("Login_model: Accountant found (general check). Setting session and attempting DB update. Accountant ID: " . (isset($row->accountant_id) ? $row->accountant_id : 'N/A'));
             $this->session->set_userdata('login_type', 'accountant');
             $this->session->set_userdata('accountant_login', '1');
             $this->session->set_userdata('accountant_id', $row->accountant_id);
             $this->session->set_userdata('login_user_id', $row->accountant_id);
             $this->session->set_userdata('name', $row->name);
-
-            $update_result = $this->db->set('login_status', ('1'))
-                    ->where('accountant_id', $this->session->userdata('accountant_id'))
-                    ->update('accountant');
-            error_log("Login_model: DB update for accountant login_status result: " . ($update_result ? 'Success' : 'Failed'));
-            return $update_result;
+            try {
+                $update_result = $this->db->set('login_status', ('1'))
+                        ->where('accountant_id', $row->accountant_id)
+                        ->update('accountant');
+                error_log("Login_model: DB update for accountant login_status result: " . ($update_result ? 'Success' : 'Failed'));
+                return $update_result;
+            } catch (Throwable $t) {
+                error_log("Login_model: CRITICAL ERROR during accountant login_status update: " . $t->getMessage());
+                return true; 
+            }
         }
 
         $query = $this->db->get_where('librarian', $credential);
         error_log("Login_model: librarian query (general check) executed. Num rows: " . ($query ? $query->num_rows() : 'Query failed or no result'));
         if ($query && $query->num_rows() > 0) {
             $row = $query->row();
-            error_log("Login_model: Librarian found (general check). Setting session and updating DB. Librarian ID: " . (isset($row->librarian_id) ? $row->librarian_id : 'N/A'));
+            error_log("Login_model: Librarian found (general check). Setting session and attempting DB update. Librarian ID: " . (isset($row->librarian_id) ? $row->librarian_id : 'N/A'));
             $this->session->set_userdata('login_type', 'librarian');
             $this->session->set_userdata('librarian_login', '1');
             $this->session->set_userdata('librarian_id', $row->librarian_id);
             $this->session->set_userdata('login_user_id', $row->librarian_id);
             $this->session->set_userdata('name', $row->name);
-
-            $update_result = $this->db->set('login_status', ('1'))
-                    ->where('librarian_id', $this->session->userdata('librarian_id'))
-                    ->update('librarian');
-            error_log("Login_model: DB update for librarian login_status result: " . ($update_result ? 'Success' : 'Failed'));
-            return $update_result;
+            try {
+                $update_result = $this->db->set('login_status', ('1'))
+                        ->where('librarian_id', $row->librarian_id)
+                        ->update('librarian');
+                error_log("Login_model: DB update for librarian login_status result: " . ($update_result ? 'Success' : 'Failed'));
+                return $update_result;
+            } catch (Throwable $t) {
+                error_log("Login_model: CRITICAL ERROR during librarian login_status update: " . $t->getMessage());
+                return true; 
+            }
         }
 
         error_log("Login_model: Checking for 'parent' (general check)");
@@ -206,10 +222,14 @@ class Login_model extends CI_Model {
         $this->session->set_userdata('name', $row->name);
 
         error_log("Login_model: Updating admin login_status in DB for admin_id: " . $row->admin_id);
-        $update_result = $this->db->set('login_status', ('1'))
-                ->where('admin_id', $row->admin_id)
-                ->update('admin');
-        error_log("Login_model: DB update for admin login_status result: " . ($update_result ? 'Success' : 'Failed'));
+        try {
+            $update_result = $this->db->set('login_status', ('1'))
+                    ->where('admin_id', $row->admin_id)
+                    ->update('admin');
+            error_log("Login_model: DB update for admin login_status result: " . ($update_result ? 'Success' : 'Failed'));
+        } catch (Throwable $t) {
+            error_log("Login_model: CRITICAL ERROR during admin login_status update: " . $t->getMessage());
+        }
     }
     
     private function setTeacherSession($row) {
@@ -231,10 +251,14 @@ class Login_model extends CI_Model {
         $this->session->set_userdata('name', $row->name);
 
         error_log("Login_model: Updating teacher login_status in DB for teacher_id: " . $row->teacher_id);
-        $update_result = $this->db->set('login_status', ('1'))
-                ->where('teacher_id', $row->teacher_id)
-                ->update('teacher');
-        error_log("Login_model: DB update for teacher login_status result: " . ($update_result ? 'Success' : 'Failed'));
+        try {
+            $update_result = $this->db->set('login_status', ('1'))
+                    ->where('teacher_id', $row->teacher_id)
+                    ->update('teacher');
+            error_log("Login_model: DB update for teacher login_status result: " . ($update_result ? 'Success' : 'Failed'));
+        } catch (Throwable $t) {
+            error_log("Login_model: CRITICAL ERROR during teacher login_status update: " . $t->getMessage());
+        }
     }
     
     private function setStudentSession($row) {
@@ -264,8 +288,6 @@ class Login_model extends CI_Model {
         } catch (Throwable $t) {
             error_log("Login_model: CRITICAL ERROR during student login_status update: " . $t->getMessage() . " on line " . $t->getLine() . " in file " . $t->getFile());
             error_log("Login_model: Stack Trace: " . $t->getTraceAsString());
-            // Optionally, rethrow or handle as a critical failure
-            // For now, just log and let the original behavior (likely a 500 error) continue until we know more
         }
     }
     
@@ -288,66 +310,110 @@ class Login_model extends CI_Model {
         $this->session->set_userdata('name', $row->name);
 
         error_log("Login_model: Updating parent login_status in DB for parent_id: " . $row->parent_id);
-        $update_result = $this->db->set('login_status', ('1'))
-                ->where('parent_id', $row->parent_id)
-                ->update('parent');
-        error_log("Login_model: DB update for parent login_status result: " . ($update_result ? 'Success' : 'Failed'));
+        try {
+            $update_result = $this->db->set('login_status', ('1'))
+                    ->where('parent_id', $row->parent_id)
+                    ->update('parent');
+            error_log("Login_model: DB update for parent login_status result: " . ($update_result ? 'Success' : 'Failed'));
+        } catch (Throwable $t) {
+            error_log("Login_model: CRITICAL ERROR during parent login_status update: " . $t->getMessage());
+        }
     }
 
     function logout_model_for_admin(){
         error_log("Login_model: logout_model_for_admin for admin_id: " . $this->session->userdata('admin_id'));
-        return  $this->db->set('login_status', ('0'))
-                    ->where('admin_id', $this->session->userdata('admin_id'))
-                    ->update('admin');
+        try {
+            return $this->db->set('login_status', ('0'))
+                        ->where('admin_id', $this->session->userdata('admin_id'))
+                        ->update('admin');
+        } catch (Throwable $t) {
+            error_log("Login_model: CRITICAL ERROR during admin logout_status update: " . $t->getMessage());
+            return false; // Indicate failure but don't crash
+        }
     }
 
     function logout_model_for_hrm(){
         error_log("Login_model: logout_model_for_hrm for hrm_id: " . $this->session->userdata('hrm_id'));
-        return  $this->db->set('login_status', ('0'))
-                    ->where('hrm_id', $this->session->userdata('hrm_id'))
-                    ->update('hrm');
+        try {
+            return $this->db->set('login_status', ('0'))
+                        ->where('hrm_id', $this->session->userdata('hrm_id'))
+                        ->update('hrm');
+        } catch (Throwable $t) {
+            error_log("Login_model: CRITICAL ERROR during hrm logout_status update: " . $t->getMessage());
+            return false; 
+        }
     }
 
     function logout_model_for_hostel(){
         error_log("Login_model: logout_model_for_hostel for hostel_id: " . $this->session->userdata('hostel_id'));
-        return  $this->db->set('login_status', ('0'))
-                    ->where('hostel_id', $this->session->userdata('hostel_id'))
-                    ->update('hostel');
+        try {
+            return $this->db->set('login_status', ('0'))
+                        ->where('hostel_id', $this->session->userdata('hostel_id'))
+                        ->update('hostel');
+        } catch (Throwable $t) {
+            error_log("Login_model: CRITICAL ERROR during hostel logout_status update: " . $t->getMessage());
+            return false; 
+        }
     }
 
     function logout_model_for_accountant(){
         error_log("Login_model: logout_model_for_accountant for accountant_id: " . $this->session->userdata('accountant_id'));
-        return  $this->db->set('login_status', ('0'))
-                    ->where('accountant_id', $this->session->userdata('accountant_id'))
-                    ->update('accountant');
+        try {
+            return $this->db->set('login_status', ('0'))
+                        ->where('accountant_id', $this->session->userdata('accountant_id'))
+                        ->update('accountant');
+        } catch (Throwable $t) {
+            error_log("Login_model: CRITICAL ERROR during accountant logout_status update: " . $t->getMessage());
+            return false; 
+        }
     }
 
     function logout_model_for_librarian(){
         error_log("Login_model: logout_model_for_librarian for librarian_id: " . $this->session->userdata('librarian_id'));
-        return  $this->db->set('login_status', ('0'))
-                    ->where('librarian_id', $this->session->userdata('librarian_id'))
-                    ->update('librarian');
+        try {
+            return $this->db->set('login_status', ('0'))
+                        ->where('librarian_id', $this->session->userdata('librarian_id'))
+                        ->update('librarian');
+        } catch (Throwable $t) {
+            error_log("Login_model: CRITICAL ERROR during librarian logout_status update: " . $t->getMessage());
+            return false; 
+        }
     }
 
     function logout_model_for_parent(){
         error_log("Login_model: logout_model_for_parent for parent_id: " . $this->session->userdata('parent_id'));
-        return  $this->db->set('login_status', ('0'))
-                    ->where('parent_id', $this->session->userdata('parent_id'))
-                    ->update('parent');
+        try {
+            return $this->db->set('login_status', ('0'))
+                        ->where('parent_id', $this->session->userdata('parent_id'))
+                        ->update('parent');
+        } catch (Throwable $t) {
+            error_log("Login_model: CRITICAL ERROR during parent logout_status update: " . $t->getMessage());
+            return false; 
+        }
     }
 
     function logout_model_for_teacher(){
         error_log("Login_model: logout_model_for_teacher for teacher_id: " . $this->session->userdata('teacher_id'));
-        return  $this->db->set('login_status', ('0'))
-                    ->where('teacher_id', $this->session->userdata('teacher_id'))
-                    ->update('teacher');
+        try {
+            return $this->db->set('login_status', ('0'))
+                        ->where('teacher_id', $this->session->userdata('teacher_id'))
+                        ->update('teacher');
+        } catch (Throwable $t) {
+            error_log("Login_model: CRITICAL ERROR during teacher logout_status update: " . $t->getMessage());
+            return false; 
+        }
     }
 
     function logout_model_for_student(){
         error_log("Login_model: logout_model_for_student for student_id: " . $this->session->userdata('student_id'));
-        return  $this->db->set('login_status', ('0'))
-                    ->where('student_id', $this->session->userdata('student_id'))
-                    ->update('student');
+        try {
+            return $this->db->set('login_status', ('0'))
+                        ->where('student_id', $this->session->userdata('student_id'))
+                        ->update('student');
+        } catch (Throwable $t) {
+            error_log("Login_model: CRITICAL ERROR during student logout_status update: " . $t->getMessage());
+            return false; 
+        }
     }
 	
 	
