@@ -841,7 +841,7 @@ INSERT INTO `hrm` (`hrm_id`, `name`, `hrm_number`, `birthday`, `sex`, `religion`
 
 DROP TABLE IF EXISTS `invoice`;
 CREATE TABLE IF NOT EXISTS `invoice` (
-  `invoice_id` int(11) NOT NULL AUTO_INCREMENT,
+  `invoice_id` int(11) NOT NULL AUTO_INCREMENT,     
   `invoice_number` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `receipt_number` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci,
   `student_id` int(11) NOT NULL,
@@ -1098,32 +1098,34 @@ INSERT INTO `parent` (`parent_id`, `name`, `email`, `password`, `phone`, `addres
 DROP TABLE IF EXISTS `payment`;
 CREATE TABLE IF NOT EXISTS `payment` (
   `payment_id` int(11) NOT NULL AUTO_INCREMENT,
-  `expense_category_id` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `invoice_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
   `title` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `payment_type` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `invoice_id` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `student_id` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `method` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `description` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `amount` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `discount` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `timestamp` int(11) NOT NULL,
+  `payment_type` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `amount` int(11) NOT NULL, -- This is the amount for this specific payment transaction
+  -- >> ADD THESE LINES <<
+  `discount_type` varchar(255) DEFAULT NULL,
+  `discount` int(11) DEFAULT NULL, -- Or DECIMAL(5,2) etc.
+  -- >> END OF ADDED LINES <<
+  `timestamp` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `method` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `year` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`payment_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=11 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `payment`
 --
 
-INSERT INTO `payment` (`payment_id`, `expense_category_id`, `title`, `payment_type`, `invoice_id`, `student_id`, `method`, `description`, `amount`, `discount`, `timestamp`, `year`) VALUES
-(2, '5', 'Purchase of school reading', 'expense', '', '', '2', 'This was purchase by the school administrator for the purpose of having reading books in the school.<br>', '5000', '', 556644564, '2019-2020'),
-(5, '5', 'Purchase of school chalks', 'expense', '', '', '1', 'Purchase of school chalks<br>', '3000', '', 556644564, '2019-2020'),
-(6, '', 'Part payment for eLibrary', '', '2', '45', '1', 'income', '5000', '0', 556644564, ''),
-(7, '', 'Another payment for eLibrary', 'income', '3', '45', '1', 'Another payment for eLibrary', '2000', '0', 445667865, ''),
-(8, '', 'Part payment for eLibrary', 'income', '2', '45', '1', 'Part payment for eLibrary', '1200', '', 556644564, ''),
-(9, '5', 'New chalk purchased', 'expense', '', '', '3', 'New chalk purchased<br>', '1000', '', 556644564, '2019-2020'),
-(10, '', 'Another Part payment for eLibrary.', 'income', '2', '45', '1', 'Another Part payment for eLibrary.', '5000', '', 1576951200, '2019-2020');
+INSERT INTO `payment` (`payment_id`, `invoice_id`, `student_id`, `title`, `description`, `payment_type`, `amount`, `discount_type`, `discount`, `timestamp`, `method`, `year`) VALUES
+(2, 2, 102, 'Purchase of school reading', 'expense', 'expense', 5000, '', '', 556644564, '2', '2019-2020'),
+(5, 2, 102, 'Purchase of school chalks', 'expense', 'expense', 3000, '', '', 556644564, '1', '2019-2020'),
+(6, 2, 102, 'Part payment for eLibrary', '', 'income', 5000, '0', 0, 556644564, '1', ''),
+(7, 2, 102, 'Another payment for eLibrary', 'income', 'income', 2000, '0', 0, 445667865, '1', ''),
+(8, 2, 102, 'Part payment for eLibrary', 'income', 'income', 1200, '', 0, 556644564, '1', ''),
+(9, 2, 102, 'New chalk purchased', 'expense', 'expense', 1000, '', '', 556644564, '3', '2019-2020'),
+(10, 2, 102, 'Another Part payment for eLibrary.', 'income', 'income', 5000, '', 0, 1576951200, '1', '2019-2020');
 
 -- --------------------------------------------------------
 
@@ -1172,7 +1174,6 @@ CREATE TABLE IF NOT EXISTS `publisher` (
 
 INSERT INTO `publisher` (`publisher_id`, `name`, `description`) VALUES
 (1, 'Amazon.', 'The book is published by Amazon');
-
 -- --------------------------------------------------------
 
 --

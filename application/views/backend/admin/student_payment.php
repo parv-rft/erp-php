@@ -106,17 +106,15 @@
                 </div>
             </div>
 
-            
-
             <div class="form-group">
-                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Discount Type');?></label>
+                 	<label class="col-md-12" for="discount_type_text_single"><?php echo get_phrase('Payment Discount Type');?></label>
                 <div class="col-sm-12">
-                    <select name="discount_type" class="form-control select2" onchange="calculateTotalAmount()">
-                        <option value=""><?php echo get_phrase('select_discount_type');?></option>
-                        <option value="no_discount"><?php echo get_phrase('no_discount');?></option>
-                        <option value="sibling_discount"><?php echo get_phrase('sibling_discount');?></option>
-                        <option value="parent_staff_discount"><?php echo get_phrase('parent_staff_discount');?></option>
-                    </select>
+                    <input type="text" class="form-control" name="discount_type" id="discount_type_text_single" list="discount_suggestions_single" placeholder="<?php echo get_phrase('enter_or_select_discount_type');?>" oninput="calculateTotalAmount()">
+                    <datalist id="discount_suggestions_single">
+                        <option value="<?php echo get_phrase('no_discount');?>">
+                        <option value="<?php echo get_phrase('sibling_discount');?>">
+                        <option value="<?php echo get_phrase('parent_is_campus_employee_discount');?>">
+                    </datalist>
                 </div>
             </div>
 
@@ -297,20 +295,18 @@
                 </div>
             </div>
 
-            
-
             <div class="form-group">
-                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Discount Type');?></label>
+                 	<label class="col-md-12" for="discount_type_text_mass"><?php echo get_phrase('Payment Discount Type');?></label>
                 <div class="col-sm-12">
-                    <select name="discount_type" class="form-control select2" onchange="calculateMassTotalAmount()">
-                        <option value=""><?php echo get_phrase('select_discount_type');?></option>
-                        <option value="no_discount"><?php echo get_phrase('no_discount');?></option>
-                        <option value="sibling_discount"><?php echo get_phrase('sibling_discount');?></option>
-                        <option value="parent_staff_discount"><?php echo get_phrase('parent_staff_discount');?></option>
-                    </select>
+                    <input type="text" class="form-control" name="discount_type" id="discount_type_text_mass" list="discount_suggestions_mass" placeholder="<?php echo get_phrase('enter_or_select_discount_type');?>" oninput="calculateMassTotalAmount()">
+                    <datalist id="discount_suggestions_mass">
+                        <option value="<?php echo get_phrase('no_discount');?>">
+                        <option value="<?php echo get_phrase('sibling_discount');?>">
+                        <option value="<?php echo get_phrase('parent_is_campus_employee_discount');?>">
+                    </datalist>
                 </div>
             </div>
-
+            
             <div class="form-group">
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Discount');?> %</label>
                 <div class="col-sm-12">
@@ -403,7 +399,6 @@ function unselect(){
 var feeItemCounter = 1;
 var massFeeItemCounter = 1;
 
-// Function to add a new fee item row
 function addFeeItem() {
     var container = document.getElementById('fee_items_container');
     var newRow = document.createElement('div');
@@ -460,7 +455,6 @@ function addFeeItem() {
     calculateTotalAmount();
 }
 
-// Function to remove a fee item row
 function removeFeeItem(button) {
     var row = button.closest('.fee-item-row');
     row.parentNode.removeChild(row);
@@ -473,7 +467,6 @@ function removeFeeItem(button) {
     }
 }
 
-// Function to calculate total amount
 function calculateTotalAmount() {
     var total = 0;
     var amountInputs = document.querySelectorAll('#fee_items_container .fee-amount');
@@ -483,11 +476,12 @@ function calculateTotalAmount() {
         }
     });
 
-    var discountType = document.querySelector('form[action*="single_invoice"] select[name="discount_type"]').value;
+    var discountType = document.getElementById('discount_type_text_single').value.trim().toLowerCase();
     var discountPercentage = parseFloat(document.querySelector('form[action*="single_invoice"] input[name="discount"]').value) || 0;
     var amountPaid = parseFloat(document.querySelector('form[action*="single_invoice"] input[name="amount_paid"]').value) || 0;
 
-    if (discountType === 'no_discount' || discountType === '') {
+    // If discount type is 'no discount' (case insensitive) or empty, force 0% discount
+    if (discountType === "<?php echo strtolower(get_phrase('no_discount'));?>" || discountType === '') {
         discountPercentage = 0;
     }
 
@@ -576,11 +570,11 @@ function calculateMassTotalAmount() {
         }
     });
 
-    var discountType = document.querySelector('form[action*="mass_invoice"] select[name="discount_type"]').value;
+    var discountType = document.getElementById('discount_type_text_mass').value.trim().toLowerCase();
     var discountPercentage = parseFloat(document.querySelector('form[action*="mass_invoice"] input[name="discount"]').value) || 0;
     var amountPaid = parseFloat(document.querySelector('form[action*="mass_invoice"] input[name="amount_paid"]').value) || 0;
 
-    if (discountType === 'no_discount' || discountType === '') {
+    if (discountType === "<?php echo strtolower(get_phrase('no_discount'));?>" || discountType === '') {
         discountPercentage = 0;
     }
     
@@ -657,13 +651,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners for single invoice form
     const singleInvoiceForm = document.querySelector('form[action*="single_invoice"]');
     if (singleInvoiceForm) {
-        const discountTypeSelect = singleInvoiceForm.querySelector('select[name="discount_type"]');
+        // Text input for discount_type already has oninput which calls calculateTotalAmount()
         const discountInput = singleInvoiceForm.querySelector('input[name="discount"]');
         const amountPaidInput = singleInvoiceForm.querySelector('input[name="amount_paid"]');
         
-        if (discountTypeSelect) {
-            discountTypeSelect.addEventListener('change', calculateTotalAmount);
-        }
         if (discountInput) {
             discountInput.addEventListener('input', calculateTotalAmount);
         }
@@ -675,13 +666,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners for mass invoice form
     const massInvoiceForm = document.querySelector('form[action*="mass_invoice"]');
     if (massInvoiceForm) {
-        const massDiscountTypeSelect = massInvoiceForm.querySelector('select[name="discount_type"]');
+        // Text input for discount_type already has oninput which calls calculateMassTotalAmount()
         const massDiscountInput = massInvoiceForm.querySelector('input[name="discount"]');
         const massAmountPaidInput = massInvoiceForm.querySelector('input[name="amount_paid"]');
 
-        if (massDiscountTypeSelect) {
-            massDiscountTypeSelect.addEventListener('change', calculateMassTotalAmount);
-        }
         if (massDiscountInput) {
             massDiscountInput.addEventListener('input', calculateMassTotalAmount);
         }

@@ -91,33 +91,33 @@
             <div class="form-group">
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Amount');?></label>
                 <div class="col-sm-12">
-                    <input type="text" class="form-control" name="amount" / required>
+                    <input type="text" class="form-control" name="amount" oninput="calculateTotalAmountAcc()" / required>
                 </div>
             </div>
 
             <div class="form-group">
-                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Discount Type');?></label>
+                 	<label class="col-md-12" for="discount_type_text_single_acc"><?php echo get_phrase('Payment Discount Type');?></label>
                 <div class="col-sm-12">
-                    <select name="discount_type" class="form-control select2" onchange="calculateTotalAmount()">
-                        <option value=""><?php echo get_phrase('select_discount_type');?></option>
-                        <option value="no_discount"><?php echo get_phrase('no_discount');?></option>
-                        <option value="sibling_discount"><?php echo get_phrase('sibling_discount');?></option>
-                        <option value="parent_staff_discount"><?php echo get_phrase('parent_staff_discount');?></option>
-                    </select>
+                    <input type="text" class="form-control" name="discount_type" id="discount_type_text_single_acc" list="discount_suggestions_single_acc" placeholder="<?php echo get_phrase('enter_or_select_discount_type');?>" oninput="calculateTotalAmountAcc()">
+                    <datalist id="discount_suggestions_single_acc">
+                        <option value="<?php echo get_phrase('no_discount');?>">
+                        <option value="<?php echo get_phrase('sibling_discount');?>">
+                        <option value="<?php echo get_phrase('parent_is_campus_employee_discount');?>">
+                    </datalist>
                 </div>
             </div>
 
             <div class="form-group">
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Discount');?> %</label>
                 <div class="col-sm-12">
-                    <input type="number" class="form-control" name="discount" value="0" onchange="calculateTotalAmount()" onkeyup="calculateTotalAmount()">
+                    <input type="number" class="form-control" name="discount" value="0" onchange="calculateTotalAmountAcc()" onkeyup="calculateTotalAmountAcc()">
                 </div>
             </div>
 
             <div class="form-group">
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('Amount Paid');?></label>
                 <div class="col-sm-12">
-                    <input type="number" class="form-control" name="amount_paid" value="0" oninput="calculateTotalAmount()">
+                    <input type="number" class="form-control" name="amount_paid" value="0" oninput="calculateTotalAmountAcc()">
                 </div>
             </div>
 
@@ -262,33 +262,33 @@
             <div class="form-group">
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Amount');?></label>
                 <div class="col-sm-12">
-                    <input type="text" class="form-control" name="amount" / required>
+                    <input type="text" class="form-control" name="amount" oninput="calculateMassTotalAmountAcc()" / required>
                 </div>
             </div>
 
             <div class="form-group">
-                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Discount Type');?></label>
+                 	<label class="col-md-12" for="discount_type_text_mass_acc"><?php echo get_phrase('Payment Discount Type');?></label>
                 <div class="col-sm-12">
-                    <select name="discount_type" class="form-control select2" onchange="calculateMassTotalAmount()">
-                        <option value=""><?php echo get_phrase('select_discount_type');?></option>
-                        <option value="no_discount"><?php echo get_phrase('no_discount');?></option>
-                        <option value="sibling_discount"><?php echo get_phrase('sibling_discount');?></option>
-                        <option value="parent_staff_discount"><?php echo get_phrase('parent_staff_discount');?></option>
-                    </select>
+                     <input type="text" class="form-control" name="discount_type" id="discount_type_text_mass_acc" list="discount_suggestions_mass_acc" placeholder="<?php echo get_phrase('enter_or_select_discount_type');?>" oninput="calculateMassTotalAmountAcc()">
+                     <datalist id="discount_suggestions_mass_acc">
+                        <option value="<?php echo get_phrase('no_discount');?>">
+                        <option value="<?php echo get_phrase('sibling_discount');?>">
+                        <option value="<?php echo get_phrase('parent_is_campus_employee_discount');?>">
+                    </datalist>
                 </div>
             </div>
 
             <div class="form-group">
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Discount');?> %</label>
                 <div class="col-sm-12">
-                    <input type="number" class="form-control" name="discount" value="0" onchange="calculateMassTotalAmount()" onkeyup="calculateMassTotalAmount()">
+                    <input type="number" class="form-control" name="discount" value="0" onchange="calculateMassTotalAmountAcc()" onkeyup="calculateMassTotalAmountAcc()">
                 </div>
             </div>
 
             <div class="form-group">
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('Amount Paid');?></label>
                 <div class="col-sm-12">
-                    <input type="number" class="form-control" name="amount_paid" value="0" oninput="calculateMassTotalAmount()">
+                    <input type="number" class="form-control" name="amount_paid" value="0" oninput="calculateMassTotalAmountAcc()">
                 </div>
             </div>
 
@@ -421,63 +421,77 @@ function get_class_mass_student(class_id){
 </script>
 
 <script type="text/javascript">
-// Function to calculate total amount for single invoice
-function calculateTotalAmount() {
-    var feeAmount = parseFloat(document.querySelector('form[action*="single_invoice"] input[name="amount"]').value) || 0;
-    // This feeAmount is already post-discount due to previous logic.
-    // For remaining amount, we just need amount_paid.
-    var amountPaid = parseFloat(document.querySelector('form[action*="single_invoice"] input[name="amount_paid"]').value) || 0;
-    
-    // The displayed 'amount' is already post-discount
-    var discountedTotal = feeAmount; 
+// Removed populateDiscountTextAndCalcAcc and other previous JS related to the more complex dropdown.
+
+// Function to calculate total amount for single invoice (Accountant)
+function calculateTotalAmountAcc() {
+    var baseAmountInput = document.querySelector('form[action*="accountant/student_payment/single_invoice"] input[name="amount"]');
+    var baseAmount = parseFloat(baseAmountInput.value) || 0;
+
+    var discountType = document.getElementById('discount_type_text_single_acc').value.trim().toLowerCase();
+    var discountPercentage = parseFloat(document.querySelector('form[action*="accountant/student_payment/single_invoice"] input[name="discount"]').value) || 0;
+    var amountPaid = parseFloat(document.querySelector('form[action*="accountant/student_payment/single_invoice"] input[name="amount_paid"]').value) || 0;
+
+    if (discountType === "<?php echo strtolower(get_phrase('no_discount'));?>" || discountType === '') {
+        discountPercentage = 0;
+    }
+
+    var discountedTotal = baseAmount * (1 - (discountPercentage / 100));
+    baseAmountInput.value = discountedTotal.toFixed(2); // This means the 'Payment Amount' becomes post-discount
 
     var remainingAmount = discountedTotal - amountPaid;
-    document.querySelector('form[action*="single_invoice"] input[id="remaining_amount"]').value = remainingAmount.toFixed(2);
+    document.querySelector('form[action*="accountant/student_payment/single_invoice"] input[id="remaining_amount"]').value = remainingAmount.toFixed(2);
 }
 
-// Function to calculate total amount for mass invoice
-function calculateMassTotalAmount() {
-    var feeAmount = parseFloat(document.querySelector('form[action*="mass_invoice"] input[name="amount"]').value) || 0;
-    // This feeAmount is already post-discount.
-    var amountPaid = parseFloat(document.querySelector('form[action*="mass_invoice"] input[name="amount_paid"]').value) || 0;
+// Function to calculate total amount for mass invoice (Accountant)
+function calculateMassTotalAmountAcc() {
+    var baseAmountInput = document.querySelector('form[action*="accountant/student_payment/mass_invoice"] input[name="amount"]');
+    var baseAmount = parseFloat(baseAmountInput.value) || 0;
+    
+    var discountType = document.getElementById('discount_type_text_mass_acc').value.trim().toLowerCase();
+    var discountPercentage = parseFloat(document.querySelector('form[action*="accountant/student_payment/mass_invoice"] input[name="discount"]').value) || 0;
+    var amountPaid = parseFloat(document.querySelector('form[action*="accountant/student_payment/mass_invoice"] input[name="amount_paid"]').value) || 0;
 
-    // The displayed 'amount' is already post-discount
-    var discountedTotal = feeAmount;
+    if (discountType === "<?php echo strtolower(get_phrase('no_discount'));?>" || discountType === '') {
+        discountPercentage = 0;
+    }
+
+    var discountedTotal = baseAmount * (1 - (discountPercentage / 100));
+    baseAmountInput.value = discountedTotal.toFixed(2); // Payment Amount becomes post-discount
 
     var remainingAmount = discountedTotal - amountPaid;
-    document.querySelector('form[action*="mass_invoice"] input[id="mass_remaining_amount"]').value = remainingAmount.toFixed(2);
+    document.querySelector('form[action*="accountant/student_payment/mass_invoice"] input[id="mass_remaining_amount"]').value = remainingAmount.toFixed(2);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Event listeners for single invoice form
-    const singleInvoiceForm = document.querySelector('form[action*="single_invoice"]');
-    if (singleInvoiceForm) {
-        const amountInput = singleInvoiceForm.querySelector('input[name="amount"]');
-        const discountTypeSelect = singleInvoiceForm.querySelector('select[name="discount_type"]');
-        const discountInput = singleInvoiceForm.querySelector('input[name="discount"]');
-        const amountPaidInput = singleInvoiceForm.querySelector('input[name="amount_paid"]');
+    // Initial calculations
+    calculateTotalAmountAcc();
+    calculateMassTotalAmountAcc();
 
-        if (amountInput) amountInput.addEventListener('input', calculateTotalAmount);
-        if (discountTypeSelect) discountTypeSelect.addEventListener('change', calculateTotalAmount);
-        if (discountInput) discountInput.addEventListener('input', calculateTotalAmount);
-        if (amountPaidInput) amountPaidInput.addEventListener('input', calculateTotalAmount); // Add listener
-        calculateTotalAmount(); // Initial calculation
+    // Event listeners for single invoice form (Accountant)
+    const singleInvoiceFormAcc = document.querySelector('form[action*="accountant/student_payment/single_invoice"]');
+    if (singleInvoiceFormAcc) {
+        // Text input for discount_type has oninput listener already
+        // Amount input has oninput listener already
+        const discountInputAcc = singleInvoiceFormAcc.querySelector('input[name="discount"]');
+        const amountPaidInputAcc = singleInvoiceFormAcc.querySelector('input[name="amount_paid"]');
+
+        if (discountInputAcc) discountInputAcc.addEventListener('input', calculateTotalAmountAcc);
+        if (amountPaidInputAcc) amountPaidInputAcc.addEventListener('input', calculateTotalAmountAcc);
     }
 
-    // Event listeners for mass invoice form
-    const massInvoiceForm = document.querySelector('form[action*="mass_invoice"]');
-    if (massInvoiceForm) {
-        const massAmountInput = massInvoiceForm.querySelector('input[name="amount"]');
-        const massDiscountTypeSelect = massInvoiceForm.querySelector('select[name="discount_type"]');
-        const massDiscountInput = massInvoiceForm.querySelector('input[name="discount"]');
-        const massAmountPaidInput = massInvoiceForm.querySelector('input[name="amount_paid"]');
+    // Event listeners for mass invoice form (Accountant)
+    const massInvoiceFormAcc = document.querySelector('form[action*="accountant/student_payment/mass_invoice"]');
+    if (massInvoiceFormAcc) {
+        // Text input for discount_type has oninput listener already
+        // Amount input has oninput listener already
+        const massDiscountInputAcc = massInvoiceFormAcc.querySelector('input[name="discount"]');
+        const massAmountPaidInputAcc = massInvoiceFormAcc.querySelector('input[name="amount_paid"]');
 
-        if (massAmountInput) massAmountInput.addEventListener('input', calculateMassTotalAmount);
-        if (massDiscountTypeSelect) massDiscountTypeSelect.addEventListener('change', calculateMassTotalAmount);
-        if (massDiscountInput) massDiscountInput.addEventListener('input', calculateMassTotalAmount);
-        if (massAmountPaidInput) massAmountPaidInput.addEventListener('input', calculateMassTotalAmount); // Add listener
-        calculateMassTotalAmount(); // Initial calculation
+        if (massDiscountInputAcc) massDiscountInputAcc.addEventListener('input', calculateMassTotalAmountAcc);
+        if (massAmountPaidInputAcc) massAmountPaidInputAcc.addEventListener('input', calculateMassTotalAmountAcc);
     }
+    // ... (any other existing get_class_student, get_student_details_by_admission event listeners) ...
 });
 </script>
 </script>
