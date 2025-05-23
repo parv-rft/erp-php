@@ -96,17 +96,35 @@
             </div>
 
             <div class="form-group">
-                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Discount');?> %</label>
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Discount Type');?></label>
                 <div class="col-sm-12">
-                    <input type="number" class="form-control" name="discount" value="0">
+                    <select name="discount_type" class="form-control select2" onchange="calculateTotalAmount()">
+                        <option value=""><?php echo get_phrase('select_discount_type');?></option>
+                        <option value="no_discount"><?php echo get_phrase('no_discount');?></option>
+                        <option value="sibling_discount"><?php echo get_phrase('sibling_discount');?></option>
+                        <option value="parent_staff_discount"><?php echo get_phrase('parent_staff_discount');?></option>
+                    </select>
                 </div>
             </div>
 
+            <div class="form-group">
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Discount');?> %</label>
+                <div class="col-sm-12">
+                    <input type="number" class="form-control" name="discount" value="0" onchange="calculateTotalAmount()" onkeyup="calculateTotalAmount()">
+                </div>
+            </div>
 
             <div class="form-group">
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('Amount Paid');?></label>
                 <div class="col-sm-12">
-                    <input type="number" class="form-control" name="amount_paid" value="0">
+                    <input type="number" class="form-control" name="amount_paid" value="0" oninput="calculateTotalAmount()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Remaining Amount');?></label>
+                <div class="col-sm-12">
+                    <input type="text" class="form-control" id="remaining_amount" name="remaining_amount" readonly>
                 </div>
             </div>
 
@@ -249,17 +267,35 @@
             </div>
 
             <div class="form-group">
-                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Discount');?> %</label>
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Discount Type');?></label>
                 <div class="col-sm-12">
-                    <input type="number" class="form-control" name="discount" value="0">
+                    <select name="discount_type" class="form-control select2" onchange="calculateMassTotalAmount()">
+                        <option value=""><?php echo get_phrase('select_discount_type');?></option>
+                        <option value="no_discount"><?php echo get_phrase('no_discount');?></option>
+                        <option value="sibling_discount"><?php echo get_phrase('sibling_discount');?></option>
+                        <option value="parent_staff_discount"><?php echo get_phrase('parent_staff_discount');?></option>
+                    </select>
                 </div>
             </div>
 
+            <div class="form-group">
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Payment Discount');?> %</label>
+                <div class="col-sm-12">
+                    <input type="number" class="form-control" name="discount" value="0" onchange="calculateMassTotalAmount()" onkeyup="calculateMassTotalAmount()">
+                </div>
+            </div>
 
             <div class="form-group">
                  	<label class="col-md-12" for="example-text"><?php echo get_phrase('Amount Paid');?></label>
                 <div class="col-sm-12">
-                    <input type="number" class="form-control" name="amount_paid" value="0">
+                    <input type="number" class="form-control" name="amount_paid" value="0" oninput="calculateMassTotalAmount()">
+                </div>
+            </div>
+
+            <div class="form-group">
+                 	<label class="col-md-12" for="example-text"><?php echo get_phrase('Remaining Amount');?></label>
+                <div class="col-sm-12">
+                    <input type="text" class="form-control" id="mass_remaining_amount" name="mass_remaining_amount" readonly>
                 </div>
             </div>
 
@@ -382,4 +418,67 @@ function get_class_mass_student(class_id){
 
     });
 }
+</script>
+
+<script type="text/javascript">
+// Function to calculate total amount for single invoice
+function calculateTotalAmount() {
+    var feeAmount = parseFloat(document.querySelector('form[action*="single_invoice"] input[name="amount"]').value) || 0;
+    // This feeAmount is already post-discount due to previous logic.
+    // For remaining amount, we just need amount_paid.
+    var amountPaid = parseFloat(document.querySelector('form[action*="single_invoice"] input[name="amount_paid"]').value) || 0;
+    
+    // The displayed 'amount' is already post-discount
+    var discountedTotal = feeAmount; 
+
+    var remainingAmount = discountedTotal - amountPaid;
+    document.querySelector('form[action*="single_invoice"] input[id="remaining_amount"]').value = remainingAmount.toFixed(2);
+}
+
+// Function to calculate total amount for mass invoice
+function calculateMassTotalAmount() {
+    var feeAmount = parseFloat(document.querySelector('form[action*="mass_invoice"] input[name="amount"]').value) || 0;
+    // This feeAmount is already post-discount.
+    var amountPaid = parseFloat(document.querySelector('form[action*="mass_invoice"] input[name="amount_paid"]').value) || 0;
+
+    // The displayed 'amount' is already post-discount
+    var discountedTotal = feeAmount;
+
+    var remainingAmount = discountedTotal - amountPaid;
+    document.querySelector('form[action*="mass_invoice"] input[id="mass_remaining_amount"]').value = remainingAmount.toFixed(2);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Event listeners for single invoice form
+    const singleInvoiceForm = document.querySelector('form[action*="single_invoice"]');
+    if (singleInvoiceForm) {
+        const amountInput = singleInvoiceForm.querySelector('input[name="amount"]');
+        const discountTypeSelect = singleInvoiceForm.querySelector('select[name="discount_type"]');
+        const discountInput = singleInvoiceForm.querySelector('input[name="discount"]');
+        const amountPaidInput = singleInvoiceForm.querySelector('input[name="amount_paid"]');
+
+        if (amountInput) amountInput.addEventListener('input', calculateTotalAmount);
+        if (discountTypeSelect) discountTypeSelect.addEventListener('change', calculateTotalAmount);
+        if (discountInput) discountInput.addEventListener('input', calculateTotalAmount);
+        if (amountPaidInput) amountPaidInput.addEventListener('input', calculateTotalAmount); // Add listener
+        calculateTotalAmount(); // Initial calculation
+    }
+
+    // Event listeners for mass invoice form
+    const massInvoiceForm = document.querySelector('form[action*="mass_invoice"]');
+    if (massInvoiceForm) {
+        const massAmountInput = massInvoiceForm.querySelector('input[name="amount"]');
+        const massDiscountTypeSelect = massInvoiceForm.querySelector('select[name="discount_type"]');
+        const massDiscountInput = massInvoiceForm.querySelector('input[name="discount"]');
+        const massAmountPaidInput = massInvoiceForm.querySelector('input[name="amount_paid"]');
+
+        if (massAmountInput) massAmountInput.addEventListener('input', calculateMassTotalAmount);
+        if (massDiscountTypeSelect) massDiscountTypeSelect.addEventListener('change', calculateMassTotalAmount);
+        if (massDiscountInput) massDiscountInput.addEventListener('input', calculateMassTotalAmount);
+        if (massAmountPaidInput) massAmountPaidInput.addEventListener('input', calculateMassTotalAmount); // Add listener
+        calculateMassTotalAmount(); // Initial calculation
+    }
+});
+</script>
+</script>
 </script>

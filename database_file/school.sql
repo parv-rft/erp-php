@@ -852,6 +852,7 @@ CREATE TABLE IF NOT EXISTS `invoice` (
   `description` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `fee_type` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci,
   `amount` int(11) NOT NULL,
+  `discount_type` longtext CHARACTER SET utf8 COLLATE utf8_unicode_ci,
   `discount` int(11) NOT NULL,
   `amount_paid` int(11) NOT NULL,
   `due` int(11) NOT NULL,

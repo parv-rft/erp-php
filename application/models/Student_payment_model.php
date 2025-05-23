@@ -44,10 +44,19 @@ class Student_payment_model extends CI_Model {
                                                 $fee_items[0]['fee_type'] : 
                                                 html_escape($this->input->post('fee_type'));
             
-            $page_data['amount']            =   $total_amount;
+            $page_data['discount_type']     =   html_escape($this->input->post('discount_type'));
             $page_data['discount']          =   html_escape($this->input->post('discount'));
+            $page_data['amount']            =   $total_amount;
             $page_data['amount_paid']       =   html_escape($this->input->post('amount_paid'));
-            $page_data['due']               =   $page_data['amount'] - $page_data['amount_paid'];
+            
+            // Calculate due amount considering the discount
+            $discount_percentage = 0;
+            if ($page_data['discount_type'] != 'no_discount' && $page_data['discount_type'] != '') {
+                $discount_percentage = floatval($page_data['discount']);
+            }
+            $amount_after_discount = $total_amount * (1 - ($discount_percentage / 100));
+            $page_data['due']               =   $amount_after_discount - floatval($page_data['amount_paid']);
+            
             $page_data['creation_timestamp'] =   html_escape($this->input->post('creation_timestamp'));
             $page_data['payment_method']     =   html_escape($this->input->post('payment_method'));
             $page_data['status']             =   html_escape($this->input->post('status'));
@@ -83,7 +92,8 @@ class Student_payment_model extends CI_Model {
             $page_data2['title']        =   html_escape($this->input->post('title'));
             $page_data2['description']  =   html_escape($this->input->post('description'));
             $page_data2['payment_type'] =   'income';
-            $page_data2['amount']       =   $total_amount;
+            $page_data2['amount']       =   $amount_after_discount;
+            $page_data2['discount_type']     =   html_escape($this->input->post('discount_type'));
             $page_data2['discount']     =   html_escape($this->input->post('discount'));
             $page_data2['timestamp']    =   strtotime($this->input->post('creation_timestamp'));
             $page_data2['year']         =   $this->db->get_where('settings', array('type' => 'session'))->row()->description;
@@ -100,6 +110,7 @@ class Student_payment_model extends CI_Model {
             $title = html_escape($this->input->post('title'));
             $description = html_escape($this->input->post('description'));
             $fee_items = $this->input->post('fee_items');
+            $discount_type = html_escape($this->input->post('discount_type'));
             $discount = html_escape($this->input->post('discount'));
             $amount_paid = html_escape($this->input->post('amount_paid'));
             $status = html_escape($this->input->post('status'));
@@ -141,10 +152,19 @@ class Student_payment_model extends CI_Model {
                                         $fee_items[0]['fee_type'] : 
                                         html_escape($this->input->post('fee_type'));
                 
-                $page_data['amount'] = $total_amount;
+                $page_data['discount_type'] = $discount_type;
                 $page_data['discount'] = $discount;
+                $page_data['amount'] = $total_amount;
                 $page_data['amount_paid'] = $amount_paid;
-                $page_data['due'] = $total_amount - $amount_paid;
+
+                // Calculate due amount considering the discount for mass invoice
+                $current_discount_percentage = 0;
+                if ($discount_type != 'no_discount' && $discount_type != '') {
+                    $current_discount_percentage = floatval($discount);
+                }
+                $current_amount_after_discount = $total_amount * (1 - ($current_discount_percentage / 100));
+                $page_data['due'] = $current_amount_after_discount - floatval($amount_paid);
+
                 $page_data['creation_timestamp'] = $creation_timestamp;
                 $page_data['payment_method'] = $payment_method;
                 $page_data['status'] = $status;
@@ -170,7 +190,7 @@ class Student_payment_model extends CI_Model {
                         'invoice_id' => $invoice_id,
                         'fee_type'   => html_escape($this->input->post('fee_type')),
                         'amount'     => html_escape($this->input->post('amount')),
-                        'discount'   => $discount,
+                        'discount'   => html_escape($this->input->post('discount')),
                     );
                     $this->db->insert('fee_items', $fee_item_data);
                 }
@@ -181,7 +201,8 @@ class Student_payment_model extends CI_Model {
                 $page_data2['title'] = $title;
                 $page_data2['description'] = $description;
                 $page_data2['payment_type'] = 'income';
-                $page_data2['amount'] = $total_amount;
+                $page_data2['amount'] = $current_amount_after_discount;
+                $page_data2['discount_type'] = $discount_type;
                 $page_data2['discount'] = $discount;
                 $page_data2['timestamp'] = strtotime($creation_timestamp);
                 $page_data2['year'] = $this->db->get_where('settings', array('type' => 'session'))->row()->description;
@@ -248,9 +269,19 @@ class Student_payment_model extends CI_Model {
                                                 $fee_items[0]['fee_type'] : 
                                                 html_escape($this->input->post('fee_type'));
             
+            $page_data['discount_type']     =   html_escape($this->input->post('discount_type'));
+            $page_data['discount']          =   html_escape($this->input->post('discount'));
             $page_data['amount']            =   $total_amount;
             $page_data['amount_paid']       =   html_escape($this->input->post('amount_paid'));
-            $page_data['due']               =   $page_data['amount'] - $page_data['amount_paid'];
+
+            // Recalculate due amount considering the discount for update function
+            $update_discount_percentage = 0;
+            if ($page_data['discount_type'] != 'no_discount' && $page_data['discount_type'] != '') {
+                $update_discount_percentage = floatval($page_data['discount']);
+            }
+            $update_amount_after_discount = $total_amount * (1 - ($update_discount_percentage / 100));
+            $page_data['due']               =   $update_amount_after_discount - floatval($page_data['amount_paid']);
+
             $page_data['creation_timestamp'] =   html_escape($this->input->post('date'));
             $page_data['status']             =   html_escape($this->input->post('status'));
             $page_data['receipt_number']     =   html_escape($this->input->post('receipt_number'));
@@ -269,7 +300,8 @@ class Student_payment_model extends CI_Model {
                         'invoice_id' => $param2,
                         'fee_type'   => $item['fee_type'],
                         'amount'     => $item['amount'],
-                        'discount'   => isset($item['discount']) ? $item['discount'] : 0,
+                        'discount_type'   => html_escape($this->input->post('discount_type')),
+                        'discount'   => html_escape($this->input->post('discount')),
                     );
                     $this->db->insert('fee_items', $fee_item_data);
                 }
@@ -279,6 +311,7 @@ class Student_payment_model extends CI_Model {
                     'invoice_id' => $param2,
                     'fee_type'   => html_escape($this->input->post('fee_type')),
                     'amount'     => $total_amount,
+                    'discount_type'   => html_escape($this->input->post('discount_type')),
                     'discount'   => html_escape($this->input->post('discount')),
                 );
                 $this->db->insert('fee_items', $fee_item_data);
