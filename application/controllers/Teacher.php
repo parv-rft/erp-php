@@ -90,36 +90,64 @@ class Teacher extends CI_Controller {
             if ($this->session->userdata('teacher_login') != 1)
                 redirect(base_url(), 'refresh');
             
-            $data['class_id'] = $this->input->post('class_id');
-            $data['section_id'] = $this->input->post('section_id');
-            $data['timestamp'] = strtotime($this->input->post('timestamp'));
-            
-            $query = $this->db->get_where('attendance', array(
-                'class_id' => $data['class_id'],
-                'section_id' => $data['section_id'],
-                'timestamp' => $data['timestamp']
-            ));
-            
-            if ($query->num_rows() < 1) {
-                $students = $this->db->get_where('enroll', array(
+            try {
+                // Get and validate input data
+                $data['class_id'] = $this->input->post('class_id');
+                $data['section_id'] = $this->input->post('section_id');
+                $timestamp = $this->input->post('timestamp');
+                
+                // Validate required fields
+                if (empty($data['class_id']) || empty($data['section_id']) || empty($timestamp)) {
+                    $this->session->set_flashdata('error_message', get_phrase('Please fill all required fields'));
+                    redirect(base_url() . 'teacher/manage_attendance', 'refresh');
+                    return;
+                }
+                
+                // Convert date to timestamp
+                $data['timestamp'] = strtotime($timestamp);
+                if ($data['timestamp'] === false) {
+                    $this->session->set_flashdata('error_message', get_phrase('Invalid date format'));
+                    redirect(base_url() . 'teacher/manage_attendance', 'refresh');
+                    return;
+                }
+                
+                // Check if attendance records already exist
+                $query = $this->db->get_where('attendance', array(
                     'class_id' => $data['class_id'],
                     'section_id' => $data['section_id'],
-                    'year' => $this->db->get_where('settings', array('type' => 'running_year'))->row()->description
-                ))->result_array();
+                    'timestamp' => $data['timestamp']
+                ));
                 
-                foreach ($students as $row) {
-                    $attn_data['class_id'] = $data['class_id'];
-                    $attn_data['section_id'] = $data['section_id'];
-                    $attn_data['student_id'] = $row['student_id'];
-                    $attn_data['timestamp'] = $data['timestamp'];
-                    $attn_data['status'] = 1;
+                if ($query->num_rows() < 1) {
+                    // Get enrolled students
+                    $students = $this->db->get_where('enroll', array(
+                        'class_id' => $data['class_id'],
+                        'section_id' => $data['section_id'],
+                        'year' => $this->db->get_where('settings', array('type' => 'running_year'))->row()->description
+                    ))->result_array();
                     
-                    $this->db->insert('attendance', $attn_data);
+                    // Create attendance records for each student
+                    foreach ($students as $row) {
+                        $attn_data = array(
+                            'class_id' => $data['class_id'],
+                            'section_id' => $data['section_id'],
+                            'student_id' => $row['student_id'],
+                            'timestamp' => $data['timestamp'],
+                            'status' => 1
+                        );
+                        
+                        $this->db->insert('attendance', $attn_data);
+                    }
                 }
+                
+                // Format date for URL using date() function
+                $formatted_date = date('d/m/Y', $data['timestamp']);
+                redirect(base_url() . 'teacher/manage_attendance/' . $formatted_date, 'refresh');
+                
+            } catch (Exception $e) {
+                $this->session->set_flashdata('error_message', get_phrase('An error occurred while processing attendance'));
+                redirect(base_url() . 'teacher/manage_attendance', 'refresh');
             }
-            
-            // Use consistent date format d/m/Y for redirection
-            redirect(base_url() . 'teacher/manage_attendance/' . date('d/m/Y', $data['timestamp']), 'refresh');
         }
 
         function attendance_update($class_id = '', $section_id = '', $timestamp = '') {

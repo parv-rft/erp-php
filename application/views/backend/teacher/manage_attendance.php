@@ -36,7 +36,7 @@
                 <div class="form-group">
                     <label class="col-md-12" for="example-text"><?php echo get_phrase('date'); ?></label>
                     <div class="col-sm-12">
-                        <input type="date" class="form-control datepicker" name="timestamp" value="<?php echo isset($date) ? date('Y-m-d', strtotime(str_replace('/', '-', $date))) : date('Y-m-d'); ?>" required>
+                        <input type="date" class="form-control" name="timestamp" value="<?php echo isset($date) ? date('Y-m-d', strtotime(str_replace('/', '-', $date))) : date('Y-m-d'); ?>" required>
                     </div>
                 </div>
 
