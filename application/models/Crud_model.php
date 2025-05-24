@@ -130,8 +130,12 @@ class Crud_model extends CI_Model {
     }
 
     function get_students($class_id){
-        $query = $this->db->get_where('student', array('class_id' => $class_id));
-        return $query->result_array();
+        $this->db->select('student.*');
+        $this->db->from('student');
+        $this->db->join('enroll', 'student.student_id = enroll.student_id');
+        $this->db->where('enroll.class_id', $class_id);
+        $this->db->where('enroll.year', $this->db->get_where('settings', array('type' => 'running_year'))->row()->description);
+        return $this->db->get()->result_array();
     }
 
     function list_all_student_and_order_with_student_id(){

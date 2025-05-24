@@ -216,6 +216,22 @@ class Student_model extends CI_Model {
                 throw new Exception('Database insertion failed');
             }
 
+            // Insert enrollment data
+            $enroll_data = array(
+                'student_id' => $student_id,
+                'class_id' => $page_data['class_id'],
+                'section_id' => $page_data['section_id'],
+                'roll' => $page_data['roll'],
+                'date_added' => date('Y-m-d H:i:s'),
+                'year' => $this->db->get_where('settings', array('type' => 'running_year'))->row()->description
+            );
+            
+            $this->db->insert('enroll', $enroll_data);
+            if ($this->db->affected_rows() <= 0) {
+                error_log('Failed to insert enrollment data. Last query: ' . $this->db->last_query());
+                throw new Exception('Failed to enroll student');
+            }
+
             // Create upload directory if it doesn't exist
             $upload_path = 'uploads/student_image/';
             if (!is_dir($upload_path)) {
@@ -492,6 +508,32 @@ class Student_model extends CI_Model {
                 // This is not necessarily an error, the user might have submitted without changes
             }
             
+            // Update enrollment data
+            $enroll_data = array(
+                'class_id' => html_escape($this->input->post('class_id')),
+                'section_id' => html_escape($this->input->post('section_id')),
+                'roll' => html_escape($this->input->post('roll')),
+                'year' => $this->db->get_where('settings', array('type' => 'running_year'))->row()->description
+            );
+            
+            // Check if enrollment exists
+            $existing_enrollment = $this->db->get_where('enroll', array(
+                'student_id' => $param2,
+                'year' => $enroll_data['year']
+            ))->row();
+            
+            if ($existing_enrollment) {
+                // Update existing enrollment
+                $this->db->where('student_id', $param2);
+                $this->db->where('year', $enroll_data['year']);
+                $this->db->update('enroll', $enroll_data);
+            } else {
+                // Create new enrollment
+                $enroll_data['student_id'] = $param2;
+                $enroll_data['date_added'] = date('Y-m-d H:i:s');
+                $this->db->insert('enroll', $enroll_data);
+            }
+
             // Process file uploads
             $upload_errors = [];
             
@@ -711,8 +753,32 @@ class Student_model extends CI_Model {
 
     // the function below deletes from student table
     function deleteNewStudent($param2){
-        $this->db->where('student_id', $param2);
-        $this->db->delete('student');
+        // Begin transaction
+        $this->db->trans_start();
+        
+        try {
+            // Delete enrollment records first
+            $this->db->where('student_id', $param2);
+            $this->db->delete('enroll');
+            
+            // Delete student record
+            $this->db->where('student_id', $param2);
+            $this->db->delete('student');
+            
+            // Complete transaction
+            $this->db->trans_complete();
+            
+            if ($this->db->trans_status() === FALSE) {
+                error_log('Failed to delete student and enrollment records');
+                throw new Exception('Failed to delete student');
+            }
+            
+            return true;
+        } catch (Exception $e) {
+            $this->db->trans_rollback();
+            error_log('Error deleting student: ' . $e->getMessage());
+            return false;
+        }
     }
 
 	

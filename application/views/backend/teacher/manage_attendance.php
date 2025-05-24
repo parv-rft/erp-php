@@ -1,17 +1,29 @@
 <?php $active_sms_service = $this->db->get_where('settings', array('type' => 'active_sms_service'))->row()->description; ?>
 <div class="row">
     <div class="col-sm-12">
+        <?php if($this->session->flashdata('error_message')): ?>
+            <div class="alert alert-danger">
+                <?php echo $this->session->flashdata('error_message'); ?>
+            </div>
+        <?php endif; ?>
+        
+        <?php if($this->session->flashdata('flash_message')): ?>
+            <div class="alert alert-success">
+                <?php echo $this->session->flashdata('flash_message'); ?>
+            </div>
+        <?php endif; ?>
+
         <div class="panel panel-info">
             <div class="panel-heading">
                 <i class="fa fa-plus"></i>&nbsp;&nbsp;<?php echo get_phrase('attendance'); ?>
             </div>
             <div class="panel-body table-responsive">
-                <?php echo form_open(base_url() . 'teacher/attendance_selector', array('class' => 'form-horizontal form-groups-bordered validate', 'target' => '_top', 'enctype' => 'multipart/form-data')); ?>
+                <?php echo form_open(base_url() . 'teacher/attendance_selector', array('class' => 'form-horizontal form-groups-bordered validate', 'target' => '_top')); ?>
                 
                 <div class="form-group">
-                    <label class="col-md-12" for="example-text"><?php echo get_phrase('class'); ?></label>
+                    <label class="col-md-12" for="example-text"><?php echo get_phrase('class'); ?> <span class="required">*</span></label>
                     <div class="col-sm-12">
-                        <select name="class_id" id="class_id" class="form-control select2" onchange="return get_class_sections(this.value)">
+                        <select name="class_id" id="class_id" class="form-control select2" onchange="return get_class_sections(this.value)" required>
                             <option value=""><?php echo get_phrase('select_class'); ?></option>
                             <?php 
                             $class = $this->db->get('class')->result_array();
@@ -25,16 +37,16 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="col-md-12" for="example-text"><?php echo get_phrase('section'); ?></label>
+                    <label class="col-md-12" for="example-text"><?php echo get_phrase('section'); ?> <span class="required">*</span></label>
                     <div class="col-sm-12">
-                        <select name="section_id" class="form-control select2" id="section_selector_holder">
+                        <select name="section_id" class="form-control select2" id="section_selector_holder" required>
                             <option value=""><?php echo get_phrase('select_class_first'); ?></option>
                         </select>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="col-md-12" for="example-text"><?php echo get_phrase('date'); ?></label>
+                    <label class="col-md-12" for="example-text"><?php echo get_phrase('date'); ?> <span class="required">*</span></label>
                     <div class="col-sm-12">
                         <input type="date" class="form-control" name="timestamp" value="<?php echo isset($date) ? date('Y-m-d', strtotime(str_replace('/', '-', $date))) : date('Y-m-d'); ?>" required>
                     </div>
@@ -97,7 +109,7 @@
                                 $student = $this->db->get_where('student', array('student_id' => $row['student_id']))->row();
                                 $attendance = $this->db->get_where('attendance', array(
                                     'student_id' => $student->student_id,
-                                    'timestamp' => strtotime($date)
+                                        'date' => date('Y-m-d', strtotime($date))
                                 ))->row();
                             ?>
                             <tr class="gradeA">
@@ -108,10 +120,10 @@
                                 <td><?php echo $student->roll; ?></td>
                                 <td>
                                     <select name="status_<?php echo $student->student_id; ?>" class="status form-control">
-                                        <option value="1" <?php if($attendance->status == 1) echo 'selected="selected"'; ?>><?php echo get_phrase('present'); ?></option>
-                                        <option value="2" <?php if($attendance->status == 2) echo 'selected="selected"'; ?>><?php echo get_phrase('absent'); ?></option>
-                                        <option value="3" <?php if($attendance->status == 3) echo 'selected="selected"'; ?>><?php echo get_phrase('late'); ?></option>
-                                        <option value="4" <?php if($attendance->status == 4) echo 'selected="selected"'; ?>><?php echo get_phrase('half_day'); ?></option>
+                                        <option value="1" <?php if($attendance && $attendance->status == 1) echo 'selected="selected"'; ?>><?php echo get_phrase('present'); ?></option>
+                                        <option value="2" <?php if($attendance && $attendance->status == 2) echo 'selected="selected"'; ?>><?php echo get_phrase('absent'); ?></option>
+                                        <option value="3" <?php if($attendance && $attendance->status == 3) echo 'selected="selected"'; ?>><?php echo get_phrase('late'); ?></option>
+                                        <option value="4" <?php if($attendance && $attendance->status == 4) echo 'selected="selected"'; ?>><?php echo get_phrase('half_day'); ?></option>
                                     </select>
                                 </td>
                             </tr>
@@ -148,12 +160,35 @@
 
 <script type="text/javascript">
 function get_class_sections(class_id) {
-    $.ajax({
-        url: '<?php echo base_url(); ?>teacher/get_sections_by_class/' + class_id,
-        success: function(response) {
-            jQuery('#section_selector_holder').html(response);
+    if (class_id !== '') {
+        $.ajax({
+            url: '<?php echo base_url(); ?>teacher/get_sections_by_class/' + class_id,
+            success: function(response) {
+                $('#section_selector_holder').html(response);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error fetching sections:', error);
+                alert('Error fetching sections. Please try again.');
+            }
+        });
+    } else {
+        $('#section_selector_holder').html('<option value=""><?php echo get_phrase("select_class_first"); ?></option>');
+    }
+}
+
+// Form validation
+$(document).ready(function() {
+    $('form').on('submit', function(e) {
+        var classId = $('#class_id').val();
+        var sectionId = $('#section_selector_holder').val();
+        var date = $('input[name="timestamp"]').val();
+        
+        if (!classId || !sectionId || !date) {
+            e.preventDefault();
+            alert('Please fill all required fields');
+            return false;
         }
     });
-}
+});
 </script>
 

@@ -1,2 +1,24 @@
 # Docker
-db_data/ 
+db_data/
+
+# Composer
+vendor/
+composer.lock
+
+# Environment files
+.env
+
+# IDE specific
+.idea/
+.vscode/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Cache
+cache/ 

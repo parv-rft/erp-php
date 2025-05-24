@@ -62,24 +62,25 @@ Before you begin, ensure you have the following installed on your system:
     ```
     *(Replace `<your-repository-url>` and `<repository-directory>` with the actual URL and the name of the cloned folder)*
 
-2.  **Build and Start Containers:**
+2.  **Environment Configuration (Optional):**
+    If you need to override any default settings (e.g., database credentials for a different local setup, though the current Docker setup uses environment variables for MySQL), you can create a `.env` file in the project root.
+    Copy `env.example` (if it existed, otherwise create `.env` manually) to `.env` and modify as needed:
+    ```bash
+    # cp env.example .env # If env.example exists
+    # nano .env          # Or use your preferred editor
+    ```
+    *Note: The current `docker-compose.yml` handles database configuration via environment variables, so a `.env` file for the PHP application might not be immediately necessary unless you have other custom environment variables.*
+
+3.  **Build and Start Containers:**
     This command builds the PHP/Apache image defined in `Dockerfile` and starts the `app` and `db` services defined in `docker-compose.yml`.
     ```bash
     docker-compose up -d --build
     ```
 
-3.  **Import Database Schema:**
-    The initial database structure and default data are located in `database_file/school.sql`. You need to import this into the running `db` container.
-    *   **Wait a few moments** for the `db` container to fully initialize after starting.
-    *   Copy the SQL file into the `db` container:
-        ```bash
-        docker cp database_file/school.sql $(docker-compose ps -q db):/tmp/school.sql
-        ```
-    *   Execute the SQL file inside the `db` container:
-        ```bash
-        docker-compose exec db mysql -u root school -e "source /tmp/school.sql"
-        ```
-        *(Note: No password is required for the `root` user as configured in `docker-compose.yml` for local development.)*
+    *Alternative for importing database (using `docker exec` directly without `docker-compose`):*
+    *   Find your database container ID: `docker ps` (look for the MySQL image)
+    *   Copy the SQL file: `docker cp database_file/school.sql YOUR_CONTAINER_ID:/tmp/school.sql`
+    *   Execute SQL: `docker exec -i YOUR_CONTAINER_ID mysql -u root school < /tmp/school.sql` (or use the interactive method shown above)
 
 ## Running the Application
 

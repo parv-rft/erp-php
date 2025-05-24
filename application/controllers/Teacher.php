@@ -10,15 +10,18 @@ class Teacher extends CI_Controller {
      * @property CI_Config $config
      */
 
-    function __construct() {
+    public function __construct() {
         parent::__construct();
-        		$this->load->database();                                //Load Databse Class
-                $this->load->library('session');					    //Load library for session
-                $this->load->library('role_based_access');
-               // $this->load->model('vacancy_model');
-
+        $this->load->database();
+        $this->load->library('session');
+        $this->load->library('role_based_access');
+        $this->load->helper('url');
+        $this->load->helper('form');
+        
         // Check if user is logged in and has teacher role
-        $this->role_based_access->check_access('teacher');
+        if ($this->session->userdata('teacher_login') != 1) {
+            redirect(base_url(), 'refresh');
+        }
     }
 
      /*teacher dashboard code to redirect to teacher page if successfull login** */
@@ -87,65 +90,101 @@ class Teacher extends CI_Controller {
         }
 
         function attendance_selector() {
-            if ($this->session->userdata('teacher_login') != 1)
-                redirect(base_url(), 'refresh');
-            
             try {
+                if ($this->session->userdata('teacher_login') != 1) {
+                    redirect(base_url(), 'refresh');
+                }
+
                 // Get and validate input data
-                $data['class_id'] = $this->input->post('class_id');
-                $data['section_id'] = $this->input->post('section_id');
+                $class_id = $this->input->post('class_id');
+                $section_id = $this->input->post('section_id');
                 $timestamp = $this->input->post('timestamp');
-                
+
+                // Log received data
+                error_log('Attendance_selector - Received data: class_id=' . $class_id . ', section_id=' . $section_id . ', timestamp=' . $timestamp);
+
                 // Validate required fields
-                if (empty($data['class_id']) || empty($data['section_id']) || empty($timestamp)) {
-                    $this->session->set_flashdata('error_message', get_phrase('Please fill all required fields'));
+                if (empty($class_id) || empty($section_id) || empty($timestamp)) {
+                    error_log('Attendance_selector - Missing required fields');
+                    $this->session->set_flashdata('error_message', 'Please fill all required fields');
                     redirect(base_url() . 'teacher/manage_attendance', 'refresh');
                     return;
                 }
-                
-                // Convert date to timestamp
-                $data['timestamp'] = strtotime($timestamp);
-                if ($data['timestamp'] === false) {
-                    $this->session->set_flashdata('error_message', get_phrase('Invalid date format'));
+
+                // Validate class exists
+                $class = $this->db->get_where('class', array('class_id' => $class_id))->row();
+                if (!$class) {
+                    error_log('Attendance_selector - Invalid class_id: ' . $class_id);
+                    $this->session->set_flashdata('error_message', 'Invalid class selected');
                     redirect(base_url() . 'teacher/manage_attendance', 'refresh');
                     return;
                 }
+
+                // Validate section exists
+                $section = $this->db->get_where('section', array('section_id' => $section_id))->row();
+                if (!$section) {
+                    error_log('Attendance_selector - Invalid section_id: ' . $section_id);
+                    $this->session->set_flashdata('error_message', 'Invalid section selected');
+                    redirect(base_url() . 'teacher/manage_attendance', 'refresh');
+                    return;
+                }
+
+                // Convert and validate timestamp
+                $parsed_timestamp = strtotime($timestamp);
+                if ($parsed_timestamp === false) {
+                    error_log('Attendance_selector - Invalid timestamp format: ' . $timestamp);
+                    $this->session->set_flashdata('error_message', 'Invalid date format');
+                    redirect(base_url() . 'teacher/manage_attendance', 'refresh');
+                    return;
+                }
+
+                // Get enrolled students
+                $running_year = $this->db->get_where('settings', array('type' => 'running_year'))->row()->description;
                 
-                // Check if attendance records already exist
-                $query = $this->db->get_where('attendance', array(
-                    'class_id' => $data['class_id'],
-                    'section_id' => $data['section_id'],
-                    'timestamp' => $data['timestamp']
-                ));
-                
-                if ($query->num_rows() < 1) {
-                    // Get enrolled students
-                    $students = $this->db->get_where('enroll', array(
-                        'class_id' => $data['class_id'],
-                        'section_id' => $data['section_id'],
-                        'year' => $this->db->get_where('settings', array('type' => 'running_year'))->row()->description
-                    ))->result_array();
-                    
-                    // Create attendance records for each student
-                    foreach ($students as $row) {
+                $this->db->where('class_id', $class_id);
+                $this->db->where('section_id', $section_id);
+                $this->db->where('year', $running_year);
+                $students = $this->db->get('enroll')->result_array();
+
+                if (empty($students)) {
+                    error_log('Attendance_selector - No students found for class_id=' . $class_id . ' and section_id=' . $section_id);
+                    $this->session->set_flashdata('error_message', 'No students found in this class and section');
+                    redirect(base_url() . 'teacher/manage_attendance', 'refresh');
+                    return;
+                }
+
+                // Check if attendance records already exist for this date
+                $date = date('Y-m-d', $parsed_timestamp);
+                foreach ($students as $student) {
+                    // Check if attendance record exists
+                    $existing = $this->db->get_where('attendance', array(
+                        'student_id' => $student['student_id'],
+                        'date' => $date
+                    ))->num_rows();
+
+                    // If no record exists, create one
+                    if ($existing == 0) {
                         $attn_data = array(
-                            'class_id' => $data['class_id'],
-                            'section_id' => $data['section_id'],
-                            'student_id' => $row['student_id'],
-                            'timestamp' => $data['timestamp'],
-                            'status' => 1
+                            'student_id' => $student['student_id'],
+                            'date' => $date,
+                            'status' => 1,
+                            'session' => $running_year
                         );
                         
-                        $this->db->insert('attendance', $attn_data);
+                        if (!$this->db->insert('attendance', $attn_data)) {
+                            error_log('Attendance_selector - Failed to insert attendance record for student_id=' . $student['student_id']);
+                            throw new Exception('Failed to create attendance record');
+                        }
                     }
                 }
-                
-                // Format date for URL using date() function
-                $formatted_date = date('d/m/Y', $data['timestamp']);
+
+                // Format date for URL
+                $formatted_date = date('d/m/Y', $parsed_timestamp);
                 redirect(base_url() . 'teacher/manage_attendance/' . $formatted_date, 'refresh');
-                
+
             } catch (Exception $e) {
-                $this->session->set_flashdata('error_message', get_phrase('An error occurred while processing attendance'));
+                error_log('Attendance_selector - Exception: ' . $e->getMessage());
+                $this->session->set_flashdata('error_message', 'An error occurred while processing attendance: ' . $e->getMessage());
                 redirect(base_url() . 'teacher/manage_attendance', 'refresh');
             }
         }
@@ -163,20 +202,41 @@ class Teacher extends CI_Controller {
                 'year' => $running_year
             ))->result_array();
             
+            $date = date('Y-m-d', $timestamp);
+            
             foreach ($students as $row) {
                 $attendance_status = $this->input->post('status_' . $row['student_id']);
-                $this->db->where('student_id', $row['student_id']);
-                $this->db->where('timestamp', $timestamp);
-                $this->db->update('attendance', array('status' => $attendance_status));
                 
-                if ($attendance_status == 2) {
-                    if ($active_sms_service != '' || $active_sms_service != 'disabled') {
-                        $student_name = $this->db->get_where('student', array('student_id' => $row['student_id']))->row()->name;
-                        $parent_id = $this->db->get_where('student', array('student_id' => $row['student_id']))->row()->parent_id;
-                        $message = 'Your child ' . $student_name . ' is absent today.';
-                        $receiver_phone = $this->db->get_where('parent', array('parent_id' => $parent_id))->row()->phone;
-                        $this->sms_model->send_sms($message, $receiver_phone);
-                    }
+                // Update or insert attendance record
+                $attendance_data = array(
+                    'status' => $attendance_status,
+                    'date' => $date,
+                    'session' => $running_year
+                );
+                
+                $this->db->where('student_id', $row['student_id']);
+                $this->db->where('date', $date);
+                $exists = $this->db->get('attendance')->num_rows();
+                
+                if ($exists > 0) {
+                    $this->db->where('student_id', $row['student_id']);
+                    $this->db->where('date', $date);
+                    $this->db->update('attendance', $attendance_data);
+                } else {
+                    $attendance_data['student_id'] = $row['student_id'];
+                    $this->db->insert('attendance', $attendance_data);
+                }
+                
+                // Send SMS if student is absent and SMS service is enabled
+                if ($attendance_status == 2 && $active_sms_service != '' && $active_sms_service != 'disabled') {
+                    $student_name = $this->db->get_where('student', array('student_id' => $row['student_id']))->row()->name;
+                    $parent_id = $this->db->get_where('student', array('student_id' => $row['student_id']))->row()->parent_id;
+                    $receiver_phone = $this->db->get_where('parent', array('parent_id' => $parent_id))->row()->phone;
+                    
+                    $message = 'Your child ' . $student_name . ' is absent today.';
+                    
+                    $this->load->model('sms_model');
+                    $this->sms_model->send_sms($message, $receiver_phone);
                 }
             }
             
