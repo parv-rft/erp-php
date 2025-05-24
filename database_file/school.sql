@@ -1462,7 +1462,7 @@ CREATE TABLE IF NOT EXISTS `transfer_certificate` (
 --
 -- Dumping data for table `transfer_certificate`
 --
-
+  
 INSERT IGNORE INTO `transfer_certificate` (`tc_no`, `student_id`, `student_name`, `admission_number`, `father_name`, `mother_name`, `nationality`, `category`, `date_of_birth`, `qualified`, `date_of_admission`, `date_of_leaving`, `student_class`, `to_class`, `class_in_words`, `admit_class`, `fees_paid_up_to`, `fees_concession_availed`, `max_attendance`, `obtained_attendance`, `last_attendance_date`, `tc_charge`, `exam_in`, `whether_failed`, `subject`, `games_played`, `extra_activity`, `general_conduct`, `behavior_remarks`, `reason`, `remarks`, `date_of_issue`, `roll_no`, `issue_status`) 
 VALUES 
 ('TC/2024/1', 11, 'John Smith', '101', 'Robert Smith', 'Mary Smith', 'Indian', 'General', '2005-05-15', 'Yes', '2022-06-05', '2024-05-31', 'Class X', 'Class XI', 'Tenth', 'Class VI', '2024-05-31', 'No', '220', '210', '2024-05-31', 'Yes', 'Annual Examination 2024', 'No', 'English, Mathematics, Science, Social Studies, Hindi', 'Cricket, Football', 'Debate Club, Science Club', 'Excellent', 'Well-mannered student with leadership qualities', 'Completed education at this institution', 'Recommended for higher studies', '2024-06-05', '101', 'issued'),
@@ -1659,9 +1659,9 @@ CREATE TABLE IF NOT EXISTS `enroll` (
   `student_id` int(11) NOT NULL,
   `class_id` int(11) NOT NULL,
   `section_id` int(11) NOT NULL,
-  `roll` int(11) NOT NULL,
+  `roll` int(11) DEFAULT NULL,
   `date_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `year` varchar(11) NOT NULL,
+  `year` varchar(11) DEFAULT   NULL,
   PRIMARY KEY (`enroll_id`),
   KEY `student_id` (`student_id`),
   KEY `class_id` (`class_id`),

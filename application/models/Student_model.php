@@ -753,7 +753,7 @@ class Student_model extends CI_Model {
 
     // the function below deletes from student table
     function deleteNewStudent($param2){
-        // Begin transaction
+            // Begin transaction
         $this->db->trans_start();
         
         try {
