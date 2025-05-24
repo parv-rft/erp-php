@@ -75,6 +75,11 @@ class Teacher extends CI_Controller {
             if ($this->session->userdata('teacher_login') != 1)
                 redirect(base_url(), 'refresh');
             
+            // Convert date format if it's in d-m-Y format
+            if ($date && strpos($date, '-') !== false) {
+                $date = str_replace('-', '/', $date);
+            }
+            
             $page_data['date'] = $date ? $date : date('d/m/Y');
             $page_data['page_name'] = 'manage_attendance';
             $page_data['page_title'] = get_phrase('manage_attendance');
@@ -113,7 +118,8 @@ class Teacher extends CI_Controller {
                 }
             }
             
-            redirect(base_url() . 'teacher/manage_attendance/' . date('d-m-Y', $data['timestamp']), 'refresh');
+            // Use consistent date format d/m/Y for redirection
+            redirect(base_url() . 'teacher/manage_attendance/' . date('d/m/Y', $data['timestamp']), 'refresh');
         }
 
         function attendance_update($class_id = '', $section_id = '', $timestamp = '') {

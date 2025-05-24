@@ -2,136 +2,38 @@
         foreach($students as $key => $student):
 
 // Set active tab, defaulting to 'student' if not specified
-$activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
+// $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student'; // No longer needed
 ?>
 
 <style>
-    /* Custom Navigation Tabs Styling */
-    .admission-nav {
+    /* REMOVED Custom Navigation Tabs Styling */
+    /* REMOVED .admission-nav ... */
+    /* REMOVED .admission-nav .nav-tabs ... */
+    /* REMOVED .admission-nav .nav-tabs > li ... */
+    /* REMOVED .admission-nav .nav-tabs > li > a ... */
+    /* REMOVED .admission-nav .nav-tabs > li > a i ... */
+    /* REMOVED .admission-nav .nav-tabs > li > a:hover ... */
+    /* REMOVED .admission-nav .nav-tabs > li.active > a ... */
+    /* REMOVED .admission-nav .nav-tabs > li > a::after ... */
+    /* REMOVED .admission-nav .nav-tabs > li > a:hover::after ... */
+
+    /* Tab Content Styling - Adjusted for single page */
+    .tab-content { /* This class can be kept as a general form container if desired */
         background: #fff;
-        padding: 15px 15px 0;
-        border-radius: 8px 8px 0 0;
+        padding: 30px;
         border: 1px solid #e0e0e0;
-        border-bottom: none;
+        /* border-top: none; */ /* No longer needed as there are no tabs above */
+        border-radius: 8px; /* Can be adjusted or removed */
     }
+    /* REMOVED .tab-content > .tab-pane ... */
+    /* REMOVED .tab-content > .tab-pane.active ... */
 
-    .admission-nav .nav-tabs {
-        border-bottom: none;
-        display: flex;
-        gap: 10px;
-    }
-
-    .admission-nav .nav-tabs > li {
-        margin-bottom: 0;
-        flex: 1;
-        text-align: center;
-    }
-
-    .admission-nav .nav-tabs > li > a {
-        margin: 0;
-        padding: 15px;
-        border-radius: 8px 8px 0 0;
-        color: #555;
-        font-size: 15px;
-        font-weight: 500;
-        border: 2px solid transparent;
-        transition: all 0.3s ease;
-        background: #f8f9fa;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .admission-nav .nav-tabs > li > a i {
-        margin-right: 8px;
-        font-size: 18px;
-        vertical-align: middle;
-    }
-
-    .admission-nav .nav-tabs > li > a:hover {
-        background: #e9ecef;
-        border-color: #e9ecef;
-        color: #333;
-    }
-
-    .admission-nav .nav-tabs > li.active > a,
-    .admission-nav .nav-tabs > li.active > a:focus,
-    .admission-nav .nav-tabs > li.active > a:hover {
-        border: 2px solid #2196F3;
-        border-bottom: 2px solid #2196F3;
-        background: #2196F3;
-        color: #fff;
-    }
-
-    .admission-nav .nav-tabs > li > a::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 0;
-        height: 3px;
-        background: #2196F3;
-        transition: width 0.3s ease;
-    }
-
-    .admission-nav .nav-tabs > li > a:hover::after {
-        width: 100%;
-    }
-
-    /* Tab Content Styling */
-    .tab-content > .tab-pane {
-        display: none;
-    }
-    .tab-content > .active { /* This is for the active tab-pane */
-        display: block;
-    }
-
-    /* Progress indicator */
-    .progress-indicator {
-        display: flex;
-        justify-content: space-between;
-        margin: 20px 0;
-        position: relative;
-        padding: 0 50px;
-    }
-
-    .progress-indicator::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: #e0e0e0;
-        transform: translateY(-50%);
-        z-index: 1;
-    }
-
-    .progress-step {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: #fff;
-        border: 2px solid #e0e0e0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        color: #666;
-        position: relative;
-        z-index: 2;
-    }
-
-    .progress-step.active {
-        background: #2196F3;
-        border-color: #2196F3;
-        color: #fff;
-    }
-
-    .progress-step.completed {
-        background: #4CAF50;
-        border-color: #4CAF50;
-        color: #fff;
-    }
+    /* REMOVED Progress indicator styles */
+    /* REMOVED .progress-indicator ... */
+    /* REMOVED .progress-indicator::before ... */
+    /* REMOVED .progress-step ... */
+    /* REMOVED .progress-step.active ... */
+    /* REMOVED .progress-step.completed ... */
 
     /* Form Section Styling */
     .form-section-title {
@@ -231,14 +133,6 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
         padding: 0;
     }
 
-    .tab-content {
-        background: #fff;
-        padding: 30px;
-        border: 1px solid #e0e0e0;
-        border-top: none;
-        border-radius: 0 0 8px 8px;
-    }
-
     /* Form Styling */
     .form-group {
         margin-bottom: 25px;
@@ -271,8 +165,8 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
             color: #000;
         }
         
-        .admission-nav, 
-        .nav-buttons,
+        /* .admission-nav, REMOVED */ 
+        .nav-buttons, /* Keep for print unless all buttons are no-print */
         .header, 
         .sidebar,
         .page-wrapper,
@@ -280,11 +174,11 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
             display: none !important;
         }
         
-        .tab-content > .tab-pane {
-            display: block !important;
-            opacity: 1 !important;
-            visibility: visible !important;
+        .tab-content { /* Ensure main content area is styled for printing */
+            border: none !important; 
+            padding: 0 !important;
         }
+        /* REMOVED .tab-content > .tab-pane ... for print */
         
         .form-section-title {
             padding: 8px;
@@ -331,8 +225,8 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
             margin-bottom: 20px;
         }
         
-        /* Page breaks */
-        #parent {
+        /* Page breaks - these might need to be re-evaluated or removed if content flow changes significantly */
+        /* #parent { 
             page-break-before: always;
         }
         
@@ -342,7 +236,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
         
         #documents {
             page-break-before: always;
-        }
+        } */
     }
 </style>
 
@@ -375,44 +269,10 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 
                     <?php echo form_open(base_url() . 'admin/student/update/' . $student_id, array('class' => 'form-horizontal form-groups-bordered validate', 'enctype' => 'multipart/form-data', 'id' => 'student-edit-form', 'onsubmit' => 'return validateForm();')); ?>
 
-                    <!-- Progress Indicator -->
-                    <div class="progress-indicator">
-                        <div class="progress-step <?php echo $activeTab == 'student' ? 'active' : ($activeTab == 'parent' || $activeTab == 'transport' || $activeTab == 'documents' ? 'completed' : ''); ?>">1</div>
-                        <div class="progress-step <?php echo $activeTab == 'parent' ? 'active' : ($activeTab == 'transport' || $activeTab == 'documents' ? 'completed' : ''); ?>">2</div>
-                        <div class="progress-step <?php echo $activeTab == 'transport' ? 'active' : ($activeTab == 'documents' ? 'completed' : ''); ?>">3</div>
-                        <div class="progress-step <?php echo $activeTab == 'documents' ? 'active' : ''; ?>">4</div>
-                    </div>
-
-                    <!-- Navigation Tabs -->
-                    <div class="admission-nav">
-                        <ul class="nav nav-tabs">
-                            <li class="<?php echo $activeTab == 'student' ? 'active' : ''; ?>">
-                                <a href="#student" data-toggle="tab">
-                                    <i class="fa fa-user"></i> <?php echo get_phrase('Student Information'); ?>
-                                </a>
-                            </li>
-                            <li class="<?php echo $activeTab == 'parent' ? 'active' : ''; ?>">
-                                <a href="#parent" data-toggle="tab">
-                                    <i class="fa fa-users"></i> <?php echo get_phrase('Parent Information'); ?>
-                                </a>
-                            </li>
-                            <li class="<?php echo $activeTab == 'transport' ? 'active' : ''; ?>">
-                                <a href="#transport" data-toggle="tab">
-                                    <i class="fa fa-bus"></i> <?php echo get_phrase('Transport & Facilities'); ?>
-                                </a>
-                            </li>
-                            <li class="<?php echo $activeTab == 'documents' ? 'active' : ''; ?>">
-                                <a href="#documents" data-toggle="tab">
-                                    <i class="fa fa-file-text"></i> <?php echo get_phrase('Documents'); ?>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-
                     <!-- Tab Content -->
-                    <div class="tab-content">
-                        <!-- Student Information Tab -->
-                        <div class="tab-pane <?php echo $activeTab == 'student' ? 'active' : ''; ?>" id="student">
+                    <div class="tab-content"> <!-- This div might be kept as a general container or removed later if not needed -->
+                        <!-- Student Information Tab CONTENT STARTS -->
+                        <!-- <div class="tab-pane <?php echo $activeTab == 'student' ? 'active' : ''; ?>" id="student"> -->
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="alert alert-info">
@@ -740,15 +600,12 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                  <div class="col-md-4">
                                      <div class="form-group">
                                          <label class="col-md-12"><?php echo get_phrase('pincode');?></label>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label class="col-md-12"><?php echo get_phrase('pincode');?></label>
-                                        <div class="col-sm-12">
+                                         <div class="col-sm-12">
                                             <input type="text" class="form-control" name="pincode" value="<?php echo isset($student['pincode']) ? $student['pincode'] : ''; ?>" pattern="[0-9]{6}" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                                             <small class="text-muted"><?php echo get_phrase('Enter 6-digit pincode'); ?></small>
                                         </div>
-                                    </div>
-                                </div>
+                                     </div>
+                                 </div>
                             </div>
                             
                             <div class="form-section-title">
@@ -820,15 +677,15 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 					</div>
 					
                             <!-- Navigation Buttons -->
-                            <div class="nav-buttons">
+                            <!-- <div class="nav-buttons">
                                 <button type="button" class="btn btn-next next-tab" data-next="parent">
                                     <i class="fa fa-arrow-right"></i> <?php echo get_phrase('Next: Parent Information'); ?>
                                 </button>
-                            </div>
-                        </div>
+                            </div> -->
+                        <!-- </div> --> <!-- Student Information Tab CONTENT ENDS -->
 
-                        <!-- Parent Information Tab -->
-                        <div class="tab-pane <?php echo $activeTab == 'parent' ? 'active' : ''; ?>" id="parent">
+                        <!-- Parent Information Tab CONTENT STARTS -->
+                        <!-- <div class="tab-pane <?php echo $activeTab == 'parent' ? 'active' : ''; ?>" id="parent"> -->
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="alert alert-info">
@@ -1168,18 +1025,18 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                             </div>
 
                             <!-- Navigation Buttons -->
-                            <div class="nav-buttons">
+                            <!-- <div class="nav-buttons">
                                 <button type="button" class="btn btn-prev prev-tab" data-prev="student">
                                     <i class="fa fa-arrow-left"></i> <?php echo get_phrase('Previous: Student Information'); ?>
                                 </button>
                                 <button type="button" class="btn btn-next next-tab" data-next="transport">
                                     <i class="fa fa-arrow-right"></i> <?php echo get_phrase('Next: Transport & Facilities'); ?>
                                 </button>
-                            </div>
-                        </div>
+                            </div> -->
+                        <!-- </div> --> <!-- Parent Information Tab CONTENT ENDS -->
 
-                        <!-- Transport & Facilities Tab -->
-                        <div class="tab-pane <?php echo $activeTab == 'transport' ? 'active' : ''; ?>" id="transport">
+                        <!-- Transport & Facilities Tab CONTENT STARTS -->
+                        <!-- <div class="tab-pane <?php echo $activeTab == 'transport' ? 'active' : ''; ?>" id="transport"> -->
                             <div class="form-section-title">
                                 <i class="fa fa-bus"></i> <?php echo get_phrase('Transport Details'); ?>
                             </div>
@@ -1411,14 +1268,14 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 					</div>
 					
                             <!-- Navigation Buttons -->
-                            <div class="nav-buttons">
+                            <!-- <div class="nav-buttons">
                                 <button type="button" class="btn btn-prev prev-tab" data-prev="parent">
                                     <i class="fa fa-arrow-left"></i> <?php echo get_phrase('Previous: Parent Information'); ?>
                                 </button>
                                 <button type="button" class="btn btn-next next-tab" data-next="documents">
                                     <i class="fa fa-arrow-right"></i> <?php echo get_phrase('Next: Documents'); ?>
                                 </button>
-                            </div>
+                            </div> -->
 
                             <script type="text/javascript">
                             $(document).ready(function() {
@@ -1445,10 +1302,10 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                                 });
                             });
                             </script>
-                        </div>
+                        <!-- </div> --> <!-- Transport & Facilities Tab CONTENT ENDS -->
 
-                        <!-- Documents Tab -->
-                        <div class="tab-pane <?php echo $activeTab == 'documents' ? 'active' : ''; ?>" id="documents">
+                        <!-- Documents Tab CONTENT STARTS -->
+                        <!-- <div class="tab-pane <?php echo $activeTab == 'documents' ? 'active' : ''; ?>" id="documents"> -->
                             <div class="form-section-title">
                                 <i class="fa fa-file-text"></i> <?php echo get_phrase('Documents'); ?>
                             </div>
@@ -1748,15 +1605,25 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
                             </div> -->
                             
                             <!-- Navigation Buttons -->
-                            <div class="nav-buttons">
+                            <!-- <div class="nav-buttons">
                                 <button type="button" class="btn btn-prev prev-tab" data-prev="transport">
                                     <i class="fa fa-arrow-left"></i> <?php echo get_phrase('Previous: Transport & Facilities'); ?>
                                 </button>
                                 <button type="submit" class="btn btn-save">
                                     <i class="fa fa-save"></i> <?php echo get_phrase('Update Student'); ?>
                                 </button>
-                            </div>
-                        </div>
+                            </div> -->
+                        <!-- </div> --> <!-- Documents Tab CONTENT ENDS -->
+                    </div>
+
+                    <!-- Final Navigation Buttons -->
+                    <div class="nav-buttons" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 15px;">
+                        <button type="button" class="btn btn-print" onclick="printStudentForm();">
+                            <i class="fa fa-print"></i> <?php echo get_phrase('Print'); ?>
+                        </button>
+                        <button type="submit" class="btn btn-save">
+                            <i class="fa fa-save"></i> <?php echo get_phrase('Update Student'); ?>
+                        </button>
                     </div>
 
                     <?php echo form_close(); ?>
@@ -1767,132 +1634,50 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
 </div>
 
 <script type="text/javascript">
-    // Tab navigation
+    // Tab navigation REMOVED
     $(document).ready(function() {
-        // Next tab button click
-        $(document).on('click', '.next-tab', function() {
-            var nextTab = $(this).data('next');
-            $('.nav-tabs a[href="#' + nextTab + '"]').tab('show');
-            
-            // Update URL to maintain tab on refresh
-            var url = window.location.href.split('?')[0];
-            history.pushState({}, '', url + '?tab=' + nextTab);
-            
-            // Update progress steps
-            updateProgressSteps(nextTab);
-            
-            // Scroll to top of form for better UX
-            scrollToFormTop();
-        });
+        // Next tab button click REMOVED
+        // Previous tab button click REMOVED
+        // Tab click handler REMOVED
+        // Function to scroll to top of form REMOVED
+        // function updateProgressSteps REMOVED
+        // function initializeTabs REMOVED
+        // Run initialization REMOVED
         
-        // Previous tab button click
-        $(document).on('click', '.prev-tab', function() {
-            var prevTab = $(this).data('prev');
-            $('.nav-tabs a[href="#' + prevTab + '"]').tab('show');
-            
-            // Update URL to maintain tab on refresh
-            var url = window.location.href.split('?')[0];
-            history.pushState({}, '', url + '?tab=' + prevTab);
-            
-            // Update progress steps
-            updateProgressSteps(prevTab);
-            
-            // Scroll to top of form for better UX
-            scrollToFormTop();
-        });
-        
-        // Tab click handler
-        $('.nav-tabs a').click(function(e) {
-            e.preventDefault();
-            $(this).tab('show');
-            
-            var tab = $(this).attr('href').replace('#', '');
-            
-            // Update URL to maintain tab on refresh
-            var url = window.location.href.split('?')[0];
-            history.pushState({}, '', url + '?tab=' + tab);
-            
-            // Update progress steps
-            updateProgressSteps(tab);
-        });
-        
-        // Function to scroll to top of form
-        function scrollToFormTop() {
-            $('html, body').animate({
-                scrollTop: $(".admission-nav").offset().top - 20
-            }, 300);
-        }
-        
-        function updateProgressSteps(activeTab) {
-            // Reset all steps
-            $('.progress-step').removeClass('active completed');
-            
-            if (activeTab == 'student') {
-                $('.progress-step:eq(0)').addClass('active');
-            } else if (activeTab == 'parent') {
-                $('.progress-step:eq(0)').addClass('completed');
-                $('.progress-step:eq(1)').addClass('active');
-            } else if (activeTab == 'transport') {
-                $('.progress-step:eq(0)').addClass('completed');
-                $('.progress-step:eq(1)').addClass('completed');
-                $('.progress-step:eq(2)').addClass('active');
-            } else if (activeTab == 'documents') {
-                $('.progress-step:eq(0)').addClass('completed');
-                $('.progress-step:eq(1)').addClass('completed');
-                $('.progress-step:eq(2)').addClass('completed');
-                $('.progress-step:eq(3)').addClass('active');
-            }
-        }
-        
-        // Initialize tab system
-        function initializeTabs() {
-            // Get active tab from URL or default to 'student'
-            var initialTab = '<?php echo $activeTab; ?>';
-            
-            // Activate the correct tab
-            $('.nav-tabs a[href="#' + initialTab + '"]').tab('show');
-            
-            // Update progress steps
-            updateProgressSteps(initialTab);
-        }
-        
-        // Run initialization
-        initializeTabs();
-        
-        // Form validation handling for tab navigation
+        // Form validation handling for tab navigation - ADJUSTED
         $('form').on('submit', function(e) {
             var isValid = true;
+            var firstInvalidElement = null;
             
-            // Check for validation errors in all tabs
-            $('.tab-pane').each(function() {
-                var tabPane = $(this);
-                
-                // Find all required inputs in this tab
-                var requiredFields = tabPane.find(':input[required]');
-                
-                // Check each required field
-                requiredFields.each(function() {
-                    if (!this.checkValidity()) {
-                        // If we found an invalid field, activate this tab
-                        $('.nav-tabs a[href="#' + tabPane.attr('id') + '"]').tab('show');
-                        
-                        // Focus on the first invalid element
-                        $(this).focus();
-                        isValid = false;
-                        return false; // break the each loop
+            // Check for validation errors in all form elements
+            // Find all required inputs
+            var requiredFields = $(this).find(':input[required]');
+            
+            // Check each required field
+            requiredFields.each(function() {
+                if (!this.checkValidity()) {
+                    if (!firstInvalidElement) {
+                        firstInvalidElement = $(this);
                     }
-                });
-                
-                if (!isValid) {
-                    return false; // break the tab-pane each loop
+                    isValid = false;
+                    // Add some visual indication if needed, e.g., $(this).addClass('is-invalid');
+                } else {
+                    // Remove visual indication if valid, e.g., $(this).removeClass('is-invalid');
                 }
             });
             
             if (!isValid) {
+                if (firstInvalidElement) {
+                    firstInvalidElement.focus(); // Focus on the first invalid element
+                }
+                // If using the error display container, update it here
+                // Example: $('#form-validation-errors').show(); $('#error-list').html('<li>Please fill all required fields.</li>');
+
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
             }
+            // The existing validateForm() function will handle detailed error messages and scrolling
         });
 
         // Initialize sections when page loads for class_id
@@ -2113,6 +1898,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
         
         var errors = [];
         var isValid = true;
+        var firstInvalidElement = null; // To focus on the first error
         
         // Required fields validation
         var requiredFields = {
@@ -2130,13 +1916,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
             if (!value || value.trim() === '' || (fieldName === 'class_id' && value === '')) {
                 errors.push(fieldLabel + ' is required');
                 $field.addClass('is-invalid');
-                
-                // Show the tab with the error
-                var tabId = $field.closest('.tab-pane').attr('id');
-                if (tabId) {
-                    $('.nav-tabs a[href="#' + tabId + '"]').tab('show');
-                }
-                
+                if (!firstInvalidElement) firstInvalidElement = $field; // Capture first error field
                 isValid = false;
             } else {
                 $field.removeClass('is-invalid');
@@ -2151,6 +1931,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
         if (studentEmail && !emailRegex.test(studentEmail)) {
             errors.push('Please enter a valid Student Email address');
             $('[name="email"]').addClass('is-invalid');
+            if (!firstInvalidElement) firstInvalidElement = $('[name="email"]');
             isValid = false;
         }
         
@@ -2159,6 +1940,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
         if (fatherEmail && !emailRegex.test(fatherEmail)) {
             errors.push('Please enter a valid Father\'s Email address');
             $('[name="father_email"]').addClass('is-invalid');
+            if (!firstInvalidElement) firstInvalidElement = $('[name="father_email"]');
             isValid = false;
         }
         
@@ -2167,6 +1949,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
         if (motherEmail && !emailRegex.test(motherEmail)) {
             errors.push('Please enter a valid Mother\'s Email address');
             $('[name="mother_email"]').addClass('is-invalid');
+            if (!firstInvalidElement) firstInvalidElement = $('[name="mother_email"]');
             isValid = false;
         }
         
@@ -2178,6 +1961,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
         if (fatherPhone && !phoneRegex.test(fatherPhone)) {
             errors.push('Father\'s Phone must be a 10-digit number');
             $('[name="father_phone"]').addClass('is-invalid');
+            if (!firstInvalidElement) firstInvalidElement = $('[name="father_phone"]');
             isValid = false;
         }
         
@@ -2186,6 +1970,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
         if (motherPhone && !phoneRegex.test(motherPhone)) {
             errors.push('Mother\'s Phone must be a 10-digit number');
             $('[name="mother_phone"]').addClass('is-invalid');
+            if (!firstInvalidElement) firstInvalidElement = $('[name="mother_phone"]');
             isValid = false;
         }
         
@@ -2194,6 +1979,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
         if (password && password.length < 6) {
             errors.push('Password must be at least 6 characters long');
             $('[name="password"]').addClass('is-invalid');
+            if (!firstInvalidElement) firstInvalidElement = $('[name="password"]');
             isValid = false;
         }
         
@@ -2215,6 +2001,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
             if (file.size > 5 * 1024 * 1024) {
                 errors.push('Student Photo size exceeds 5MB limit');
                 $(fileInput).addClass('is-invalid');
+                if (!firstInvalidElement) firstInvalidElement = $(fileInput);
                 isValid = false;
             }
             
@@ -2223,6 +2010,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
             if (!allowedTypes.includes(file.type)) {
                 errors.push('Student Photo must be JPG, JPEG, or PNG format');
                 $(fileInput).addClass('is-invalid');
+                if (!firstInvalidElement) firstInvalidElement = $(fileInput);
                 isValid = false;
             }
         }
@@ -2233,6 +2021,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
         if (aadharNo && !aadharRegex.test(aadharNo)) {
             errors.push('Aadhar Card Number must be a 12-digit number');
             $('[name="adhar_no"]').addClass('is-invalid');
+            if (!firstInvalidElement) firstInvalidElement = $('[name="adhar_no"]');
             isValid = false;
         }
         
@@ -2245,10 +2034,16 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'student';
             });
             $('#form-validation-errors').show();
             
-            // Scroll to error container
-            $('html, body').animate({
-                scrollTop: $('#form-validation-errors').offset().top - 100
-            }, 300);
+            // Scroll to error container or first invalid field
+            if (firstInvalidElement) {
+                 $('html, body').animate({
+                    scrollTop: firstInvalidElement.offset().top - 100 
+                }, 300);
+            } else {
+                $('html, body').animate({
+                    scrollTop: $('#form-validation-errors').offset().top - 100
+                }, 300);
+            }
         } else {
             // If everything is valid, show loading overlay
             showLoadingOverlay();
